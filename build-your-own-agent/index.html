@@ -422,53 +422,62 @@ table.t.micro .note { display: block; margin-top: 0; font-size: 8.6px; color: #7
 <section class="slide" data-ch="开篇" data-title="核心观点：结论先行">
   <div class="s-head">
     <div class="s-kicker"><span class="dot"></span>核心观点 · 先说结论</div>
-    <h1 class="s-title">如果这场只记住五句话，是这五句</h1>
-    <div class="s-sub">后面 30 多页都是在给这五句话找证据。你可以先看结论，再决定哪一章值得细看。</div>
+    <h1 class="s-title">如果这场只记住七句话，是这七句</h1>
+    <div class="s-sub">后面 30 多页都是在给这七句话找证据。你可以先看结论，再决定哪一章值得细看。</div>
   </div>
 
   <div class="s-body">
     <div class="figure plain">
       <svg viewBox="0 0 1160 502" xmlns="http://www.w3.org/2000/svg">
-          <g transform="translate(-15.5,9.7) scale(1.0268)">
-        <!-- ① -->
-        <rect x="20" y="14" width="1120" height="82" rx="9" fill="#0f172a"/>
-        <rect x="20" y="14" width="1120" height="82" rx="9" fill="rgba(8,51,68,.4)" stroke="#22d3ee" stroke-width="2"/>
-        <text x="46" y="52" fill="#22d3ee" font-size="26" font-weight="700">01</text>
-        <text x="96" y="48" fill="#fff" font-size="17" font-weight="700">模型决定能力上限，harness 决定你能兑现多少</text>
-        <text x="96" y="72" fill="#94a3b8" font-size="10.5">有受控实验：16 个模型 × 180 个真实修 bug 任务，<tspan fill="#fff">只换"编辑工具格式"一个变量</tspan> ——</text>
-        <text x="96" y="88" fill="#94a3b8" font-size="10.5">同一个模型从 <tspan fill="#fb7185" font-weight="700">6.7%</tspan> 变成 <tspan fill="#34d399" font-weight="700">68.3%</tspan>，全体平均 +15 个百分点。<tspan fill="#64748b">→ 第 13 页</tspan></text>
+        <!-- ① 定义判据 -->
+        <rect x="20" y="2" width="1120" height="64" rx="9" fill="#0f172a"/>
+        <rect x="20" y="2" width="1120" height="64" rx="9" fill="rgba(8,51,68,.4)" stroke="#22d3ee" stroke-width="2"/>
+        <text x="46" y="42" fill="#22d3ee" font-size="24" font-weight="700">01</text>
+        <text x="96" y="30" fill="#fff" font-size="16" font-weight="700">判断一个系统是不是 agent，只看下一步由代码写死、还是模型现场决定</text>
+        <text x="96" y="52" fill="#94a3b8" font-size="10.5">这是全场唯一的定义判据，也是后面所有取舍的坐标轴。<tspan fill="#fff">决策权是一条连续谱，不是一个标签。</tspan><tspan fill="#64748b">　→ 第 7 页</tspan></text>
 
-        <!-- ② -->
-        <rect x="20" y="108" width="1120" height="76" rx="9" fill="#0f172a"/>
-        <rect x="20" y="108" width="1120" height="76" rx="9" fill="rgba(76,29,149,.4)" stroke="#a78bfa" stroke-width="2"/>
-        <text x="46" y="146" fill="#a78bfa" font-size="26" font-weight="700">02</text>
-        <text x="96" y="142" fill="#fff" font-size="17" font-weight="700">上下文是预算，不是仓库</text>
-        <text x="96" y="168" fill="#94a3b8" font-size="10.5">窗口里每个 token 都要和其余所有 token 建立关系，注意力是被摊薄的。<tspan fill="#fff">所有 context engineering 都是这一句的推论。</tspan><tspan fill="#64748b">　→ 第 17 页</tspan></text>
+        <!-- ② harness -->
+        <rect x="20" y="74" width="1120" height="64" rx="9" fill="#0f172a"/>
+        <rect x="20" y="74" width="1120" height="64" rx="9" fill="rgba(6,78,59,.4)" stroke="#34d399" stroke-width="2"/>
+        <text x="46" y="114" fill="#34d399" font-size="24" font-weight="700">02</text>
+        <text x="96" y="102" fill="#fff" font-size="16" font-weight="700">模型决定能力上限，harness 决定你能兑现多少 —— 而那一份，只可能是你自己的</text>
+        <text x="96" y="124" fill="#94a3b8" font-size="10.5">受控实验里最弱的模型 <tspan fill="#fb7185" font-weight="700">6.7%</tspan> → <tspan fill="#34d399" font-weight="700">68.3%</tspan>；但官方榜 22 个模型换 harness 的<tspan fill="#fff">中位数只挪动 5.39 分</tspan>。<tspan fill="#fff">主项买不到差异化，次项才是你的。</tspan><tspan fill="#64748b">　→ 第 13 页</tspan></text>
 
-        <!-- ③ -->
-        <rect x="20" y="196" width="1120" height="76" rx="9" fill="#0f172a"/>
-        <rect x="20" y="196" width="1120" height="76" rx="9" fill="rgba(6,78,59,.4)" stroke="#34d399" stroke-width="2"/>
-        <text x="46" y="234" fill="#34d399" font-size="26" font-weight="700">03</text>
-        <text x="96" y="230" fill="#fff" font-size="17" font-weight="700">能写死的就别让模型猜</text>
-        <text x="96" y="256" fill="#94a3b8" font-size="10.5">绝大多数"我需要一个 agent"的需求，其实是五种 workflow 模式之一 —— <tspan fill="#fff">更便宜、更可控、更好排查</tspan>。<tspan fill="#64748b">　→ 第 21 页</tspan></text>
+        <!-- ③ 上下文 -->
+        <rect x="20" y="146" width="1120" height="64" rx="9" fill="#0f172a"/>
+        <rect x="20" y="146" width="1120" height="64" rx="9" fill="rgba(76,29,149,.4)" stroke="#a78bfa" stroke-width="2"/>
+        <text x="46" y="186" fill="#a78bfa" font-size="24" font-weight="700">03</text>
+        <text x="96" y="174" fill="#fff" font-size="16" font-weight="700">上下文是注意力预算，不是仓库 —— 窗口装得下，不代表模型找得到</text>
+        <text x="96" y="196" fill="#94a3b8" font-size="10.5">只多放一个干扰项，成绩就低于 baseline。<tspan fill="#fff">所有 context engineering 都是这一句的推论。</tspan><tspan fill="#64748b">　→ 第 18 页</tspan></text>
 
-        <!-- ④ -->
-        <rect x="20" y="284" width="1120" height="76" rx="9" fill="#0f172a"/>
-        <rect x="20" y="284" width="1120" height="76" rx="9" fill="rgba(120,53,15,.35)" stroke="#fbbf24" stroke-width="2"/>
-        <text x="46" y="322" fill="#fbbf24" font-size="26" font-weight="700">04</text>
-        <text x="96" y="318" fill="#fff" font-size="17" font-weight="700">你能给自己的领域造出验证器，agent 才真的能进来</text>
-        <text x="96" y="344" fill="#94a3b8" font-size="10.5">coding 先落地，不是因为程序员多，是因为<tspan fill="#fff">编译器和测试天然就是验证器</tspan>。没有验证器的领域，agent 只会自信地胡说。<tspan fill="#64748b">　→ 第 26 页</tspan></text>
+        <!-- ④ 写死 -->
+        <rect x="20" y="218" width="1120" height="64" rx="9" fill="#0f172a"/>
+        <rect x="20" y="218" width="1120" height="64" rx="9" fill="rgba(120,53,15,.35)" stroke="#fbbf24" stroke-width="2"/>
+        <text x="46" y="258" fill="#fbbf24" font-size="24" font-weight="700">04</text>
+        <text x="96" y="246" fill="#fff" font-size="16" font-weight="700">别问该不该上 agent，要问这一段决策能不能写死</text>
+        <text x="96" y="268" fill="#94a3b8" font-size="10.5">大多数「我需要一个 agent」其实是五种 workflow 模式之一。<tspan fill="#fff">正解通常是 workflow 骨架 + 局部 agent。</tspan><tspan fill="#64748b">　→ 第 22 页</tspan></text>
 
-        <!-- ⑤ -->
-        <rect x="20" y="372" width="1120" height="84" rx="9" fill="#0f172a"/>
-        <rect x="20" y="372" width="1120" height="84" rx="9" fill="rgba(136,19,55,.4)" stroke="#fb7185" stroke-width="2"/>
-        <text x="46" y="412" fill="#fb7185" font-size="26" font-weight="700">05</text>
-        <text x="96" y="406" fill="#fff" font-size="17" font-weight="700">模型是租来的，工具是现成的 —— 但那层壳只能自己焊</text>
-        <text x="96" y="432" fill="#94a3b8" font-size="10.5">这就是为什么值得自己造一个。pi 官网那句话说得最准：</text>
-        <text x="96" y="450" fill="#22d3ee" font-size="12" font-weight="600">"There are many agent harnesses but this one is yours"<tspan fill="#64748b" font-size="10.5" font-weight="400">　→ 第 30 页 / 第 37 页</tspan></text>
-      
-          </g>
-        </svg>
+        <!-- ⑤ 生成/评判分离 -->
+        <rect x="20" y="290" width="1120" height="64" rx="9" fill="#0f172a"/>
+        <rect x="20" y="290" width="1120" height="64" rx="9" fill="rgba(124,45,18,.35)" stroke="#fb923c" stroke-width="2"/>
+        <text x="46" y="330" fill="#fb923c" font-size="24" font-weight="700">05</text>
+        <text x="96" y="318" fill="#fff" font-size="16" font-weight="700">让模型自评，它只会自我吹捧 —— 生成与评判必须结构性地分开</text>
+        <text x="96" y="340" fill="#94a3b8" font-size="10.5">这是全场唯一一条<tspan fill="#fff">更强的模型也解决不了</tspan>的结论：evaluator 之所以有用，是因为它没有沉没成本偏见。<tspan fill="#64748b">　→ 第 23 页 / 第 25 页</tspan></text>
+
+        <!-- ⑥ 验证器 -->
+        <rect x="20" y="362" width="1120" height="64" rx="9" fill="#0f172a"/>
+        <rect x="20" y="362" width="1120" height="64" rx="9" fill="rgba(22,78,99,.4)" stroke="#22d3ee" stroke-width="2"/>
+        <text x="46" y="402" fill="#22d3ee" font-size="24" font-weight="700">06</text>
+        <text x="96" y="390" fill="#fff" font-size="16" font-weight="700">你能给自己的领域造出验证器，agent 才真的能进来</text>
+        <text x="96" y="412" fill="#94a3b8" font-size="10.5">coding 先落地不是因为程序员多，是<tspan fill="#fff">编译器和测试天然就是验证器</tspan>；而且必须是 <tspan fill="#fff">agent 够不着的验证器</tspan> —— 它看得见的会退化成优化目标。<tspan fill="#64748b">　→ 第 27 页</tspan></text>
+
+        <!-- ⑦ 那层壳 -->
+        <rect x="20" y="434" width="1120" height="64" rx="9" fill="#0f172a"/>
+        <rect x="20" y="434" width="1120" height="64" rx="9" fill="rgba(136,19,55,.4)" stroke="#fb7185" stroke-width="2"/>
+        <text x="46" y="474" fill="#fb7185" font-size="24" font-weight="700">07</text>
+        <text x="96" y="462" fill="#fff" font-size="16" font-weight="700">模型是租来的，工具是现成的 —— 但那层壳只能自己焊</text>
+        <text x="96" y="484" fill="#94a3b8" font-size="10.5">通用层已经被开源做完了，剩下的是<tspan fill="#fff">只有内行才知道的那层约束</tspan>。<tspan fill="#22d3ee">"There are many agent harnesses but this one is yours"</tspan><tspan fill="#64748b">　→ 第 31 页 / 第 39 页</tspan></text>
+      </svg>
     </div>
   </div>
 
@@ -511,8 +520,8 @@ table.t.micro .note { display: block; margin-top: 0; font-size: 8.6px; color: #7
         <div class="card-head"><span class="card-dot amber"></span><h3>我认为最值钱的三个点</h3></div>
         <ul>
           <li><strong>那场受控实验</strong>（第 13 页）—— 它把"harness 有没有用"从口水仗变成了可复现的数字</li>
-          <li><strong>相隔 24 小时的两篇对撞</strong>（第 22 页）—— 多智能体该不该做，两家顶尖团队公开打架，10 个月后一方改口。这段完整呈现比任何结论都有价值</li>
-          <li><strong>FORK.md 的 tier 成本模型</strong>（第 31 页）—— 把"维护深度 fork"从英雄主义问题变成可优化的成本函数。<em>这一页值得单独抄走</em></li>
+          <li><strong>相隔 24 小时的两篇对撞</strong>（第 23 页）—— 多智能体该不该做，两家顶尖团队公开打架，10 个月后一方改口。这段完整呈现比任何结论都有价值</li>
+          <li><strong>FORK.md 的 tier 成本模型</strong>（第 32 页）—— 把"维护深度 fork"从英雄主义问题变成可优化的成本函数。<em>这一页值得单独抄走</em></li>
         </ul>
       </div>
 
@@ -537,10 +546,10 @@ table.t.micro .note { display: block; margin-top: 0; font-size: 8.6px; color: #7
   </div>
 </section>
 <!-- ===== s02-toc.html ===== -->
-<section class="slide" data-ch="开篇" data-title="目录：七章 37 页">
+<section class="slide" data-ch="开篇" data-title="目录：七章 39 页">
   <div class="s-head">
     <div class="s-kicker"><span class="dot"></span>目录 · CONTENTS</div>
-    <h1 class="s-title">七章 · 37 页 · 每章只回答<span class="hl">一个问题</span></h1>
+    <h1 class="s-title">七章 · 39 页 · 每章只回答<span class="hl">一个问题</span></h1>
     <div class="s-sub">上一章的答案，是下一章的前提。时间不够的话，<b style="color:#e2e8f0">CH3 和 CH7 是本场的重心</b>。</div>
   </div>
 
@@ -548,7 +557,7 @@ table.t.micro .note { display: block; margin-top: 0; font-size: 8.6px; color: #7
     <div class="toc">
 
       <div class="toc-ch cyan">
-        <div class="toc-hd"><span class="no">CH 1</span><span class="nm">定义</span><span class="pg">P05 – 07</span></div>
+        <div class="toc-hd"><span class="no">CH 1</span><span class="nm">定义</span><span class="pg">P5 – 07</span></div>
         <div class="toc-q">Agent 到底是什么？和 workflow 差在哪？</div>
         <ul class="toc-items">
           <li><span class="p">06</span><b>什么是 Agent</b> —— 能自己决定下一步的循环</li>
@@ -557,7 +566,7 @@ table.t.micro .note { display: block; margin-top: 0; font-size: 8.6px; color: #7
       </div>
 
       <div class="toc-ch rose">
-        <div class="toc-hd"><span class="no">CH 4</span><span class="nm">场景</span><span class="pg">P25 – 26</span></div>
+        <div class="toc-hd"><span class="no">CH 4</span><span class="nm">场景</span><span class="pg">P26 – 26</span></div>
         <div class="toc-q">什么时候该用，什么时候<em>千万别用</em>？</div>
         <ul class="toc-items">
           <li><span class="p">26</span><b>适用场景矩阵</b> —— 甜点区只有一格，另外三格都别硬上；四条硬红线</li>
@@ -565,7 +574,7 @@ table.t.micro .note { display: block; margin-top: 0; font-size: 8.6px; color: #7
       </div>
 
       <div class="toc-ch amber">
-        <div class="toc-hd"><span class="no">CH 2</span><span class="nm">演进</span><span class="pg">P08 – 11</span></div>
+        <div class="toc-hd"><span class="no">CH 2</span><span class="nm">演进</span><span class="pg">P8 – 11</span></div>
         <div class="toc-q">它是怎么一步步走到今天的？背后是哪些人？</div>
         <ul class="toc-items">
           <li><span class="p">09</span><b>演进 I（2022–2023）</b> —— 从会推理到会动手，然后撞墙</li>
@@ -575,7 +584,7 @@ table.t.micro .note { display: block; margin-top: 0; font-size: 8.6px; color: #7
       </div>
 
       <div class="toc-ch slate">
-        <div class="toc-hd"><span class="no">CH 5</span><span class="nm">全景</span><span class="pg">P27 – 28</span></div>
+        <div class="toc-hd"><span class="no">CH 5</span><span class="nm">全景</span><span class="pg">P28 – 28</span></div>
         <div class="toc-q">别人都怎么做的？我该选谁？</div>
         <ul class="toc-items">
           <li><span class="p">28</span><b>主流 coding agent 全景</b> —— 内核大小 × 开源程度，空着的那一格是个论点</li>
@@ -596,7 +605,7 @@ table.t.micro .note { display: block; margin-top: 0; font-size: 8.6px; color: #7
       </div>
 
       <div class="toc-ch emerald">
-        <div class="toc-hd"><span class="no">CH 6</span><span class="nm">样本</span><span class="pg">P29 – 31</span></div>
+        <div class="toc-hd"><span class="no">CH 6</span><span class="nm">样本</span><span class="pg">P30 – 31</span></div>
         <div class="toc-q">极客圈为什么偏爱 pi？oh my pi 又是什么？</div>
         <ul class="toc-items">
           <li><span class="p">30</span><b>pi 的"刻意不做"清单</b> —— 卖点是不做什么</li>
@@ -605,7 +614,7 @@ table.t.micro .note { display: block; margin-top: 0; font-size: 8.6px; color: #7
       </div>
 
       <div class="toc-ch orange" style="grid-column: 2">
-        <div class="toc-hd"><span class="no">CH 7</span><span class="nm">实践</span><span class="pg">P32 – 37　<em style="color:#fb923c">落点</em></span></div>
+        <div class="toc-hd"><span class="no">CH 7</span><span class="nm">实践</span><span class="pg">P33 – 37　<em style="color:#fb923c">落点</em></span></div>
         <div class="toc-q">我每天在用什么？我要造什么？为什么这事一个人就能干？</div>
         <ul class="toc-items">
           <li><span class="p">33</span><b>模型对照</b> —— 各家特点、上下文、价格、知识截止</li>
@@ -1896,6 +1905,100 @@ table.t.micro .note { display: block; margin-top: 0; font-size: 8.6px; color: #7
 
   <div class="s-foot">
     <span class="src">证据 · <b>pi-mono/packages/agent/src/harness/session/</b>（jsonl-store / fork / repository）· oh-my-pi <b>swarm-extension</b>（YAML DAG）</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s11b-loop-vs-graph.html ===== -->
+<section class="slide" data-ch="CH3 原理" data-title="Loop 派 vs Graph 派：争的不是数据结构，是「可停可续的最小单位」">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot emerald"></span>CH 3 · 原理 · L5 · 第二场对撞</div>
+    <h1 class="s-title">Loop 派 vs Graph 派：争的不是数据结构，是<span class="hl">「可停可续的最小单位」</span></h1>
+    <div class="s-sub">上一页把树和图当成两种互补能力。这一页说实话：它们背后是<b>两套对立的工程假设</b>。引爆点只有一句 —— <b>「这一轮结束了」，谁说了算。</b></div>
+  </div>
+
+  <div class="s-body">
+    <div class="figure plain">
+      <svg viewBox="0 0 1160 430" xmlns="http://www.w3.org/2000/svg">
+        <!-- 顶部：真分歧的题面 -->
+        <rect x="330" y="0" width="500" height="30" rx="6" fill="rgba(2,6,23,.7)" stroke="#334155" stroke-width="1"/>
+        <text x="580" y="20" fill="#cbd5e1" font-size="10.5" text-anchor="middle">真正的分歧：运行的<tspan fill="#fff" font-weight="700">「权威状态」</tspan>到底是什么</text>
+
+        <!-- 左：Loop 派 -->
+        <rect x="24" y="46" width="536" height="222" rx="9" fill="#0f172a"/>
+        <rect x="24" y="46" width="536" height="222" rx="9" fill="rgba(6,78,59,.32)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="44" y="68" fill="#34d399" font-size="9">循环派 · Claude Code / pi / OpenAI Agents SDK</text>
+        <text x="44" y="90" fill="#fff" font-size="13" font-weight="700">权威状态 = transcript（一条对话轨迹）</text>
+        <rect x="44" y="102" width="496" height="30" rx="5" fill="rgba(2,6,23,.6)" stroke="#1e293b" stroke-width="1"/>
+        <text x="56" y="122" fill="#34d399" font-size="9.5">判停：<tspan fill="#fff">模型这一轮不再要 tool_call</tspan> —— "until it produces a response with no tool calls"</text>
+        <text x="44" y="152" fill="#cbd5e1" font-size="9.5">① 可停可续的最小单位 = <tspan fill="#fff">一个 turn</tspan>；快照在 turn 边界重建</text>
+        <text x="44" y="172" fill="#cbd5e1" font-size="9.5">② 判停不是玄学：<tspan fill="#fff">5 种可枚举的 subtype</tspan>（收工 / 轮数上限 / terminate / 中断 / 出错）</text>
+        <text x="44" y="192" fill="#cbd5e1" font-size="9.5">③ 路径由模型现场决定 —— "LLMs <tspan fill="#fff">dynamically direct their own processes</tspan>"</text>
+        <text x="44" y="212" fill="#cbd5e1" font-size="9.5">④ 强项：<tspan fill="#fff">没法预先枚举的探索</tspan>。你说不出要查哪几个文件，它自己找</text>
+        <rect x="44" y="224" width="496" height="30" rx="5" fill="rgba(136,19,55,.28)" stroke="#fb7185" stroke-width="1"/>
+        <text x="56" y="243" fill="#fb7185" font-size="9">自承弱点：<tspan fill="#fecdd3">"non-deterministic between runs, even with identical prompts"</tspan></text>
+
+        <!-- 中缝 -->
+        <text x="580" y="164" fill="#475569" font-size="15" font-weight="700" text-anchor="middle">vs</text>
+        <path d="M 580 60 L 580 148 M 580 178 L 580 262" stroke="#1e293b" stroke-width="1" stroke-dasharray="3,4"/>
+
+        <!-- 右：Graph 派 -->
+        <rect x="600" y="46" width="536" height="222" rx="9" fill="#0f172a"/>
+        <rect x="600" y="46" width="536" height="222" rx="9" fill="rgba(76,29,149,.3)" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="620" y="68" fill="#a78bfa" font-size="9">图派 · LangGraph（Pregel 消息传递，<tspan fill="#fff">支持环，不是 DAG</tspan>）</text>
+        <text x="620" y="90" fill="#fff" font-size="13" font-weight="700">权威状态 = 显式 state schema</text>
+        <rect x="620" y="102" width="496" height="30" rx="5" fill="rgba(2,6,23,.6)" stroke="#1e293b" stroke-width="1"/>
+        <text x="632" y="122" fill="#a78bfa" font-size="9.5">判停：<tspan fill="#fff">所有 node inactive、无消息在途</tspan> —— 从模型的判断变成<tspan fill="#fff">图算法的不动点</tspan></text>
+        <text x="620" y="152" fill="#cbd5e1" font-size="9.5">① 最小单位 = <tspan fill="#fff">node / super-step</tspan>；并行的 node 属同一个 super-step</text>
+        <text x="620" y="172" fill="#cbd5e1" font-size="9.5">② checkpointer 是<tspan fill="#fff">强制项</tspan>（"A checkpointer is mandatory."），换来 replay / fork</text>
+        <text x="620" y="192" fill="#cbd5e1" font-size="9.5">③ 唯一不可替代：人能卡在一个动作的<tspan fill="#fff">中段</tspan>，而不只是动作<tspan fill="#fff">之间</tspan></text>
+        <text x="620" y="212" fill="#cbd5e1" font-size="9.5">④ 强项：<tspan fill="#fff">形状已知</tspan>的批量工作 —— 可并发、可重试、可断点续</text>
+        <rect x="620" y="224" width="496" height="30" rx="5" fill="rgba(136,19,55,.28)" stroke="#fb7185" stroke-width="1"/>
+        <text x="632" y="243" fill="#fb7185" font-size="9">自承弱点：resume 时 <tspan fill="#fecdd3">node 从头重跑、副作用必须幂等</tspan>；replay 也会重新调 LLM</text>
+
+        <!-- 五个真分歧 -->
+        <text x="24" y="296" fill="#64748b" font-size="9">五个真分歧 —— 前四个有一手依据，第三个<tspan fill="#fb7185">现在还判不了</tspan></text>
+        <rect x="24" y="304" width="212" height="52" rx="6" fill="rgba(2,6,23,.7)" stroke="#334155" stroke-width="1"/>
+        <text x="38" y="322" fill="#fff" font-size="10" font-weight="600">可审计的载体</text>
+        <text x="38" y="340" fill="#94a3b8" font-size="8.5">控制流可审计 ≠ 结果可复现，</text>
+        <text x="38" y="352" fill="#94a3b8" font-size="8.5">两边都给不了后者</text>
+
+        <rect x="248" y="304" width="212" height="52" rx="6" fill="rgba(2,6,23,.7)" stroke="#334155" stroke-width="1"/>
+        <text x="262" y="322" fill="#fff" font-size="10" font-weight="600">恢复的粒度</text>
+        <text x="262" y="340" fill="#94a3b8" font-size="8.5">最实的一条：一个恢复单位里</text>
+        <text x="262" y="352" fill="#94a3b8" font-size="8.5">有几个不可回滚的外部写</text>
+
+        <rect x="472" y="304" width="212" height="52" rx="6" fill="rgba(136,19,55,.22)" stroke="#fb7185" stroke-width="1"/>
+        <text x="486" y="322" fill="#fff" font-size="10" font-weight="600">token 的账</text>
+        <text x="486" y="340" fill="#fb7185" font-size="8.5">无任何公开的同任务对照，</text>
+        <text x="486" y="352" fill="#94a3b8" font-size="8.5">借 4×/15× 来说事就是偷换口径</text>
+
+        <rect x="696" y="304" width="212" height="52" rx="6" fill="rgba(2,6,23,.7)" stroke="#334155" stroke-width="1"/>
+        <text x="710" y="322" fill="#fff" font-size="10" font-weight="600">无法枚举的探索</text>
+        <text x="710" y="340" fill="#94a3b8" font-size="8.5">分歧真实，但正在消解 ——</text>
+        <text x="710" y="352" fill="#94a3b8" font-size="8.5">两派已互嵌（agent 即 node）</text>
+
+        <rect x="920" y="304" width="216" height="52" rx="6" fill="rgba(2,6,23,.7)" stroke="#334155" stroke-width="1"/>
+        <text x="934" y="322" fill="#fff" font-size="10" font-weight="600">人插在哪一刀</text>
+        <text x="934" y="340" fill="#94a3b8" font-size="8.5">动作<tspan fill="#fff">中段</tspan> vs 动作<tspan fill="#fff">之间</tspan> ——</text>
+        <text x="934" y="352" fill="#94a3b8" font-size="8.5">唯一真正不可互相替代的一条</text>
+
+        <!-- 伪分歧 -->
+        <rect x="24" y="372" width="1112" height="44" rx="7" fill="rgba(120,53,15,.22)" stroke="#fbbf24" stroke-width="1"/>
+        <text x="44" y="391" fill="#fbbf24" font-size="10" font-weight="700">最大的一条伪分歧 →</text>
+        <text x="176" y="391" fill="#e2e8f0" font-size="10.5"><tspan font-weight="700">两边都是图</tspan>。区别只在于：图画在<tspan fill="#a78bfa" font-weight="700">未来的执行</tspan>上，还是画在<tspan fill="#34d399" font-weight="700">过去的历史</tspan>上。</text>
+        <text x="44" y="408" fill="#94a3b8" font-size="9">checkpoint / time-travel 也不是图派专利：pi 的 <tspan fill="#cbd5e1">/rewind + /branch</tspan>、LangGraph 的 <tspan fill="#cbd5e1">replay + fork</tspan>、Cursor 的<tspan fill="#cbd5e1">代码快照</tspan> —— 同一族能力的三种落点。</text>
+      </svg>
+    </div>
+
+    <div class="takeaway">
+      <b>我的立场 →</b> 有<b>便宜的 verifier</b> 就用循环；verifier 只能是<b style="color:#a78bfa">人或合规</b>，就用图。<br>
+      <span style="color:#94a3b8">因为图的真正作用不是让 agent 更聪明，是<b style="color:#e2e8f0">让人能在正确的位置插进去</b>。最强的反驳我自己先说：verifier 的有无不是任务的固有属性，而是<b style="color:#fb7185">工程投入的函数</b> —— 官方建议原文就是 "encode verification as skills"。我的回应是：造不出 verifier 的那一类，卡的不是「对不对」，是「<b style="color:#e2e8f0">准不准</b>」。</span>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">出处 · anthropic.com/engineering/building-effective-agents · docs.langchain.com/oss/python/langgraph/graph-api（super-step / 终止判定）· langgraph/interrupts（"A checkpointer is mandatory."）· code.claude.com/docs/en/agent-sdk/agent-loop · 证据 · pi-mono @4488ad5 packages/agent/src/agent-loop.ts</span>
     <span class="spacer"></span>
     <span class="pg"></span>
   </div>
@@ -3397,11 +3500,12 @@ table.t.micro .note { display: block; margin-top: 0; font-size: 8.6px; color: #7
     <div>
       <ul class="ch-list">
         <div class="ch-list-h">本章内容</div>
-        <li><span class="n">33</span><span class="t">模型对照<i>各家特点 · 上下文 · 价格 · 知识截止</i></span></li>
-        <li><span class="n">34</span><span class="t">选型依据<i>为什么我这样搭 —— 带量化理由</i></span></li>
-        <li><span class="n">35</span><span class="t">逆向的七道坎<i>每一条都挂了可核查的来源</i></span></li>
-        <li><span class="n">36</span><span class="t">re-agent 架构<i>把七道坎写进骨架里</i></span>
-        <li><span class="n">37</span><span class="t">re-agent 预告<i>给谁用 · 为什么是我 · 为什么适合一人公司</i></span></li></li>
+        <li><span class="n">34</span><span class="t">模型对照<i>各家特点 · 上下文 · 价格 · 知识截止</i></span></li>
+        <li><span class="n">35</span><span class="t">选型依据<i>为什么我这样搭 —— 带量化理由</i></span></li>
+        <li><span class="n">36</span><span class="t">落地主线<i>看懂别人的设计，再优化自己的策略</i></span></li>
+        <li><span class="n">37</span><span class="t">逆向的七道坎<i>每一条都挂了可核查的来源</i></span></li>
+        <li><span class="n">38</span><span class="t">re-agent 架构<i>把七道坎写进骨架里</i></span>
+        <li><span class="n">39</span><span class="t">re-agent 预告<i>给谁用 · 为什么是我 · 为什么适合一人公司</i></span></li></li>
       </ul>
       <div class="ch-sub" style="margin-top:22px;border-color:var(--orange)">读完这章你会知道：一个垂直领域的 agent 该怎么起步，以及<b>为什么这件事现在一个人就能干</b>。</div>
     </div>
@@ -3581,6 +3685,101 @@ table.t.micro .note { display: block; margin-top: 0; font-size: 8.6px; color: #7
 
   <div class="s-foot">
     <span class="src">量化依据 · Terminal-Bench 2.0 官方榜 tbench.ai · 各家官方定价页 · 倍数为按官方标价直接计算　|　注意：NotebookLM 已更名 <b>Gemini Notebook</b></span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s24c-usecase.html ===== -->
+<section class="slide" data-ch="CH7 实践" data-title="一条你能对号入座的主线：看懂别人的设计，再优化自己的策略">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot amber"></span>CH 7 · 实践 · 落地场景</div>
+    <h1 class="s-title">逆向不只是抓坏人 —— 更多时候，它是<span class="hl-a">「看懂别人的设计，再优化自己的策略」</span></h1>
+    <div class="s-sub">一个具体场景：你的 App 在地铁里<b>埋点大面积丢失、流量还偏高</b>；竞品在同样的网络下不丢、流量只有你一半。你想知道它那套<b>批量 / 节流 / 离线补偿</b>是怎么设计的 —— <b>竞品不会写博客告诉你他们的退避曲线是多少。</b></div>
+  </div>
+
+  <div class="s-body">
+    <div class="figure plain">
+      <svg viewBox="0 0 1160 480" xmlns="http://www.w3.org/2000/svg">
+          <g transform="translate(-15.5,32.8) scale(1.0268)">
+        <!-- 表头 -->
+        <text x="24" y="14" fill="#64748b" font-size="9">步骤</text>
+        <text x="252" y="14" fill="#34d399" font-size="9">agent 替你做的</text>
+        <text x="736" y="14" fill="#fbbf24" font-size="9">人必须做的决定</text>
+        <path d="M 20 22 L 1140 22" stroke="#1e293b" stroke-width="1"/>
+
+        <!-- 逆向段底纹 -->
+        <rect x="20" y="26" width="1120" height="230" rx="8" fill="rgba(136,19,55,.13)"/>
+        <text x="1130" y="42" fill="#fb7185" font-size="8.5" text-anchor="end">① – ⑤ 逆向段</text>
+        <!-- 普通 coding 段底纹 -->
+        <rect x="20" y="262" width="1120" height="92" rx="8" fill="rgba(6,78,59,.16)"/>
+        <text x="1130" y="278" fill="#34d399" font-size="8.5" text-anchor="end">⑥ – ⑦ 普通 coding 段</text>
+
+        <!-- ① -->
+        <text x="30" y="52" fill="#fb7185" font-size="11" font-weight="700">①</text>
+        <text x="52" y="52" fill="#fff" font-size="10.5" font-weight="600">立项与边界</text>
+        <text x="252" y="52" fill="#cbd5e1" font-size="9">planner（Codex）产出一份只读 plan：只看上报模块、不碰账号态、不导出用户数据</text>
+        <text x="736" y="52" fill="#cbd5e1" font-size="9"><tspan fill="#fff">划边界。</tspan>哪些是「学设计」、哪些一碰就越线 ——</text>
+        <text x="736" y="66" fill="#94a3b8" font-size="9">这条线只能人划，而且要写进 plan 当约束</text>
+
+        <!-- ② -->
+        <text x="30" y="96" fill="#fb7185" font-size="11" font-weight="700">②</text>
+        <text x="52" y="96" fill="#fff" font-size="10.5" font-weight="600">样本三查</text>
+        <text x="252" y="96" fill="#cbd5e1" font-size="9">跑确定性工具链 <tspan fill="#a5f3fc">file_info · strings · hash_file · extract_symbols</tspan>，</text>
+        <text x="252" y="110" fill="#94a3b8" font-size="9">出「壳 / 保护 / 框架」三查结论</text>
+        <text x="736" y="96" fill="#cbd5e1" font-size="9"><tspan fill="#fff">判断可行性。</tspan>三查若是「重壳 + 控制流平坦化」，</text>
+        <text x="736" y="110" fill="#94a3b8" font-size="9">当场<tspan fill="#fb7185">收手</tspan> —— 混淆下模型性能是断崖</text>
+
+        <!-- ③ -->
+        <text x="30" y="140" fill="#fb7185" font-size="11" font-weight="700">③</text>
+        <text x="52" y="140" fill="#fff" font-size="10.5" font-weight="600">定位上报模块</text>
+        <text x="252" y="140" fill="#cbd5e1" font-size="9">grep + strings 交叉锁定：上报域名、batch / flush / retry / backoff 命名残留、</text>
+        <text x="252" y="154" fill="#94a3b8" font-size="9">序列化字段名 —— 收敛到几个符号，<tspan fill="#fff">而不是把函数表全量倒进上下文</tspan></text>
+        <text x="736" y="140" fill="#cbd5e1" font-size="9"><tspan fill="#fff">认领哪条线索。</tspan>它给 20 个候选，人凭经验挑 2 个 ——</text>
+        <text x="736" y="154" fill="#94a3b8" font-size="9">全流程里<tspan fill="#fff">人的判断密度最高</tspan>的一步</text>
+
+        <!-- ④ -->
+        <text x="30" y="184" fill="#fb7185" font-size="11" font-weight="700">④</text>
+        <text x="52" y="184" fill="#fff" font-size="10.5" font-weight="600">还原机制</text>
+        <text x="252" y="184" fill="#cbd5e1" font-size="9">产出一张参数表：批量上限 · flush 触发条件 · 退避曲线形状 ·</text>
+        <text x="252" y="198" fill="#94a3b8" font-size="9">离线队列容量与淘汰策略 · 去重键怎么算</text>
+        <text x="736" y="184" fill="#cbd5e1" font-size="9"><tspan fill="#fff">决定「够了没有」。</tspan>逆向没有「完成」信号，</text>
+        <text x="736" y="198" fill="#94a3b8" font-size="9">只有「证据够不够」—— <tspan fill="#fbbf24">判停权在人手里</tspan></text>
+
+        <!-- ⑤ -->
+        <text x="30" y="228" fill="#fb7185" font-size="11" font-weight="700">⑤</text>
+        <text x="52" y="228" fill="#fff" font-size="10.5" font-weight="600">提炼设计精华</text>
+        <text x="252" y="228" fill="#cbd5e1" font-size="9">把参数表升维成一页「机制卡」：它的取舍是什么、在什么约束下才成立</text>
+        <text x="736" y="228" fill="#cbd5e1" font-size="9"><tspan fill="#fff">过滤。</tspan>哪些是精华，哪些只是它的历史包袱 ——</text>
+        <text x="736" y="242" fill="#94a3b8" font-size="9">这是产品判断，不是技术判断</text>
+
+        <!-- ⑥ -->
+        <text x="30" y="288" fill="#34d399" font-size="11" font-weight="700">⑥</text>
+        <text x="52" y="288" fill="#fff" font-size="10.5" font-weight="600">差异对照 + 落成改动</text>
+        <text x="252" y="288" fill="#cbd5e1" font-size="9">切回自家代码仓（agent 回到最擅长的形态）：逐条列 diff —— 我们没有二级离线队列 /</text>
+        <text x="252" y="302" fill="#94a3b8" font-size="9">我们的退避是线性它是带抖动的指数 / 我们的去重键不含 session。出改动清单与 PR</text>
+        <text x="736" y="288" fill="#cbd5e1" font-size="9"><tspan fill="#fff">取舍与排期。</tspan><tspan fill="#fbbf24">差异不等于要抄</tspan> ——</text>
+        <text x="736" y="302" fill="#94a3b8" font-size="9">哪些改、哪些不改、哪些先灰度</text>
+
+        <!-- ⑦ -->
+        <text x="30" y="332" fill="#34d399" font-size="11" font-weight="700">⑦</text>
+        <text x="52" y="332" fill="#fff" font-size="10.5" font-weight="600">回归验证 + 归档轨迹</text>
+        <text x="252" y="332" fill="#cbd5e1" font-size="9">弱网回归（丢包 / 延迟注入）对比改动前后；全过程落成<tspan fill="#fff">只追加的 JSONL 轨迹</tspan>，</text>
+        <text x="252" y="346" fill="#94a3b8" font-size="9">第二个人能照着重放</text>
+        <text x="736" y="332" fill="#cbd5e1" font-size="9"><tspan fill="#fff">定验收标准。</tspan>不定指标，它会自己优化一个</text>
+        <text x="736" y="346" fill="#94a3b8" font-size="9">好看的数字（已取证的 gamification 失败模式）</text>
+
+        <!-- 底部结论条 -->
+        <rect x="20" y="364" width="1120" height="34" rx="7" fill="rgba(120,53,15,.24)" stroke="#fbbf24" stroke-width="1"/>
+        <text x="40" y="386" fill="#fbbf24" font-size="10.5" font-weight="700">前五步是逆向，后两步是普通 coding。</text>
+        <text x="300" y="386" fill="#e2e8f0" font-size="10.5">通用 coding agent 在第 ⑥⑦ 步很好用，在第 ①–⑤ 步<tspan fill="#fb7185" font-weight="700">集体撞墙</tspan> —— 这就是 re-agent 存在的全部理由。</text>
+      
+          </g>
+        </svg>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">合法用途框架 · 学习设计 / 兼容互操作 / 对齐自家实现 / 安全自查 / CTF / 排查仿冒 —— 不涉及授权、加密凭据与用户数据 ｜ 失败模式出处 · CrackMeBench arXiv 2605.10597（编号上台前复核）</span>
     <span class="spacer"></span>
     <span class="pg"></span>
   </div>
@@ -3874,7 +4073,7 @@ table.t.micro .note { display: block; margin-top: 0; font-size: 8.6px; color: #7
 
           <rect x="462" y="302" width="208" height="70" rx="6" fill="rgba(2,6,23,.55)" stroke="#334155" stroke-width="1"/>
           <text x="566" y="328" fill="#fff" font-size="16" font-weight="700" text-anchor="middle">这份 harness 研究</text>
-          <text x="566" y="346" fill="#c4b5fd" font-size="9" text-anchor="middle">就是你正在看的这 37 页</text>
+          <text x="566" y="346" fill="#c4b5fd" font-size="9" text-anchor="middle">就是你正在看的这 39 页</text>
           <text x="566" y="362" fill="#64748b" font-size="8" text-anchor="middle">该抄什么、该躲什么，都摸过一遍了</text>
 
           <!-- 尺寸对比 -->
@@ -3893,7 +4092,7 @@ table.t.micro .note { display: block; margin-top: 0; font-size: 8.6px; color: #7
         <div class="card rose">
           <div class="card-head"><span class="card-dot rose"></span><h3>为什么现有的都不够用</h3></div>
           <ul>
-            <li><strong>通用 coding agent</strong>：撞上第 35 页那七道坎 —— 二进制不是文本、工具链是有状态 GUI、结果不可复现</li>
+            <li><strong>通用 coding agent</strong>：撞上第 37 页那七道坎 —— 二进制不是文本、工具链是有状态 GUI、结果不可复现</li>
             <li><strong>IDA / Ghidra 的 MCP 插件</strong>：解决了"接得上"，但没解决"怎么编排、怎么约束、怎么复现"</li>
             <li><strong>闭源商业方案</strong>：好用，但你改不了 —— 而逆向这行<strong>每个人的流程都不一样</strong></li>
           </ul>
@@ -3902,7 +4101,7 @@ table.t.micro .note { display: block; margin-top: 0; font-size: 8.6px; color: #7
           <div class="card-head"><span class="card-dot cyan"></span><h3>你能从中拿走什么</h3></div>
           <ul>
             <li>一个<strong>可直接 fork 的最小骨架</strong>：一个循环、可插拔 provider、一个工具注册表、只追加的会话 —— <strong>换掉工具集就是你的领域 agent</strong></li>
-            <li>一套<strong>把领域知识变成 SKILL 的方法</strong>（第 19 页）—— 本场最可迁移的一件事</li>
+            <li>一套<strong>把领域知识变成 SKILL 的方法</strong>（第 20 页）—— 本场最可迁移的一件事</li>
             </ul>
         </div>
         <div class="card amber">
@@ -3936,7 +4135,7 @@ table.t.micro .note { display: block; margin-top: 0; font-size: 8.6px; color: #7
   </div>
 
   <div id="hud">
-    <span id="counter">01/37</span>
+    <span id="counter">01/39</span>
     <button id="btn-prev" title="上一页 ←">‹</button>
     <button id="btn-next" title="下一页 →">›</button>
     <button id="btn-ov" title="总览 O">⊞</button>
