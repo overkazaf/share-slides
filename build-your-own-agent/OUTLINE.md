@@ -77,4 +77,4 @@
 - 兜底 provider：codex-api / claude-api / grok / deepseek / glm / mock
 - 工具集：list_files, read_file, write_file, grep, run_command, file_info, strings, hexdump, hash_file, extract_symbols
 - 默认策略：读限工作区内 / 写需 `--write` / 网络需 `--allow-network` / 敏感路径需 `--allow-sensitive` / 阻断破坏性 shell
-- 呼应第 23 页：re-agent 本身就是把 CC + Codex + Grok **编排**起来，而不是再造一个模型
+- 呼应第 12 页：re-agent 本身就是把 CC + Codex + Grok **编排**起来，而不是再造一个模型

@@ -1,0 +1,59 @@
+<section class="slide" data-ch="CH3 原理" data-title="搭这个工位，你只有五个决定要做">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot amber"></span>CH 3 · 原理 · 落到手上</div>
+    <h1 class="s-title">搭这个工位，真正要你拍板的只有<span class="hl-a">五件事</span></h1>
+    <div class="s-sub">名词一堆，决定其实很少。<b style="color:#e2e8f0">每一件都有一个可查的数字兜底</b> —— 这五条拍错了，换多强的模型都救不回来。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="figure plain">
+      <svg viewBox="0 0 1160 452" xmlns="http://www.w3.org/2000/svg">
+        <!-- ① 桌上摆什么 -->
+        <rect x="16" y="10" width="1128" height="80" rx="8" fill="#0f172a"/>
+        <rect x="16" y="10" width="1128" height="80" rx="8" fill="rgba(76,29,149,.3)" stroke="#a78bfa" stroke-width="1.4"/>
+        <text x="40" y="38" fill="#a78bfa" font-size="21" font-weight="700">01</text>
+        <text x="86" y="38" fill="#fff" font-size="15" font-weight="700">桌上摆什么 —— 上下文是注意力预算，不是仓库</text>
+        <text x="86" y="60" fill="#cbd5e1" font-size="10.5">窗口装得下 ≠ 模型找得到。<tspan fill="#fff">只多放一个不相干的干扰项，成绩就低于什么都不放</tspan>；窗口从 128k 拉到 1M，长文召回从 91.8% 掉到 54.0%。</text>
+        <text x="86" y="80" fill="#94a3b8" font-size="10">怎么办：只摆当前这一步用得上的；满了就把老历史压成摘要、最近的原样留着 —— <tspan fill="#a78bfa">但绝不能把"调了工具"和"工具返回了什么"切散</tspan>。</text>
+
+        <!-- ② 什么时候算干完 -->
+        <rect x="16" y="98" width="1128" height="80" rx="8" fill="#0f172a"/>
+        <rect x="16" y="98" width="1128" height="80" rx="8" fill="rgba(6,78,59,.34)" stroke="#34d399" stroke-width="1.4"/>
+        <text x="40" y="126" fill="#34d399" font-size="21" font-weight="700">02</text>
+        <text x="86" y="126" fill="#fff" font-size="15" font-weight="700">什么时候算干完 —— 判停要写死，不能靠模型自觉</text>
+        <text x="86" y="148" fill="#cbd5e1" font-size="10.5">四种收场：<tspan fill="#fff">它不再要工具</tspan>（最常见）· 转够最大轮数 · 工具说到此为止 · 你按停或出错。<tspan fill="#fbbf24">OpenAI 默认最多转 10 轮，Claude 默认不设上限</tspan> —— 同一个循环，两家默认的安全姿态相反。</text>
+        <text x="86" y="168" fill="#94a3b8" font-size="10">配套两条：话说了一半就被截断，这一批工具调用<tspan fill="#fff">全判失败让它重说</tspan>；报错别只回"失败"，把哪个字段错了一起喂回去。</text>
+
+        <!-- ③ 走错了怎么退 -->
+        <rect x="16" y="186" width="1128" height="80" rx="8" fill="#0f172a"/>
+        <rect x="16" y="186" width="1128" height="80" rx="8" fill="rgba(8,51,68,.34)" stroke="#22d3ee" stroke-width="1.4"/>
+        <text x="40" y="214" fill="#22d3ee" font-size="21" font-weight="700">03</text>
+        <text x="86" y="214" fill="#fff" font-size="15" font-weight="700">走错了怎么退 —— 把聊天记录做成树，不是一条线</text>
+        <text x="86" y="236" fill="#cbd5e1" font-size="10.5">每条记录记着"我爹是谁"，<tspan fill="#fff">只往后加、从不改旧的</tspan>。于是"回到三步之前换个思路"是一次指针移动，不是从头重跑。</text>
+        <text x="86" y="256" fill="#94a3b8" font-size="10">但它只让<tspan fill="#fff">上下文</tspan>回退变便宜：文件已经改了、请求已经发了，这些<tspan fill="#fb7185">退不回来</tspan> —— 所以才需要 git 快照和沙箱。</text>
+
+        <!-- ④ 谁来判对错 -->
+        <rect x="16" y="274" width="1128" height="80" rx="8" fill="#0f172a"/>
+        <rect x="16" y="274" width="1128" height="80" rx="8" fill="rgba(124,45,18,.32)" stroke="#fb923c" stroke-width="1.4"/>
+        <text x="40" y="302" fill="#fb923c" font-size="21" font-weight="700">04</text>
+        <text x="86" y="302" fill="#fff" font-size="15" font-weight="700">谁来判对错 —— 让它自评，它只会夸自己</text>
+        <text x="86" y="324" fill="#cbd5e1" font-size="10.5">生成和评判必须<tspan fill="#fff">结构性地分开</tspan>：评的那个<tspan fill="#fff">没见过生成过程，所以没有沉没成本</tspan>。这是全场唯一一条<tspan fill="#fb923c">更强的模型也解决不了</tspan>的结论。</text>
+        <text x="86" y="344" fill="#94a3b8" font-size="10">再多开一个 agent 值不值？<tspan fill="#fff">真收益是上下文隔离，不是并行</tspan> —— 代价是 agent ≈ 4× / 多 agent ≈ 15× 的 token。写操作保持单线程，多出来的只贡献判断力。</text>
+
+        <!-- ⑤ 它能碰什么 -->
+        <rect x="16" y="362" width="1128" height="80" rx="8" fill="#0f172a"/>
+        <rect x="16" y="362" width="1128" height="80" rx="8" fill="rgba(136,19,55,.34)" stroke="#fb7185" stroke-width="1.4"/>
+        <text x="40" y="390" fill="#fb7185" font-size="21" font-weight="700">05</text>
+        <text x="86" y="390" fill="#fff" font-size="15" font-weight="700">它能碰什么 —— 闸门焊在工具执行那一步，不是写在提示词里</text>
+        <text x="86" y="412" fill="#cbd5e1" font-size="10.5">默认只读；写、联网、碰敏感路径各要一个<tspan fill="#fff">显式开关</tspan>。判据不是"有没有副作用"，是<tspan fill="#fff">"这一步能不能撤回"</tspan> —— 撤不回的都得先问人。</text>
+        <text x="86" y="432" fill="#94a3b8" font-size="10">靠提示词劝出来的安全都是剧场：<tspan fill="#fb7185">别人在数据里塞一句"忽略之前的指令"，模型是分不出指令和数据的</tspan>。</text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">数字出处 · Chroma 上下文腐化实验 · Google 官方模型页（128k→1M 召回）· OpenAI Agents SDK / Claude Agent SDK 默认值 · Anthropic 多智能体工程博客（4× / 15×）· 完整取证见仓库 research/</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
