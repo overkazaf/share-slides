@@ -10,11 +10,12 @@
 | 文件 | 说明 |
 |---|---|
 | `index.html` | **主交付**。27 页自包含演示。`← →` 翻页 · `O` 总览 · `F` 全屏 · 点击左右半屏也能翻 |
-| `如何打造自己的Agent.pdf` | ⚠️ **still 37 页，未重导** —— 新增 P12 / P24 后尚未重新导出，上台前请重导 |
+| `如何打造自己的Agent.pdf` | 27 页 PDF（1280×720，深色保真）—— 改完 slides 跑 `python3 export_pdf.py` 重导 |
 | `script/` | **逐页讲稿**，按章分文件（本地私料，不进仓库）。`python3 prompter.py` 可编成提词器页面 `prompter.html` |
 | `research/` | 16 份研究笔记（R01–R10 主题考证 + M01–M06 模型数据），每条都标了核实等级 |
 | `slides/` | 分片源码，改完跑 `python3 build.py` |
 | `qa.py` / `fitcontent.py` | 排版体检 / SVG 画布自适配 |
+| `export_pdf.py` | 把 index.html 导成 1280×720 的 PDF |
 | `prompter.py` | 由 `script/` 生成提词器页面：`← →` 翻页 · `A` 自动滚（`[ ]` 调速）· `+ -` 字号 · `M` 只看「怎么讲」· `/` 搜索 · `O` 总览 |
 
 改完的标准流程：
