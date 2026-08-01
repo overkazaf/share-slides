@@ -26,7 +26,7 @@ slides 上只放 [A] 级事实。被打回的、拿不准的，连同"为什么�
 
 ## 目录
 
-### 📐 [如何打造自己的 Agent —— 从 harness 到 re-agent](./build-your-own-agent/)
+### 📐 [如何打造自己的 Agent · Chapter 1 · Getting Started —— 从 harness 到 re-agent](./build-your-own-agent/)
 
 `2026` · 27 页 · 中文
 
