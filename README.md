@@ -54,7 +54,6 @@ slides 上只放 [A] 级事实。被打回的、拿不准的，连同"为什么�
 
 - 📖 [在线阅读](./build-your-own-agent/) ·
   📄 [PDF](./build-your-own-agent/如何打造自己的Agent.pdf) ·
-  🎙 [逐页讲稿](./build-your-own-agent/script/) ·
   🔍 [研究笔记](./build-your-own-agent/research/) ·
   ⚠️ [上台前备忘](./build-your-own-agent/NOTES.md)
 

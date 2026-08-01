@@ -3,3 +3,11 @@ out/qa.html
 out/m.html
 out/p.html
 .shots/
+
+# 给讲的人看的私料 —— 本地保留，不进仓库
+build-your-own-agent/script/
+build-your-own-agent/DISTILL.md
+build-your-own-agent/distill/
+# 提词器页面内嵌讲稿全文，同样不公开（生成脚本 prompter.py 照常提交）
+build-your-own-agent/prompter.html
+build-your-own-agent/qa.html
