@@ -2,7 +2,7 @@
   <div class="s-head">
     <div class="s-kicker"><span class="dot emerald"></span>CH 3 · 原理 · L5</div>
     <h1 class="s-title">先学会<span class="hl-e">不用 agent</span>：五种 workflow 模式</h1>
-    <div class="s-sub">Anthropic 在《Building Effective AI Agents》(2024-12-19) 里给了一套<b style="color:#e2e8f0">词汇表</b>。绝大多数"我需要一个 agent"的需求，其实是下面五种之一 —— 而它们全都更便宜、更可控。</div>
+    <div class="s-sub">Anthropic《Building Effective AI Agents》(2024-12-19) 的<b style="color:#e2e8f0">词汇表</b>：多数"我需要 agent"其实是这五种之一。</div>
   </div>
 
   <div class="s-body">
@@ -23,7 +23,7 @@
         <text x="20"  y="26" fill="#64748b" font-size="9" letter-spacing="1">模式</text>
         <text x="196" y="26" fill="#64748b" font-size="9" letter-spacing="1">形状</text>
         <text x="452" y="26" fill="#64748b" font-size="9" letter-spacing="1">机制</text>
-        <text x="792" y="26" fill="#64748b" font-size="9" letter-spacing="1">Anthropic 原文说：什么时候用</text>
+        <text x="792" y="26" fill="#64748b" font-size="9" letter-spacing="1">Anthropic 原文：什么时候用</text>
         <path d="M 20 34 L 1140 34" stroke="#1e293b" stroke-width="1"/>
 
         <!-- ① Prompt chaining -->
@@ -37,9 +37,8 @@
         <path d="M 308 64 L 324 64" stroke="#64748b" stroke-width="1.2" marker-end="url(#ar-wf)"/>
         <circle cx="336" cy="64" r="9" fill="rgba(8,51,68,.7)" stroke="#22d3ee" stroke-width="1.3"/>
         <text x="246" y="86" fill="#fb7185" font-size="7.5">↑ 校验闸门</text>
-        <text x="452" y="60" fill="#cbd5e1" font-size="9.5">拆成固定顺序的步骤，每步吃上一步的输出；</text>
-        <text x="452" y="76" fill="#cbd5e1" font-size="9.5">步骤之间可以插<tspan fill="#fb7185">代码写的校验闸门</tspan></text>
-        <text x="792" y="68" fill="#94a3b8" font-size="9.5">任务能被干净地拆成<tspan fill="#fff">固定子任务</tspan>时</text>
+        <text x="452" y="60" fill="#cbd5e1" font-size="9.5">固定顺序，每步吃上一步的输出</text>
+        <text x="792" y="68" fill="#94a3b8" font-size="9.5">能干净拆成<tspan fill="#fff">固定子任务</tspan>时</text>
         <path d="M 20 92 L 1140 92" stroke="#0f172a" stroke-width="1"/>
 
         <!-- ② Routing -->
@@ -54,9 +53,8 @@
         <circle cx="312" cy="108" r="8" fill="rgba(6,78,59,.7)" stroke="#34d399" stroke-width="1.2"/>
         <circle cx="312" cy="126" r="8" fill="rgba(6,78,59,.7)" stroke="#34d399" stroke-width="1.2"/>
         <circle cx="312" cy="144" r="8" fill="rgba(6,78,59,.7)" stroke="#34d399" stroke-width="1.2"/>
-        <text x="452" y="122" fill="#cbd5e1" font-size="9.5">先分类，再把输入<tspan fill="#fbbf24">导向专门化的后续任务</tspan></text>
-        <text x="452" y="138" fill="#64748b" font-size="9">分类器可以是小模型，甚至是正则</text>
-        <text x="792" y="130" fill="#94a3b8" font-size="9.5">存在<tspan fill="#fff">明显不同、且分开处理更好</tspan>的类别时</text>
+        <text x="452" y="122" fill="#cbd5e1" font-size="9.5">先分类，再<tspan fill="#fbbf24">导向专门化的后续</tspan></text>
+        <text x="792" y="130" fill="#94a3b8" font-size="9.5">类别<tspan fill="#fff">明显不同、分开处理更好</tspan>时</text>
         <path d="M 20 154 L 1140 154" stroke="#0f172a" stroke-width="1"/>
 
         <!-- ③ Parallelization -->
@@ -73,10 +71,10 @@
         <path d="M 284 188 L 312 188" stroke="#64748b" stroke-width="1.2" marker-end="url(#ar-wf)"/>
         <path d="M 284 208 L 312 192" stroke="#64748b" stroke-width="1.2" marker-end="url(#ar-wf)"/>
         <circle cx="330" cy="188" r="9" fill="rgba(76,29,149,.7)" stroke="#a78bfa" stroke-width="1.3"/>
-        <text x="452" y="178" fill="#cbd5e1" font-size="9.5"><tspan fill="#34d399">Sectioning</tspan>：拆成互不相干的子任务同时跑</text>
-        <text x="452" y="196" fill="#cbd5e1" font-size="9.5"><tspan fill="#a78bfa">Voting</tspan>：同一个任务跑多遍，取不同视角</text>
-        <text x="792" y="182" fill="#94a3b8" font-size="9.5">子任务能<tspan fill="#fff">并行提速</tspan>，或者需要</text>
-        <text x="792" y="198" fill="#94a3b8" font-size="9.5"><tspan fill="#fff">多个视角 / 多次尝试</tspan>来提高置信度时</text>
+        <text x="452" y="178" fill="#cbd5e1" font-size="9.5"><tspan fill="#34d399">Sectioning</tspan>：不相干子任务同时跑</text>
+        <text x="452" y="196" fill="#cbd5e1" font-size="9.5"><tspan fill="#a78bfa">Voting</tspan>：同一任务多遍取不同视角</text>
+        <text x="792" y="182" fill="#94a3b8" font-size="9.5">子任务能<tspan fill="#fff">并行提速</tspan>，或需要</text>
+        <text x="792" y="198" fill="#94a3b8" font-size="9.5"><tspan fill="#fff">多视角 / 多次尝试</tspan>提高置信度</text>
         <path d="M 20 216 L 1140 216" stroke="#0f172a" stroke-width="1"/>
 
         <!-- ④ Orchestrator-workers -->
@@ -93,11 +91,11 @@
         <path d="M 286 250 L 314 250" stroke="#64748b" stroke-width="1.2" marker-end="url(#ar-wf)"/>
         <path d="M 286 270 L 314 254" stroke="#64748b" stroke-width="1.2" marker-end="url(#ar-wf)"/>
         <circle cx="332" cy="250" r="9" fill="rgba(76,29,149,.7)" stroke="#a78bfa" stroke-width="1.3"/>
-        <text x="352" y="278" fill="#fbbf24" font-size="7.5">虚线 = 子任务数量由模型现场定</text>
-        <text x="452" y="240" fill="#cbd5e1" font-size="9.5">中心模型<tspan fill="#fbbf24">动态拆解</tspan>任务、分派给执行者，</text>
-        <text x="452" y="256" fill="#cbd5e1" font-size="9.5">最后<tspan fill="#a78bfa">综合</tspan>结果 —— 注意：这仍被归为 workflow</text>
-        <text x="452" y="272" fill="#475569" font-size="8.5">编排骨架还是写死的，只有"分几份"交给了模型</text>
-        <text x="792" y="252" fill="#94a3b8" font-size="9.5">复杂任务，且你<tspan fill="#fff">没法预先知道要拆成哪些子任务</tspan></text>
+        <text x="352" y="278" fill="#fbbf24" font-size="7.5">虚线 = 子任务数由模型现场定</text>
+        <text x="452" y="240" fill="#cbd5e1" font-size="9.5">中心模型<tspan fill="#fbbf24">动态拆解</tspan>、分派</text>
+        <text x="452" y="256" fill="#cbd5e1" font-size="9.5">最后<tspan fill="#a78bfa">综合</tspan> —— 注意：这仍是 workflow</text>
+        <text x="452" y="272" fill="#475569" font-size="8.5">编排骨架写死，只有"分几份"归模型</text>
+        <text x="792" y="252" fill="#94a3b8" font-size="9.5">复杂任务，且<tspan fill="#fff">没法预知拆成哪些子任务</tspan></text>
         <path d="M 20 288 L 1140 288" stroke="#0f172a" stroke-width="1"/>
 
         <!-- ⑤ Evaluator-optimizer -->
@@ -110,12 +108,12 @@
         <circle cx="308" cy="322" r="12" fill="rgba(136,19,55,.7)" stroke="#fb7185" stroke-width="1.4"/>
         <text x="308" y="326" fill="#fb7185" font-size="8" text-anchor="middle">评审</text>
         <text x="336" y="326" fill="#475569" font-size="7.5">反复到通过</text>
-        <text x="452" y="316" fill="#cbd5e1" font-size="9.5">一个模型产出，另一个模型<tspan fill="#fb7185">评价并给反馈</tspan>，循环</text>
-        <text x="452" y="332" fill="#475569" font-size="8.5">2026 年的实践发现：评审方<tspan fill="#fbbf24">不共享</tspan>生成方的上下文，效果反而更好</text>
+        <text x="452" y="316" fill="#cbd5e1" font-size="9.5">一个产出，一个<tspan fill="#fb7185">评价并反馈</tspan>，循环</text>
+        <text x="452" y="332" fill="#475569" font-size="8.5">2026 年实践：评审方<tspan fill="#fbbf24">不共享</tspan>生成方上下文，效果更好</text>
         <text x="792" y="316" fill="#94a3b8" font-size="9.5">有<tspan fill="#fff">清晰的评价标准</tspan>，且</text>
-        <text x="792" y="332" fill="#94a3b8" font-size="9.5"><tspan fill="#fff">反复打磨确实能带来可衡量的提升</tspan>时</text>
+        <text x="792" y="332" fill="#94a3b8" font-size="9.5"><tspan fill="#fff">反复打磨能带来可衡量提升</tspan>时</text>
         <path d="M 20 350 L 1140 350" stroke="#1e293b" stroke-width="1"/>
-        <text x="20" y="366" fill="#475569" font-size="8.5">真正的 agent 留给"<tspan fill="#94a3b8">开放式问题：步数无法预先估计</tspan>"的场景 —— 这是原文划下的边界。</text>
+        <text x="20" y="366" fill="#475569" font-size="8.5">原文的边界：agent 留给"<tspan fill="#94a3b8">开放式问题：步数无法预先估计</tspan>"。</text>
       
           </g>
         
@@ -126,12 +124,12 @@
     </div>
 
     <div class="takeaway">
-      <b>原文金句 →</b> "Agentic systems often <b>trade latency and cost for better task performance</b>." —— workflow 给的是<b>可预测性和一致性</b>，agent 给的是<b>灵活性和模型驱动的决策</b>。先问清楚你要的是哪一个。
+      <b>原文金句 →</b> "Agentic systems often <b>trade latency and cost for better task performance</b>." —— workflow 给<b>可预测性</b>，agent 给<b>灵活性</b>。
     </div>
   </div>
 
   <div class="s-foot">
-    <span class="src">出处 · Anthropic《Building Effective AI Agents》 anthropic.com/engineering/building-effective-agents · 2024-12-19</span>
+    <span class="src">出处 · Anthropic《Building Effective AI Agents》· anthropic.com/engineering · 2024-12-19</span>
     <span class="spacer"></span>
     <span class="pg"></span>
   </div>

@@ -2,7 +2,7 @@
   <div class="s-head">
     <div class="s-kicker"><span class="dot orange"></span>CH 7 · 实践 · 2/2</div>
     <h1 class="s-title">再看用法：<span class="hl-a">为什么我这样搭</span></h1>
-    <div class="s-sub">牌面看完了，关键是怎么出。下面每条用法我都尽量挂了量化依据；<b style="color:#e2e8f0">纯经验判断的地方，我会直说是经验判断</b>。</div>
+    <div class="s-sub">每条用法尽量挂量化依据；<b style="color:#e2e8f0">纯经验判断我会直说</b>。</div>
   </div>
 
   <div class="s-body">
@@ -10,29 +10,25 @@
       <div class="card cyan">
         <div class="card-head"><span class="card-dot cyan"></span><h3>Claude Code</h3><span class="card-num">主力</span></div>
         <ul>
-          <li><strong>因为闭环最完整</strong>：改完能跑、跑挂了能看见、看见了能改回来</li>
-          <li>真正的杀手锏不是模型，是 <em>skills / hooks</em> —— <strong>把团队规范固化成强约束</strong>，而不是每次靠嘴说</li>
+          <li><strong>闭环最完整</strong>：改完能跑、挂了能看见、能改回来</li>
         </ul>
       </div>
       <div class="card emerald">
         <div class="card-head"><span class="card-dot emerald"></span><h3>Codex</h3><span class="card-num">派活</span></div>
         <ul>
-          <li><strong>因为每个任务有独立沙箱 + 独立 git 状态</strong>，互不污染</li>
-          <li>批量升依赖 / 批量修 lint 这类<strong>形状已知的重复劳动</strong>，派发完就撒手，回来收 PR</li>
+          <li><strong>独立沙箱 + 独立 git 状态</strong>：形状已知的活派完撒手，回来收 PR</li>
         </ul>
       </div>
       <div class="card violet">
         <div class="card-head"><span class="card-dot violet"></span><h3>Gemini Notebook</h3><span class="card-num">消化</span></div>
         <ul>
-          <li><strong>因为它只从你给的材料里答</strong> —— 要的就是"我能确认它没编"</li>
-          <li>通用长上下文会"读着读着跑偏"，source-grounded 是结构性地堵住这个口子</li>
+          <li><strong>只从你给的材料里答</strong>（source-grounded），能确认它没编</li>
         </ul>
       </div>
       <div class="card amber">
         <div class="card-head"><span class="card-dot amber"></span><h3>Grok</h3><span class="card-num">探风向</span></div>
         <ul>
-          <li><strong>因为它接 X 的实时流</strong>，官方定位原话就是 agentic coding</li>
-          <li>新东西刚发布时，<strong>真实用户此刻在骂什么</strong> —— 官方博客永远不会告诉你</li>
+          <li><strong>接 X 实时流</strong>：真实用户在骂什么 —— 官方博客不会告诉你</li>
         </ul>
       </div>
     </div>
@@ -40,41 +36,39 @@
     <div class="cols c64" style="flex:1">
       <div class="figure plain" style="padding-top:2px">
         <table class="t compact">
-          <thead><tr><th style="width:30%">任务类型</th><th style="width:22%">首选</th><th>为什么是它（量化依据）</th></tr></thead>
+          <thead><tr><th style="width:30%">任务类型</th><th style="width:22%">首选</th><th>量化依据</th></tr></thead>
           <tbody>
-            <tr><td class="k">深度重构 / 要跑测试验证</td><td><span class="tag cyan">Claude Code + Opus 5</span></td>
-                <td>这类任务的评测本身就<b style="color:#e2e8f0">必须真跑测试</b>才算过 —— 生成式基准衡量不了</td></tr>
+            <tr><td class="k">深度重构 / 跑测试</td><td><span class="tag cyan">Claude Code + Opus 5</span></td>
+                <td>评测<b style="color:#e2e8f0">必须真跑测试</b></td></tr>
             <tr><td class="k">日常八成的活</td><td><span class="tag emerald">Claude Code + Sonnet 5</span></td>
-                <td>$2/$10 对 $5/$25，<b style="color:#34d399">便宜 2.5 倍</b>；卡住了再升 Opus</td></tr>
+                <td>$2/$10 vs $5/$25，<b style="color:#34d399">便宜 2.5 倍</b></td></tr>
             <tr><td class="k">长时并行 / 批量 PR</td><td><span class="tag emerald">Codex 云端 + Terra</span></td>
-                <td>独立沙箱 + 独立 git 状态；$2/$12 是这档吞吐量下的甜点价</td></tr>
-            <tr><td class="k">批量粗筛 / 分类 / 过日志</td><td><span class="tag emerald">GPT-5.6 Luna</span></td>
-                <td>$0.20/$1.20，<b style="color:#34d399">比同代旗舰便宜 25 倍</b> —— 这种活不该用贵模型</td></tr>
-            <tr><td class="k">跨仓库检索 / 大规模理解</td><td><span class="tag cyan">子代理扇出</span></td>
-                <td>官方口径：子代理主要收益是<b style="color:#e2e8f0">上下文隔离</b>，代价是 token 放大</td></tr>
-            <tr><td class="k">长文档消化，要带引用</td><td><span class="tag violet">Gemini Notebook</span></td>
-                <td>答案锚定源材料；<span class="note" style="display:inline">此项无公开量化对比，属经验判断</span></td></tr>
+                <td>$2/$12，甜点价</td></tr>
+            <tr><td class="k">批量粗筛 / 过日志</td><td><span class="tag emerald">GPT-5.6 Luna</span></td>
+                <td>$0.20/$1.20，<b style="color:#34d399">比同代旗舰便宜 25 倍</b></td></tr>
+            <tr><td class="k">跨仓库大规模检索</td><td><span class="tag cyan">子代理扇出</span></td>
+                <td><b style="color:#e2e8f0">上下文隔离</b>，代价 token 放大</td></tr>
+            <tr><td class="k">长文档消化带引用</td><td><span class="tag violet">Gemini Notebook</span></td>
+                <td><span class="note" style="display:inline">无量化对比，凭经验</span></td></tr>
             <tr><td class="k">私有化 / 数据不出境</td><td><span class="tag emerald">开放权重自建</span></td>
-                <td>短任务差 0.5–7 分、价格差 <b style="color:#34d399">4.6–57 倍</b>；但<b style="color:#fb7185">长程仓库级任务仍差 12–21 分</b></td></tr>
+                <td>短任务差 0.5–7 分、价差 <b style="color:#34d399">4.6–57 倍</b>；<b style="color:#fb7185">长程仍差 12–21 分</b></td></tr>
           </tbody>
         </table>
       </div>
 
       <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
         <div class="card rose">
-          <div class="card-head"><span class="card-dot rose"></span><h3>一条必须说清的诚实结论</h3></div>
+          <div class="card-head"><span class="card-dot rose"></span><h3>必须说清的诚实结论</h3></div>
           <ul>
-            <li>Terminal-Bench 官方榜上，<strong>Claude Code 的默认配置并不是分数最高的</strong>（同一个 Opus 4.6，最好的 harness 76.4%，Claude Code 58.0%）</li>
-            <li>我选它不是因为它跑分最高，是因为<strong>它的扩展点最齐、我能把规范焊进去</strong> —— 这是两回事，别混为一谈</li>
-            <li class="note">同类提醒：Codex 的本地与云端<b style="color:#fbbf24">共享同一个 5 小时滚动窗口</b>，云端不是白送的额外算力</li>
+            <li>Terminal-Bench 榜上 <strong>Claude Code 默认配置不是最高分</strong>：同一个 Opus 4.6，最好的 harness 76.4%，Claude Code 58.0%</li>
+            <li>选它不是因为跑分高，是因为<strong>扩展点最齐</strong> —— 别混为一谈</li>
           </ul>
         </div>
         <div class="card emerald">
           <div class="card-head"><span class="card-dot emerald"></span><h3>选型心法</h3></div>
           <ul>
-            <li>按<strong>"人在不在场"</strong>分类，比按品牌分类有用得多：<br><b style="color:#22d3ee">人在场</b> → 终端 / 编辑器；<b style="color:#34d399">人不在场</b> → 云端异步；<b style="color:#a78bfa">人在读</b> → 检索型</li>
-            <li><strong>默认用便宜档，卡住了再升</strong> —— 而不是反过来</li>
-            <li class="note">官方实测参考：Claude Code 企业用户平均 <b style="color:#fbbf24">$13 / 开发者 / 活跃日</b>，约 $150–250 / 月，90% 的人每活跃日不到 $30</li>
+            <li>按<strong>"人在不在场"</strong>分类比品牌有用：<br><b style="color:#22d3ee">人在场</b> → 终端 / 编辑器；<b style="color:#34d399">不在场</b> → 云端异步；<b style="color:#a78bfa">人在读</b> → 检索型</li>
+            <li><strong>默认便宜档，卡住再升</strong> —— 不是反过来</li>
           </ul>
         </div>
       </div>
@@ -82,7 +76,7 @@
   </div>
 
   <div class="s-foot">
-    <span class="src">量化依据 · Terminal-Bench 2.0 官方榜 tbench.ai · 各家官方定价页 · 倍数为按官方标价直接计算　|　注意：NotebookLM 已更名 <b>Gemini Notebook</b></span>
+    <span class="src">Terminal-Bench 2.0 官方榜 tbench.ai · 各家官方定价页　|　NotebookLM 已更名 <b>Gemini Notebook</b></span>
     <span class="spacer"></span>
     <span class="pg"></span>
   </div>

@@ -1,8 +1,8 @@
 <section class="slide" data-ch="CH7 实践" data-title="一条你能对号入座的主线：看懂别人的设计，再优化自己的策略">
   <div class="s-head">
     <div class="s-kicker"><span class="dot amber"></span>CH 7 · 实践 · 落地场景</div>
-    <h1 class="s-title">逆向不只是抓坏人 —— 更多时候，它是<span class="hl-a">「看懂别人的设计，再优化自己的策略」</span></h1>
-    <div class="s-sub">一个具体场景：你的 App 在地铁里<b>埋点大面积丢失、流量还偏高</b>；竞品在同样的网络下不丢、流量只有你一半。你想知道它那套<b>批量 / 节流 / 离线补偿</b>是怎么设计的 —— <b>竞品不会写博客告诉你他们的退避曲线是多少。</b></div>
+    <h1 class="s-title">逆向不只是抓坏人 —— 更多是<span class="hl-a">「看懂别人的设计，再优化自己的策略」</span></h1>
+    <div class="s-sub">场景：<b>你的埋点在地铁里大面积丢失、流量还偏高</b>，竞品不丢 —— <b>竞品不会写博客告诉你他们的退避曲线是多少。</b></div>
   </div>
 
   <div class="s-body">
@@ -16,70 +16,58 @@
         <path d="M 20 22 L 1140 22" stroke="#1e293b" stroke-width="1"/>
 
         <!-- 逆向段底纹 -->
-        <rect x="20" y="26" width="1120" height="230" rx="8" fill="rgba(136,19,55,.13)"/>
+        <rect x="20" y="26" width="1120" height="170" rx="8" fill="rgba(136,19,55,.13)"/>
         <text x="1130" y="42" fill="#fb7185" font-size="8.5" text-anchor="end">① – ⑤ 逆向段</text>
         <!-- 普通 coding 段底纹 -->
-        <rect x="20" y="262" width="1120" height="92" rx="8" fill="rgba(6,78,59,.16)"/>
-        <text x="1130" y="278" fill="#34d399" font-size="8.5" text-anchor="end">⑥ – ⑦ 普通 coding 段</text>
+        <rect x="20" y="202" width="1120" height="80" rx="8" fill="rgba(6,78,59,.16)"/>
+        <text x="1130" y="218" fill="#34d399" font-size="8.5" text-anchor="end">⑥ – ⑦ 普通 coding 段</text>
 
         <!-- ① -->
         <text x="30" y="52" fill="#fb7185" font-size="11" font-weight="700">①</text>
         <text x="52" y="52" fill="#fff" font-size="10.5" font-weight="600">立项与边界</text>
-        <text x="252" y="52" fill="#cbd5e1" font-size="9">planner（Codex）产出一份只读 plan：只看上报模块、不碰账号态、不导出用户数据</text>
-        <text x="736" y="52" fill="#cbd5e1" font-size="9"><tspan fill="#fff">划边界。</tspan>哪些是「学设计」、哪些一碰就越线 ——</text>
-        <text x="736" y="66" fill="#94a3b8" font-size="9">这条线只能人划，而且要写进 plan 当约束</text>
+        <text x="252" y="52" fill="#cbd5e1" font-size="9">planner（Codex）出只读 plan：只看上报模块</text>
+        <text x="736" y="52" fill="#cbd5e1" font-size="9"><tspan fill="#fff">划边界。</tspan>哪些是「学设计」、哪些一碰就越线</text>
 
         <!-- ② -->
-        <text x="30" y="96" fill="#fb7185" font-size="11" font-weight="700">②</text>
-        <text x="52" y="96" fill="#fff" font-size="10.5" font-weight="600">样本三查</text>
-        <text x="252" y="96" fill="#cbd5e1" font-size="9">跑确定性工具链 <tspan fill="#a5f3fc">file_info · strings · hash_file · extract_symbols</tspan>，</text>
-        <text x="252" y="110" fill="#94a3b8" font-size="9">出「壳 / 保护 / 框架」三查结论</text>
-        <text x="736" y="96" fill="#cbd5e1" font-size="9"><tspan fill="#fff">判断可行性。</tspan>三查若是「重壳 + 控制流平坦化」，</text>
-        <text x="736" y="110" fill="#94a3b8" font-size="9">当场<tspan fill="#fb7185">收手</tspan> —— 混淆下模型性能是断崖</text>
+        <text x="30" y="84" fill="#fb7185" font-size="11" font-weight="700">②</text>
+        <text x="52" y="84" fill="#fff" font-size="10.5" font-weight="600">样本三查</text>
+        <text x="252" y="84" fill="#cbd5e1" font-size="9">确定性工具链 <tspan fill="#a5f3fc">file_info · strings · hash_file · extract_symbols</tspan></text>
+        <text x="736" y="84" fill="#cbd5e1" font-size="9"><tspan fill="#fff">判断可行性。</tspan>重壳 + 控制流平坦化就当场<tspan fill="#fb7185">收手</tspan></text>
 
         <!-- ③ -->
-        <text x="30" y="140" fill="#fb7185" font-size="11" font-weight="700">③</text>
-        <text x="52" y="140" fill="#fff" font-size="10.5" font-weight="600">定位上报模块</text>
-        <text x="252" y="140" fill="#cbd5e1" font-size="9">grep + strings 交叉锁定：上报域名、batch / flush / retry / backoff 命名残留、</text>
-        <text x="252" y="154" fill="#94a3b8" font-size="9">序列化字段名 —— 收敛到几个符号，<tspan fill="#fff">而不是把函数表全量倒进上下文</tspan></text>
-        <text x="736" y="140" fill="#cbd5e1" font-size="9"><tspan fill="#fff">认领哪条线索。</tspan>它给 20 个候选，人凭经验挑 2 个 ——</text>
-        <text x="736" y="154" fill="#94a3b8" font-size="9">全流程里<tspan fill="#fff">人的判断密度最高</tspan>的一步</text>
+        <text x="30" y="116" fill="#fb7185" font-size="11" font-weight="700">③</text>
+        <text x="52" y="116" fill="#fff" font-size="10.5" font-weight="600">定位上报模块</text>
+        <text x="252" y="116" fill="#cbd5e1" font-size="9">grep + strings 锁定上报域名与 batch / flush / retry / backoff 残留</text>
+        <text x="736" y="116" fill="#cbd5e1" font-size="9"><tspan fill="#fff">认领线索。</tspan>它给 20 个候选，人挑 2 个</text>
 
         <!-- ④ -->
-        <text x="30" y="184" fill="#fb7185" font-size="11" font-weight="700">④</text>
-        <text x="52" y="184" fill="#fff" font-size="10.5" font-weight="600">还原机制</text>
-        <text x="252" y="184" fill="#cbd5e1" font-size="9">产出一张参数表：批量上限 · flush 触发条件 · 退避曲线形状 ·</text>
-        <text x="252" y="198" fill="#94a3b8" font-size="9">离线队列容量与淘汰策略 · 去重键怎么算</text>
-        <text x="736" y="184" fill="#cbd5e1" font-size="9"><tspan fill="#fff">决定「够了没有」。</tspan>逆向没有「完成」信号，</text>
-        <text x="736" y="198" fill="#94a3b8" font-size="9">只有「证据够不够」—— <tspan fill="#fbbf24">判停权在人手里</tspan></text>
+        <text x="30" y="148" fill="#fb7185" font-size="11" font-weight="700">④</text>
+        <text x="52" y="148" fill="#fff" font-size="10.5" font-weight="600">还原机制</text>
+        <text x="252" y="148" fill="#cbd5e1" font-size="9">参数表：批量上限 · flush 条件 · 退避曲线 · 离线队列 · 去重键</text>
+        <text x="736" y="148" fill="#cbd5e1" font-size="9"><tspan fill="#fff">决定「够了没有」。</tspan><tspan fill="#fbbf24">判停权在人</tspan></text>
 
         <!-- ⑤ -->
-        <text x="30" y="228" fill="#fb7185" font-size="11" font-weight="700">⑤</text>
-        <text x="52" y="228" fill="#fff" font-size="10.5" font-weight="600">提炼设计精华</text>
-        <text x="252" y="228" fill="#cbd5e1" font-size="9">把参数表升维成一页「机制卡」：它的取舍是什么、在什么约束下才成立</text>
-        <text x="736" y="228" fill="#cbd5e1" font-size="9"><tspan fill="#fff">过滤。</tspan>哪些是精华，哪些只是它的历史包袱 ——</text>
-        <text x="736" y="242" fill="#94a3b8" font-size="9">这是产品判断，不是技术判断</text>
+        <text x="30" y="180" fill="#fb7185" font-size="11" font-weight="700">⑤</text>
+        <text x="52" y="180" fill="#fff" font-size="10.5" font-weight="600">提炼设计精华</text>
+        <text x="252" y="180" fill="#cbd5e1" font-size="9">升维成「机制卡」：取舍是什么、什么约束下成立</text>
+        <text x="736" y="180" fill="#cbd5e1" font-size="9"><tspan fill="#fff">过滤。</tspan>哪些是精华，哪些是它的历史包袱</text>
 
         <!-- ⑥ -->
-        <text x="30" y="288" fill="#34d399" font-size="11" font-weight="700">⑥</text>
-        <text x="52" y="288" fill="#fff" font-size="10.5" font-weight="600">差异对照 + 落成改动</text>
-        <text x="252" y="288" fill="#cbd5e1" font-size="9">切回自家代码仓（agent 回到最擅长的形态）：逐条列 diff —— 我们没有二级离线队列 /</text>
-        <text x="252" y="302" fill="#94a3b8" font-size="9">我们的退避是线性它是带抖动的指数 / 我们的去重键不含 session。出改动清单与 PR</text>
-        <text x="736" y="288" fill="#cbd5e1" font-size="9"><tspan fill="#fff">取舍与排期。</tspan><tspan fill="#fbbf24">差异不等于要抄</tspan> ——</text>
-        <text x="736" y="302" fill="#94a3b8" font-size="9">哪些改、哪些不改、哪些先灰度</text>
+        <text x="30" y="228" fill="#34d399" font-size="11" font-weight="700">⑥</text>
+        <text x="52" y="228" fill="#fff" font-size="10.5" font-weight="600">差异对照 + 落成改动</text>
+        <text x="252" y="228" fill="#cbd5e1" font-size="9">切回自家代码仓逐条列 diff → 改动清单与 PR</text>
+        <text x="736" y="228" fill="#cbd5e1" font-size="9"><tspan fill="#fff">取舍与排期。</tspan><tspan fill="#fbbf24">差异不等于要抄</tspan></text>
 
         <!-- ⑦ -->
-        <text x="30" y="332" fill="#34d399" font-size="11" font-weight="700">⑦</text>
-        <text x="52" y="332" fill="#fff" font-size="10.5" font-weight="600">回归验证 + 归档轨迹</text>
-        <text x="252" y="332" fill="#cbd5e1" font-size="9">弱网回归（丢包 / 延迟注入）对比改动前后；全过程落成<tspan fill="#fff">只追加的 JSONL 轨迹</tspan>，</text>
-        <text x="252" y="346" fill="#94a3b8" font-size="9">第二个人能照着重放</text>
-        <text x="736" y="332" fill="#cbd5e1" font-size="9"><tspan fill="#fff">定验收标准。</tspan>不定指标，它会自己优化一个</text>
-        <text x="736" y="346" fill="#94a3b8" font-size="9">好看的数字（已取证的 gamification 失败模式）</text>
+        <text x="30" y="260" fill="#34d399" font-size="11" font-weight="700">⑦</text>
+        <text x="52" y="260" fill="#fff" font-size="10.5" font-weight="600">回归验证 + 归档轨迹</text>
+        <text x="252" y="260" fill="#cbd5e1" font-size="9">弱网回归对比前后，落成<tspan fill="#fff">只追加的 JSONL 轨迹</tspan></text>
+        <text x="736" y="260" fill="#cbd5e1" font-size="9"><tspan fill="#fff">定验收标准。</tspan>不定指标它会自己优化好看的数字</text>
 
         <!-- 底部结论条 -->
-        <rect x="20" y="364" width="1120" height="34" rx="7" fill="rgba(120,53,15,.24)" stroke="#fbbf24" stroke-width="1"/>
-        <text x="40" y="386" fill="#fbbf24" font-size="10.5" font-weight="700">前五步是逆向，后两步是普通 coding。</text>
-        <text x="300" y="386" fill="#e2e8f0" font-size="10.5">通用 coding agent 在第 ⑥⑦ 步很好用，在第 ①–⑤ 步<tspan fill="#fb7185" font-weight="700">集体撞墙</tspan> —— 这就是 re-agent 存在的全部理由。</text>
+        <rect x="20" y="292" width="1120" height="34" rx="7" fill="rgba(120,53,15,.24)" stroke="#fbbf24" stroke-width="1"/>
+        <text x="40" y="314" fill="#fbbf24" font-size="10.5" font-weight="700">前五步是逆向，后两步是普通 coding。</text>
+        <text x="300" y="314" fill="#e2e8f0" font-size="10.5">通用 coding agent 只在 ⑥⑦ 好用，①–⑤ <tspan fill="#fb7185" font-weight="700">集体撞墙</tspan> —— 这就是 re-agent 的全部理由。</text>
       
           </g>
         </svg>
@@ -87,7 +75,7 @@
   </div>
 
   <div class="s-foot">
-    <span class="src">合法用途框架 · 学习设计 / 兼容互操作 / 对齐自家实现 / 安全自查 / CTF / 排查仿冒 —— 不涉及授权、加密凭据与用户数据 ｜ 失败模式出处 · CrackMeBench arXiv 2605.10597（编号上台前复核）</span>
+    <span class="src">合法用途 · 学习设计 / 兼容互操作 / 安全自查 / CTF ｜ CrackMeBench arXiv 2605.10597</span>
     <span class="spacer"></span>
     <span class="pg"></span>
   </div>

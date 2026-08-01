@@ -2,7 +2,7 @@
   <div class="s-head">
     <div class="s-kicker"><span class="dot violet"></span>关于这次分享</div>
     <h1 class="s-title">这不是产品宣讲，是一份<span class="hl-v">工程读书笔记</span>加<span class="hl-e">一手代码取证</span></h1>
-    <div class="s-sub">我自己在造一个 agent。造之前把这两年的公开工程实践系统啃了一遍 —— 与其让笔记烂在硬盘里，不如整理出来。</div>
+    <div class="s-sub">我在造一个 agent，造之前把这两年的公开工程实践啃了一遍。</div>
   </div>
 
   <div class="s-body">
@@ -10,39 +10,37 @@
       <div class="card cyan">
         <div class="card-head"><span class="card-dot cyan"></span><h3>为什么讲这个</h3></div>
         <ul>
-          <li>市面上关于 agent 的内容，<strong>要么是概念科普，要么是产品广告</strong>。中间那层"到底怎么工程化"很少有人讲</li>
-          <li>而这层恰恰是<strong>唯一你能自己掌控的部分</strong> —— 模型你造不了，界面别人替你做了，中间那层只能自己写</li>
-          <li>所以本场的所有断言都尽量挂上出处：官方博客、arXiv、以及<strong>直接打开源码看行号</strong>。凡是只在二手转述里见过的数字，一律不上页</li>
+          <li>agent 的内容<strong>要么概念科普，要么产品广告</strong>，中间那层"怎么工程化"很少有人讲</li>
+          <li>而这层是<strong>唯一你能掌控的</strong> —— 模型造不了，界面别人做了，中间只能自己写</li>
+          <li>断言尽量挂出处：官方博客、arXiv、<strong>源码行号</strong>。二手转述里见过的数字，一律不上页</li>
         </ul>
       </div>
 
       <div class="card emerald">
         <div class="card-head"><span class="card-dot emerald"></span><h3>你能带走什么</h3><span class="card-num">按投入产出排</span></div>
         <ul>
-          <li><strong>一套共同词汇</strong> —— harness / context engineering / loop / graph / SKILL。以后跟人讨论 agent 不再各说各话</li>
-          <li><strong>一张决策表</strong> —— 什么时候写 workflow、什么时候才轮到 agent、什么时候干脆别用</li>
-          <li><strong>一份选型依据</strong> —— 主流 coding agent 的分野在哪，为什么"能不能改"比"多好用"更值钱</li>
-          <li><strong>几个能直接抄的工程模式</strong> —— 会话树、渐进式披露、fork 的 tier 成本模型、生成与评判分离</li>
+          <li><strong>一套共同词汇</strong> —— harness / context engineering / loop / graph / SKILL</li>
+          <li><strong>一张决策表</strong> —— 何时写 workflow、何时才轮到 agent、何时别用</li>
+          <li><strong>一份选型依据</strong> —— "能不能改"为什么比"多好用"值钱</li>
+          <li><strong>几个能抄的工程模式</strong> —— 会话树、渐进式披露、fork tier 成本模型、生成评判分离</li>
         </ul>
       </div>
 
       <div class="card amber">
         <div class="card-head"><span class="card-dot amber"></span><h3>我认为最值钱的三个点</h3></div>
         <ul>
-          <li><strong>那场受控实验</strong>（第 13 页）—— 它把"harness 有没有用"从口水仗变成了可复现的数字</li>
-          <li><strong>相隔 24 小时的两篇对撞</strong>（第 23 页）—— 多智能体该不该做，两家顶尖团队公开打架，10 个月后一方改口。这段完整呈现比任何结论都有价值</li>
-          <li><strong>FORK.md 的 tier 成本模型</strong>（第 32 页）—— 把"维护深度 fork"从英雄主义问题变成可优化的成本函数。<em>这一页值得单独抄走</em></li>
+          <li><strong>那场受控实验</strong>（第 13 页）—— "harness 有没有用"变成可复现的数字</li>
+          <li><strong>相隔 24 小时的两篇对撞</strong>（第 23 页）—— 两家顶尖团队公开打架，10 个月后一方改口</li>
+          <li><strong>FORK.md 的 tier 成本模型</strong>（第 32 页）—— 深度 fork 变成可优化的成本函数。<em>值得抄走</em></li>
         </ul>
       </div>
 
       <div class="card violet">
         <div class="card-head"><span class="card-dot violet"></span><h3>怎么交流 · 怎么纠错</h3></div>
         <ul>
-          <li><strong>全部开源</strong>：slides 源码、逐页讲稿、以及 16 份带出处的研究笔记，一起放在仓库里</li>
-          <li><strong>发现错了请直接提 Issue</strong> —— 本场有 18 处经独立核查被打回的数据，我把它们连同"为什么没上页"一起写进了备忘。这类东西越多人挑越好</li>
-          <li><strong>想实时聊</strong>：Discord —— 逆向、agent、工具链都能聊</li>
-          <li><strong>想深入讨论</strong>：GitHub Discussions</li>
-          <li><strong>想跟进 re-agent 的后续</strong>：Watch 本仓库，下一篇会在这里更新</li>
+          <li><strong>全部开源</strong>：slides 源码、逐页讲稿、16 份带出处的研究笔记</li>
+          <li><strong>发现错了请提 Issue</strong> —— 本场 18 处经独立核查被打回的数据，连同"为什么没上页"都写进了备忘</li>
+          <li><strong>想聊</strong>：Discord / Discussions；<strong>跟进 re-agent</strong>：Watch 本仓库</li>
           <li class="note">github.com/overkazaf/share-slides　·　discord.gg/vrjd7wQ8</li>
         </ul>
       </div>
@@ -50,7 +48,7 @@
   </div>
 
   <div class="s-foot">
-    <span class="src">阅读方式 · ← → 翻页 · O 打开总览 · F 全屏 · 每页页脚都标注了该页数据的来源</span>
+    <span class="src">← → 翻页 · O 总览 · F 全屏 · 每页页脚标注该页数据来源</span>
     <span class="spacer"></span>
     <span class="pg"></span>
   </div>

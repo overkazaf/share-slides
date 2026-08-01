@@ -1,8 +1,8 @@
 <section class="slide" data-ch="CH1 定义" data-title="什么是 Agent：一个会自己决定下一步的循环">
   <div class="s-head">
     <div class="s-kicker"><span class="dot emerald"></span>CH 1 · 定义</div>
-    <h1 class="s-title">Agent = 能<span class="hl-e">自己决定下一步</span>、并能真的<span class="hl">动手改变环境</span>的循环</h1>
-    <div class="s-sub">不是"更聪明的对话框"。判据只有一条：<b style="color:#e2e8f0">下一步做什么，是代码写死的，还是模型现场决定的。</b></div>
+    <h1 class="s-title">Agent = 能<span class="hl-e">自己决定下一步</span>、能<span class="hl">动手改变环境</span>的循环</h1>
+    <div class="s-sub">判据只有一条：<b style="color:#e2e8f0">下一步做什么，是代码写死的，还是模型现场决定的。</b></div>
   </div>
 
   <div class="s-body">
@@ -29,20 +29,19 @@
 
         <!-- ==== 循环边界 ==== -->
         <rect x="195" y="45" width="740" height="300" rx="12" fill="none" stroke="#fbbf24" stroke-width="1.2" stroke-dasharray="8,4" opacity=".55"/>
-        <text x="209" y="62" fill="#fbbf24" font-size="9" opacity=".8">AGENT LOOP · 由模型驱动的循环</text>
+        <text x="209" y="62" fill="#fbbf24" font-size="9" opacity=".8">AGENT LOOP · 由模型驱动</text>
 
         <!-- ==== 输入 ==== -->
         <rect x="20" y="100" width="140" height="72" rx="6" fill="#0f172a"/>
         <rect x="20" y="100" width="140" height="72" rx="6" fill="rgba(8,51,68,.4)" stroke="#22d3ee" stroke-width="1.5"/>
         <text x="90" y="130" fill="#fff" font-size="12" font-weight="600" text-anchor="middle">目标 / 任务</text>
         <text x="90" y="150" fill="#94a3b8" font-size="9" text-anchor="middle">一句自然语言</text>
-        <text x="90" y="164" fill="#64748b" font-size="8" text-anchor="middle">"把这个 crash 修了"</text>
 
         <!-- ==== ① 模型决策 ==== -->
         <rect x="225" y="100" width="180" height="72" rx="6" fill="#0f172a"/>
         <rect x="225" y="100" width="180" height="72" rx="6" fill="rgba(120,53,15,.3)" stroke="#fbbf24" stroke-width="1.5"/>
         <text x="315" y="127" fill="#fff" font-size="12" font-weight="600" text-anchor="middle">① 模型决策</text>
-        <text x="315" y="145" fill="#94a3b8" font-size="9" text-anchor="middle">读完上下文，回答：</text>
+        <text x="315" y="145" fill="#94a3b8" font-size="9" text-anchor="middle">读完上下文，只答：</text>
         <text x="315" y="161" fill="#fbbf24" font-size="9" text-anchor="middle">"下一步做什么？"</text>
 
         <!-- ==== ② 工具调用 ==== -->
@@ -50,7 +49,7 @@
         <rect x="455" y="100" width="180" height="72" rx="6" fill="rgba(6,78,59,.4)" stroke="#34d399" stroke-width="1.5"/>
         <text x="545" y="127" fill="#fff" font-size="12" font-weight="600" text-anchor="middle">② 发出工具调用</text>
         <text x="545" y="145" fill="#94a3b8" font-size="9" text-anchor="middle">结构化的 tool_calls</text>
-        <text x="545" y="161" fill="#64748b" font-size="8" text-anchor="middle">read / edit / bash / search …</text>
+        <text x="545" y="161" fill="#64748b" font-size="8" text-anchor="middle">read / edit / bash …</text>
 
         <!-- ==== ③ 环境执行 ==== -->
         <rect x="685" y="100" width="180" height="72" rx="6" fill="#0f172a"/>
@@ -64,23 +63,23 @@
         <rect x="455" y="245" width="180" height="72" rx="6" fill="rgba(76,29,149,.4)" stroke="#a78bfa" stroke-width="1.5"/>
         <text x="545" y="272" fill="#fff" font-size="12" font-weight="600" text-anchor="middle">④ 结果回灌</text>
         <text x="545" y="290" fill="#94a3b8" font-size="9" text-anchor="middle">observation 追加进上下文</text>
-        <text x="545" y="306" fill="#64748b" font-size="8" text-anchor="middle">报错也是信息，甚至是最好的信息</text>
+        <text x="545" y="306" fill="#64748b" font-size="8" text-anchor="middle">报错也是信息，甚至最好</text>
 
         <!-- ==== 输出 ==== -->
         <rect x="975" y="100" width="160" height="72" rx="6" fill="#0f172a"/>
         <rect x="975" y="100" width="160" height="72" rx="6" fill="rgba(8,51,68,.4)" stroke="#22d3ee" stroke-width="1.5"/>
         <text x="1055" y="130" fill="#fff" font-size="12" font-weight="600" text-anchor="middle">交付</text>
-        <text x="1055" y="150" fill="#94a3b8" font-size="9" text-anchor="middle">最终答复 / 已改好的代码</text>
+        <text x="1055" y="150" fill="#94a3b8" font-size="9" text-anchor="middle">最终答复 / 改好的代码</text>
 
-        <text x="672" y="63" fill="#22d3ee" font-size="9" text-anchor="middle">模型这轮不再要工具 ⇒ 循环收敛，退出</text>
+        <text x="672" y="63" fill="#22d3ee" font-size="9" text-anchor="middle">这轮不再要工具 ⇒ 循环收敛，退出</text>
         <text x="792" y="212" fill="#fb7185" font-size="9">← 护栏装在这一段：权限 · 沙箱 · 审批</text>
-        <text x="205" y="334" fill="#64748b" font-size="9">↑ 每转一圈，上下文更长、更贵，也更接近答案</text>
+        <text x="205" y="334" fill="#64748b" font-size="9">↑ 每转一圈，更长、更贵，也更接近答案</text>
 
         <!-- ==== 上下文条 ==== -->
         <path d="M 565 345 L 565 366" stroke="#a78bfa" stroke-width="1.2" stroke-dasharray="4,4" fill="none"/>
         <rect x="195" y="370" width="740" height="42" rx="6" fill="rgba(76,29,149,.4)" stroke="#a78bfa" stroke-width="1.5"/>
         <text x="565" y="388" fill="#a78bfa" font-size="11" font-weight="600" text-anchor="middle">上下文 Context · append-only</text>
-        <text x="565" y="404" fill="#94a3b8" font-size="9" text-anchor="middle">循环的每一步都写进来，模型的每一次决策也都从这里读出去 —— 它是这台机器唯一的"内存"</text>
+        <text x="565" y="404" fill="#94a3b8" font-size="9" text-anchor="middle">每一步都写进来，每次决策都从这里读出去 —— 唯一的"内存"</text>
 
         <!-- ==== 图例 ==== -->
         <rect x="975" y="245" width="160" height="167" rx="8" fill="rgba(15,23,42,.6)" stroke="#1e293b" stroke-width="1"/>
@@ -103,12 +102,12 @@
     </div>
 
     <div class="takeaway">
-      <b>所以 →</b> 造一个 agent，本质上不是训模型，而是把这个循环的<b>每一段</b>做扎实：喂什么上下文、给什么工具、什么时候停、出错怎么办、越权怎么拦。这一整套东西有个名字，叫 <b>harness</b>。
+      <b>所以 →</b> 造 agent 不是训模型，是把这个循环的<b>每一段</b>做扎实：喂什么上下文、给什么工具、何时停、出错怎么办、越权怎么拦 —— 这一整套叫 <b>harness</b>。
     </div>
   </div>
 
   <div class="s-foot">
-    <span class="src">循环骨架对照实现 · <b>pi-mono / packages/agent</b> · 定义边界见 Anthropic《Building Effective AI Agents》</span>
+    <span class="src">骨架对照 · <b>pi-mono / packages/agent</b> · 定义见 Anthropic《Building Effective AI Agents》</span>
     <span class="spacer"></span>
     <span class="pg"></span>
   </div>

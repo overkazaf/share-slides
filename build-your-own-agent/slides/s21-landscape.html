@@ -2,7 +2,7 @@
   <div class="s-head">
     <div class="s-kicker"><span class="dot"></span>CH 5 · 全景</div>
     <h1 class="s-title">2026 年的分水岭：<span class="hl">harness 和模型能不能解耦</span></h1>
-    <div class="s-sub">不再是"有没有 AI"，而是"这层壳是不是你的"。把主流产品放进两个坐标轴，<b style="color:#e2e8f0">空着的那一格本身就是个论点</b>。</div>
+    <div class="s-sub">不是"有没有 AI"，是"这层壳是不是你的" —— <b style="color:#e2e8f0">空着的那一格就是个论点</b>。</div>
   </div>
 
   <div class="s-body">
@@ -54,23 +54,18 @@
           <text x="572" y="254" fill="#fff" font-size="11" font-weight="600">Claude Code</text>
           <text x="572" y="267" fill="#fbbf24" font-size="8">Skills · Subagent</text>
           <text x="572" y="278" fill="#fbbf24" font-size="8">Plugin · Hook · MCP</text>
-          <circle cx="430" cy="290" r="7" fill="rgba(251,191,36,.3)" stroke="#fbbf24" stroke-width="1.4"/>
-          <text x="444" y="294" fill="#cbd5e1" font-size="10">Amp</text>
           <circle cx="512" cy="316" r="7" fill="rgba(251,191,36,.3)" stroke="#fbbf24" stroke-width="1.4"/>
           <text x="526" y="320" fill="#cbd5e1" font-size="10">Codex</text>
           <circle cx="616" cy="300" r="7" fill="rgba(251,191,36,.3)" stroke="#fbbf24" stroke-width="1.4"/>
           <text x="602" y="318" fill="#cbd5e1" font-size="10" text-anchor="end">Cursor</text>
-          <circle cx="466" cy="348" r="7" fill="rgba(251,191,36,.3)" stroke="#fbbf24" stroke-width="1.4"/>
-          <text x="480" y="352" fill="#cbd5e1" font-size="10">Devin</text>
           <circle cx="586" cy="362" r="7" fill="rgba(251,191,36,.3)" stroke="#fbbf24" stroke-width="1.4"/>
           <text x="600" y="366" fill="#cbd5e1" font-size="10">Copilot / Jules</text>
 
           <!-- 左下：空 -->
           <text x="210" y="286" fill="#fb7185" font-size="11" font-weight="600" text-anchor="middle">这一格是空的</text>
           <text x="210" y="306" fill="#94a3b8" font-size="9" text-anchor="middle">没有"极简 + 闭源"的产品</text>
-          <text x="210" y="322" fill="#64748b" font-size="8.5" text-anchor="middle">因为闭源产品没有做极简的</text>
-          <text x="210" y="336" fill="#64748b" font-size="8.5" text-anchor="middle">商业动机 —— 功能就是卖点</text>
-          <rect x="112" y="262" width="196" height="86" rx="8" fill="none" stroke="#fb7185" stroke-width="1.2" stroke-dasharray="5,4"/>
+          <text x="210" y="322" fill="#64748b" font-size="8.5" text-anchor="middle">没有做极简的商业动机 —— 功能就是卖点</text>
+          <rect x="112" y="262" width="196" height="72" rx="8" fill="none" stroke="#fb7185" stroke-width="1.2" stroke-dasharray="5,4"/>
         
           </g>
         
@@ -84,23 +79,22 @@
         <div class="card cyan">
           <div class="card-head"><span class="card-dot cyan"></span><h3>另一个切法：交互面</h3></div>
           <ul>
-            <li><strong>终端优先</strong> — 心智模型是"<em>结对</em>"：人在场，随时打断<span class="note">Claude Code · Codex CLI · pi · opencode · Aider</span></li>
-            <li><strong>编辑器优先</strong> — "<em>陪审</em>"：看 diff、逐个批准<span class="note">Cursor · Zed agent · Cline · Copilot agent mode</span></li>
-            <li><strong>云端异步</strong> — "<em>外包</em>"：人不在场，回来收 PR<span class="note">Jules · Copilot coding agent · Codex Cloud</span></li>
+            <li><strong>终端优先</strong>＝"<em>结对</em>"，随时打断 · <strong>编辑器优先</strong>＝"<em>陪审</em>"，看 diff 批准 · <strong>云端异步</strong>＝"<em>外包</em>"，回来收 PR</li>
+            <li class="note">不是优劣，是你愿意在场多久<span class="note">pi · Codex CLI ／ Cursor · Cline ／ Jules · Codex Cloud</span></li>
           </ul>
         </div>
         <div class="card emerald">
           <div class="card-head"><span class="card-dot emerald"></span><h3>2026 年最重要的架构趋势</h3></div>
           <ul>
-            <li><strong>agent 与前端正在解耦</strong>：编辑器侧出现了通用协议，仓库侧出现了统一的 agent 调度台</li>
-            <li>换句话说，<strong>"用哪个 agent"和"在哪用"正在变成两个独立选择</strong> —— 这正是自己造 harness 变得可行的前提</li>
+            <li><strong>agent 与前端正在解耦</strong>：编辑器侧有通用协议，仓库侧有统一调度台</li>
+            <li><strong>"用哪个 agent"和"在哪用"成了两个独立选择</strong> —— 自己造 harness 的前提</li>
           </ul>
         </div>
         <div class="card rose">
           <div class="card-head"><span class="card-dot rose"></span><h3>选型提醒（血泪）</h3></div>
           <ul>
-            <li>这个赛道<strong>死亡率很高</strong>：本次核实中就发现有产品已停运、有免费档已停服、有产品已改名换东家</li>
-            <li>所以：<strong>把赌注押在"你能改的那部分"上</strong>，别押在别人的路线图上</li>
+            <li>赛道<strong>死亡率很高</strong>：核实中就撞见停运、免费档停服、改名换东家</li>
+            <li><strong>把赌注押在"你能改的那部分"</strong>，别押别人的路线图</li>
           </ul>
         </div>
       </div>
@@ -108,7 +102,7 @@
   </div>
 
   <div class="s-foot">
-    <span class="src">数据 · GitHub API star 数采集于 2026-08-01（快照，非实时）· 象限归属为本文归纳，非官方分类</span>
+    <span class="src">star 采集自 GitHub API 2026-08-01（快照）· 象限为本文归纳，非官方分类</span>
     <span class="spacer"></span>
     <span class="pg"></span>
   </div>

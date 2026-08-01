@@ -2,7 +2,7 @@
   <div class="s-head">
     <div class="s-kicker"><span class="dot violet"></span>CH 3 · 原理 · L6</div>
     <h1 class="s-title">SKILL：把说明书<span class="hl-v">挂在墙上</span>，而不是<span class="hl-r">背在身上</span></h1>
-    <div class="s-sub">"教会 agent 一件事"的最省钱形态。核心机制叫<b style="color:#e2e8f0">渐进式披露（progressive disclosure）</b>：常驻的只有目录，正文用到才翻开。</div>
+    <div class="s-sub"><b style="color:#e2e8f0">渐进式披露</b>：常驻的只有目录，正文用到才翻开。</div>
   </div>
 
   <div class="s-body">
@@ -27,31 +27,28 @@
           <text x="626" y="68" fill="#c4b5fd" font-size="10" text-anchor="end" font-weight="600">≈ 几十 token / 个</text>
           <rect x="34" y="78" width="592" height="38" rx="4" fill="rgba(2,6,23,.65)" stroke="#1e293b" stroke-width="1"/>
           <text x="46" y="94" fill="#94a3b8" font-size="9">&lt;skill&gt;&lt;name&gt;逆向-so-分析&lt;/name&gt;</text>
-          <text x="46" y="108" fill="#94a3b8" font-size="9">&lt;description&gt;分析 Android SO 导出符号与保护…&lt;/description&gt;&lt;location&gt;…/SKILL.md&lt;/location&gt;&lt;/skill&gt;</text>
+          <text x="46" y="108" fill="#94a3b8" font-size="9">&lt;description&gt;分析 SO 导出符号与保护…&lt;/description&gt;&lt;location&gt;…/SKILL.md&lt;/location&gt;&lt;/skill&gt;</text>
 
-          <text x="212" y="150" fill="#64748b" font-size="9">模型读到描述，判断"这次用得上"</text>
+          <text x="212" y="150" fill="#64748b" font-size="9">模型判断"这次用得上"</text>
 
           <!-- Tier 1 -->
           <rect x="56" y="166" width="588" height="82" rx="8" fill="#0f172a"/>
           <rect x="56" y="166" width="588" height="82" rx="8" fill="rgba(6,78,59,.4)" stroke="#34d399" stroke-width="1.8"/>
-          <text x="74" y="188" fill="#34d399" font-size="9.5" font-weight="600">第 1 级 · 用普通的 read 工具把正文拉进来</text>
+          <text x="74" y="188" fill="#34d399" font-size="9.5" font-weight="600">第 1 级 · 用 read 工具拉进正文</text>
           <text x="626" y="188" fill="#6ee7b7" font-size="10" text-anchor="end" font-weight="600">≈ 数百 ~ 数千 token</text>
-          <text x="74" y="210" fill="#cbd5e1" font-size="9.5">完整的操作步骤、检查清单、坑位说明、命令模板</text>
-          <text x="74" y="228" fill="#64748b" font-size="8.5">注意：读它用的就是那个再普通不过的 read 工具 —— 没有专门的"技能加载器"</text>
+          <text x="74" y="214" fill="#cbd5e1" font-size="9.5">操作步骤、检查清单、命令模板</text>
 
-          <text x="252" y="270" fill="#64748b" font-size="9">正文里再指向更细的资料</text>
+          <text x="252" y="270" fill="#64748b" font-size="9">正文指向更细的资料</text>
 
           <!-- Tier 2 -->
           <rect x="96" y="286" width="548" height="82" rx="8" fill="#0f172a"/>
           <rect x="96" y="286" width="548" height="82" rx="8" fill="rgba(120,53,15,.3)" stroke="#fbbf24" stroke-width="1.8"/>
           <text x="114" y="308" fill="#fbbf24" font-size="9.5" font-weight="600">第 2 级 · 参考资料 / 脚本 / 模板</text>
           <text x="626" y="308" fill="#fcd34d" font-size="10" text-anchor="end" font-weight="600">用到才付费</text>
-          <text x="114" y="330" fill="#cbd5e1" font-size="9.5">references/*.md · scripts/*.py · 大段样例 —— 可能永远不会被读</text>
-          <text x="114" y="348" fill="#64748b" font-size="8.5">脚本尤其划算：让 agent 去<tspan fill="#fbbf24">执行</tspan>它，而不是把它<tspan fill="#fbbf24">读进上下文再复述</tspan></text>
+          <text x="114" y="334" fill="#cbd5e1" font-size="9.5">references/*.md · scripts/*.py —— 可能永远不会被读</text>
 
           <text x="16" y="396" fill="#fb7185" font-size="9.5" font-weight="600">这不是检索</text>
-          <text x="112" y="396" fill="#94a3b8" font-size="9">RAG 按相似度塞碎片给你；SKILL 是模型自己决定"翻开哪本说明书"，读到的是完整、有作者意图的整篇</text>
-          <text x="16" y="412" fill="#475569" font-size="8.5">决策权在模型，成本可预估，内容可版本管理、可 code review —— 这三点是它比"再调调 prompt"强的根本原因</text>
+          <text x="112" y="396" fill="#94a3b8" font-size="9">RAG 塞相似碎片；SKILL 由模型决定翻开哪本，读到完整整篇</text>
         
           </g>
         
@@ -63,26 +60,24 @@
 
       <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
         <div class="card emerald">
-          <div class="card-head"><span class="card-dot emerald"></span><h3>代码证据：它有多干净</h3></div>
+          <div class="card-head"><span class="card-dot emerald"></span><h3>代码证据</h3></div>
           <ul>
-            <li>pi 的 <code style="color:#34d399">Skill</code> 结构体里<strong>压根没有 content 字段</strong> —— 正文从未被读进内存，更不可能进 system prompt</li>
-            <li>注入 prompt 的只有三个字段：<em>name / description / location</em></li>
-            <li>而且<strong>只有 read 工具在场时才注入 skills 段</strong> —— 没有 read 就没法翻开，那列出来纯属浪费</li>
+            <li><code style="color:#34d399">Skill</code> 结构体<strong>没有 content 字段</strong> —— 正文从未进内存</li>
+            <li><strong>只有 read 在场才注入 skills 段</strong> —— 翻不开就不列</li>
           </ul>
         </div>
         <div class="card violet">
-          <div class="card-head"><span class="card-dot violet"></span><h3>写好一个 SKILL 的三条</h3></div>
+          <div class="card-head"><span class="card-dot violet"></span><h3>写好一个 SKILL</h3></div>
           <ul>
-            <li><strong>description 是唯一的入口</strong>：它决定模型会不会翻开你这一页，比正文更值得打磨</li>
-            <li>正文写<strong>流程和判据</strong>，不写背景介绍 —— 模型不需要被科普</li>
+            <li><strong>description 是唯一入口</strong>：比正文更值得打磨</li>
+            <li>正文写<strong>流程和判据</strong>，不写背景科普</li>
             <li>能做成脚本的别做成文字</li>
           </ul>
         </div>
         <div class="card amber">
           <div class="card-head"><span class="card-dot amber"></span><h3>顺带一提</h3></div>
           <ul>
-            <li>"渐进式披露"本是<strong>人机交互</strong>领域的老概念：界面先给最常用的，高级选项藏起来</li>
-            <li>换到 agent 上，被节省的从"用户的注意力"变成了"模型的注意力"—— 是同一个问题</li>
+            <li>"渐进式披露"本是<strong>人机交互</strong>老概念：省的从用户注意力变成模型注意力</li>
           </ul>
         </div>
       </div>
@@ -90,7 +85,7 @@
   </div>
 
   <div class="s-foot">
-    <span class="src">证据 · <b>pi-mono/packages/coding-agent/src/core/skills.ts</b>（Skill 接口 / formatSkillsForPrompt）· <b>core/system-prompt.ts</b>（hasRead 条件）</span>
+    <span class="src">证据 · pi <b>core/skills.ts</b>（Skill 接口）· <b>core/system-prompt.ts</b>（hasRead 条件）</span>
     <span class="spacer"></span>
     <span class="pg"></span>
   </div>
