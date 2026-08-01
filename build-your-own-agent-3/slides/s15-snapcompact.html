@@ -1,0 +1,117 @@
+<section class="slide" data-ch="CH3 上下文" data-title="snapcompact 是缩微胶片，不是点阵图">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot violet"></span>CH 3 · 上下文</div>
+    <h1 class="s-title">snapcompact 是<span class="hl-v">缩微胶片</span>，不是点阵图</h1>
+    <div class="s-sub">把历史用点阵字体<b style="color:#e2e8f0">印</b>成 PNG，让 vision 模型 OCR 读回 —— 排版印刷，不是信息可视化。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 505" xmlns="http://www.w3.org/2000/svg">
+          <!-- 常见讲法 / 实情 -->
+          <rect x="6" y="6" width="340" height="92" rx="6" fill="rgba(136,19,55,.28)" stroke="#fb7185" stroke-width="1.2"/>
+          <text x="20" y="27" fill="#fb7185" font-size="10" font-weight="600">常见讲法</text>
+          <text x="20" y="48" fill="#cbd5e1" font-size="9.5">把丢弃的历史「画成点阵图」</text>
+          <text x="20" y="66" fill="#94a3b8" font-size="8.5">听起来像信息可视化：热力图、散点、色块矩阵</text>
+          <text x="20" y="84" fill="#94a3b8" font-size="8.5">—— 第一篇就是这么讲的，方向对，措辞不准</text>
+
+          <rect x="352" y="6" width="342" height="92" rx="6" fill="rgba(76,29,149,.28)" stroke="#a78bfa" stroke-width="1.2"/>
+          <text x="366" y="27" fill="#a78bfa" font-size="10" font-weight="600">实情</text>
+          <text x="366" y="48" fill="#cbd5e1" font-size="9.5">把历史用点阵字体印成缩微胶片</text>
+          <text x="366" y="66" fill="#94a3b8" font-size="8.5">PNG 上是一行行逐格印出来的可读文字，不是图表</text>
+          <text x="366" y="84" fill="#94a3b8" font-size="8.5">模型读回时做的是 OCR，不是读图</text>
+
+          <text x="6" y="122" fill="#94a3b8" font-size="9.5" font-weight="600">文本 → 点阵字体 → PNG → 模型 OCR 读回</text>
+          <text x="470" y="122" fill="#64748b" font-size="8">括号里是函数名与行号，同一个文件</text>
+
+          <rect x="6" y="132" width="688" height="52" rx="6" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="22" y="153" fill="#64748b" font-size="9">①</text>
+          <text x="40" y="153" fill="#a78bfa" font-size="10.5" font-weight="600">序列化 + 归一化</text>
+          <text x="150" y="153" fill="#64748b" font-size="8.5">serializeConversation :776 · normalize :1188</text>
+          <text x="22" y="172" fill="#cbd5e1" font-size="9">压成 ¶user / ¶think / ¶ai / ¶call 四种前缀的紧凑文本；剥 ANSI、折空白、换行折成一个实心方块 █</text>
+
+          <rect x="6" y="190" width="688" height="52" rx="6" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="22" y="211" fill="#64748b" font-size="9">②</text>
+          <text x="40" y="211" fill="#a78bfa" font-size="10.5" font-weight="600">排版：中央凹</text>
+          <text x="150" y="211" fill="#64748b" font-size="8.5">planArchive :1758</text>
+          <text x="22" y="230" fill="#cbd5e1" font-size="9">时间轴两端（会话开头 + 最近）留纯文本可精确检索，中段成像，中段的中段再降质，丢最老的密集段</text>
+
+          <rect x="6" y="248" width="688" height="52" rx="6" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="22" y="269" fill="#64748b" font-size="9">③</text>
+          <text x="40" y="269" fill="#a78bfa" font-size="10.5" font-weight="600">光栅化成 PNG</text>
+          <text x="150" y="269" fill="#64748b" font-size="8.5">render :1461 → crates/pi-natives/src/snapcompact.rs</text>
+          <text x="22" y="288" fill="#cbd5e1" font-size="9">真实点阵字体文件：X.org misc 5x8 / 6x12 / 8x13、unscii 8x8，外加 TrueType 兜底字体 Silver</text>
+
+          <rect x="6" y="306" width="688" height="52" rx="6" fill="rgba(76,29,149,.22)" stroke="#a78bfa" stroke-width="1.2"/>
+          <text x="22" y="327" fill="#64748b" font-size="9">④</text>
+          <text x="40" y="327" fill="#a78bfa" font-size="10.5" font-weight="600">模型读回</text>
+          <text x="150" y="327" fill="#64748b" font-size="8.5">前置条件：model.input 必须含 "image"</text>
+          <text x="22" y="346" fill="#cbd5e1" font-size="9">这一步是 OCR。所以「读不读得出来」变成了一个可以打分的指标 —— 下下页讲它怎么塌的</text>
+
+          <rect x="6" y="368" width="688" height="66" rx="6" fill="rgba(76,29,149,.16)" stroke="#a78bfa" stroke-width="1"/>
+          <text x="22" y="388" fill="#a78bfa" font-size="9.5" font-weight="600">名字就说明了意图：snapcompact ≈ microfiche（缩微胶片）</text>
+          <text x="22" y="407" fill="#cbd5e1" font-size="8.5">"the serialized conversation is rendered into PNG frames of pixel-font text that vision models read back directly"</text>
+          <text x="22" y="424" fill="#94a3b8" font-size="8.5">"like an archivist at a snapcompact frame reader" —— 作者把这套东西比作档案管理员翻胶片</text>
+
+          <text x="6" y="456" fill="#64748b" font-size="8">另有 4 个明确的信息丢失点：序列化截断（工具结果 2000 字符封顶）/ 归一化丢字 / 中央凹整段丢弃 / OCR 读不出</text>
+          <text x="6" y="472" fill="#64748b" font-size="8">还有一条必然丢失：stripThinkingSections 会整体删掉 ¶think 段，因为把 reasoning 原样喂回会触发 Claude 的分类器</text>
+        </svg>
+      </div>
+
+      <div class="figure">
+        <svg viewBox="0 0 440 495" xmlns="http://www.w3.org/2000/svg">
+          <text x="6" y="16" fill="#94a3b8" font-size="9.5" font-weight="600">「零 LLM 调用」这句话要加限定词</text>
+
+          <rect x="6" y="26" width="428" height="48" rx="6" fill="rgba(136,19,55,.28)" stroke="#fb7185" stroke-width="1.2"/>
+          <text x="18" y="46" fill="#fb7185" font-size="9.5" font-weight="600">常见讲法：零 LLM 调用 = 零成本</text>
+          <text x="18" y="64" fill="#94a3b8" font-size="8.5">压缩不花钱，那帧当然是越多越好</text>
+
+          <rect x="6" y="82" width="428" height="66" rx="6" fill="rgba(76,29,149,.28)" stroke="#a78bfa" stroke-width="1.2"/>
+          <text x="18" y="102" fill="#a78bfa" font-size="9.5" font-weight="600">实情：零「额外」调用，不等于零 token</text>
+          <text x="18" y="120" fill="#cbd5e1" font-size="8.5">压缩这一步本地确定性完成：Rust 光栅化，</text>
+          <text x="18" y="136" fill="#cbd5e1" font-size="8.5">无 API key、无网络、无推理延迟、结果可复现</text>
+
+          <text x="6" y="172" fill="#94a3b8" font-size="9.5" font-weight="600">但帧此后每一轮都要重新附上</text>
+
+          <rect x="6" y="182" width="138" height="88" rx="6" fill="rgba(6,78,59,.28)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="75" y="203" fill="#34d399" font-size="10" font-weight="600" text-anchor="middle">轮 T · 压缩发生</text>
+          <text x="75" y="224" fill="#fff" font-size="13" font-weight="700" text-anchor="middle">0 次</text>
+          <text x="75" y="241" fill="#cbd5e1" font-size="8.5" text-anchor="middle">额外 LLM 调用</text>
+          <text x="75" y="258" fill="#94a3b8" font-size="8" text-anchor="middle">只有 Rust 光栅化</text>
+
+          <rect x="151" y="182" width="138" height="88" rx="6" fill="rgba(120,53,15,.28)" stroke="#fbbf24" stroke-width="1.2"/>
+          <text x="220" y="203" fill="#fbbf24" font-size="10" font-weight="600" text-anchor="middle">轮 T+1</text>
+          <text x="220" y="224" fill="#fff" font-size="13" font-weight="700" text-anchor="middle">重附 N 帧</text>
+          <text x="220" y="241" fill="#cbd5e1" font-size="8.5" text-anchor="middle">按 vision token 计费</text>
+          <text x="220" y="258" fill="#94a3b8" font-size="8" text-anchor="middle">payload 是 MB 级 base64</text>
+
+          <rect x="296" y="182" width="138" height="88" rx="6" fill="rgba(120,53,15,.28)" stroke="#fbbf24" stroke-width="1.2"/>
+          <text x="365" y="203" fill="#fbbf24" font-size="10" font-weight="600" text-anchor="middle">轮 T+2 …</text>
+          <text x="365" y="224" fill="#fff" font-size="13" font-weight="700" text-anchor="middle">再附一次</text>
+          <text x="365" y="241" fill="#cbd5e1" font-size="8.5" text-anchor="middle">每轮再计一次费</text>
+          <text x="365" y="258" fill="#94a3b8" font-size="8" text-anchor="middle">直到下次压缩重排</text>
+
+          <rect x="6" y="286" width="428" height="92" rx="6" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="18" y="306" fill="#fbbf24" font-size="9.5" font-weight="600">所以帧数必须被三重夹逼</text>
+          <text x="18" y="325" fill="#cbd5e1" font-size="8.5">MAX_FRAMES_DEFAULT = 80（注释说约装 400k token）</text>
+          <text x="18" y="341" fill="#cbd5e1" font-size="8.5">FRAME_DATA_BYTES_BUDGET = 3 MB → 实际压到 17 帧</text>
+          <text x="18" y="359" fill="#94a3b8" font-size="8">「1M 窗口纸面上放得下 70 张图，放不下每轮 ~11 MB 的 JSON payload」</text>
+          <text x="18" y="372" fill="#64748b" font-size="8">未知 provider 的图片张数预算只有 5 张</text>
+
+          <rect x="6" y="392" width="428" height="86" rx="6" fill="rgba(6,78,59,.14)" stroke="#34d399" stroke-width="1"/>
+          <text x="18" y="412" fill="#34d399" font-size="9.5" font-weight="600">怎么念才不误导</text>
+          <text x="18" y="432" fill="#fff" font-size="9.5">「压缩这一步零额外 LLM 调用」 ✓</text>
+          <text x="18" y="452" fill="#94a3b8" font-size="9.5">「这套方案零成本」 ✗</text>
+          <text x="18" y="470" fill="#64748b" font-size="8">省的是一次推理、一次不确定性、一次幻觉机会，不是 token</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src"><b>packages/snapcompact/src/snapcompact.ts:1-8, 776, 1188, 1461, 1758</b> · 引号内为代码注释原文 · HEAD 09a7c865</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

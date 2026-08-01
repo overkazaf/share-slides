@@ -1,0 +1,118 @@
+<section class="slide" data-ch="CH6 规则与记忆" data-title="同一份规则 markdown，按 frontmatter 分成三个桶：占用 0 / 全文 / 一行">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot violet"></span>CH 6 · 规则与记忆</div>
+    <h1 class="s-title">同一份规则 markdown，按 frontmatter 分成<span class="hl-v">三个桶</span></h1>
+    <div class="s-sub">TTSR 的 prompt 占用是 <b style="color:#e2e8f0">0</b> —— 它只在流式命中的那一刻现身。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 505" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="16" fill="#94a3b8" font-size="10.5" font-weight="600">同一份 markdown：YAML frontmatter + 正文</text>
+          <text x="16" y="34" fill="#64748b" font-size="8.5">来源按 provider 优先级 native(100) &gt; omp-plugins(90) &gt; agents(70) &gt; cursor(50) &gt; … 按 rule.name 去重，first-wins</text>
+          <text x="16" y="50" fill="#64748b" font-size="8.5">仓库内置 28 条：ts-no-any / ts-import-type / rs-parking-lot / go-range-int / …</text>
+
+          <!-- 桶 1 TTSR -->
+          <rect x="16" y="62" width="668" height="106" rx="6" fill="rgba(76,29,149,.22)" stroke="#a78bfa" stroke-width="1.4"/>
+          <text x="32" y="84" fill="#a78bfa" font-size="12" font-weight="700">桶 1 · TTSR</text>
+          <text x="32" y="103" fill="#94a3b8" font-size="8.5">判据：有 condition 或 astCondition（优先级最高）</text>
+          <text x="32" y="122" fill="#cbd5e1" font-size="8.5">ts-no-any → condition: ": any|as any"</text>
+          <text x="32" y="140" fill="#cbd5e1" font-size="8.5">ts-redundant-clear-guard → astCondition: "if ($X) clearTimeout($X)"</text>
+          <text x="32" y="158" fill="#64748b" font-size="8">同一元变量两处必须相等 —— 这是纯正则做不到的，也是引入 ast-grep 的唯一理由</text>
+
+          <rect x="382" y="74" width="104" height="50" rx="5" fill="rgba(2,6,23,.6)" stroke="#334155" stroke-width="1"/>
+          <text x="434" y="99" fill="#fff" font-size="19" font-weight="700" text-anchor="middle">0</text>
+          <text x="434" y="115" fill="#64748b" font-size="8" text-anchor="middle">prompt 占用</text>
+
+          <text x="502" y="86" fill="#a78bfa" font-size="9.5" font-weight="600">生效时机</text>
+          <text x="502" y="104" fill="#cbd5e1" font-size="8.5">流式命中的那一刻</text>
+          <text x="502" y="122" fill="#cbd5e1" font-size="8.5">命中前不花任何 token</text>
+          <text x="502" y="140" fill="#cbd5e1" font-size="8.5">命中一次 = 重跑本轮</text>
+
+          <!-- 桶 2 always-apply -->
+          <rect x="16" y="178" width="668" height="100" rx="6" fill="rgba(120,53,15,.22)" stroke="#fbbf24" stroke-width="1.2"/>
+          <text x="32" y="200" fill="#fbbf24" font-size="12" font-weight="700">桶 2 · always-apply</text>
+          <text x="32" y="219" fill="#94a3b8" font-size="8.5">判据：alwaysApply: true 且不属于 TTSR</text>
+          <text x="32" y="238" fill="#cbd5e1" font-size="8.5">全文注入 &lt;generic-rules&gt;</text>
+          <text x="32" y="257" fill="#64748b" font-size="8">每一次请求都付固定 token，无论这条规则跟本轮相不相关</text>
+
+          <rect x="382" y="190" width="104" height="50" rx="5" fill="rgba(2,6,23,.6)" stroke="#334155" stroke-width="1"/>
+          <text x="434" y="214" fill="#fbbf24" font-size="15" font-weight="700" text-anchor="middle">全文</text>
+          <text x="434" y="231" fill="#64748b" font-size="8" text-anchor="middle">prompt 占用</text>
+
+          <text x="502" y="202" fill="#fbbf24" font-size="9.5" font-weight="600">生效时机</text>
+          <text x="502" y="220" fill="#cbd5e1" font-size="8.5">始终</text>
+          <text x="502" y="238" fill="#cbd5e1" font-size="8.5">28 条内置规则含代码块</text>
+          <text x="502" y="256" fill="#cbd5e1" font-size="8.5">全塞进去是数万 token</text>
+
+          <!-- 桶 3 rulebook -->
+          <rect x="16" y="288" width="668" height="100" rx="6" fill="rgba(8,51,68,.26)" stroke="#22d3ee" stroke-width="1.2"/>
+          <text x="32" y="310" fill="#22d3ee" font-size="12" font-weight="700">桶 3 · rulebook</text>
+          <text x="32" y="329" fill="#94a3b8" font-size="8.5">判据：只有 description，既非 TTSR 也非 always-apply</text>
+          <text x="32" y="348" fill="#cbd5e1" font-size="8.5">索引行：- 名字 (globs)：描述</text>
+          <text x="32" y="367" fill="#64748b" font-size="8">三个桶的规则都塞回 setActiveRules —— TTSR 命中过的规则仍可复读</text>
+
+          <rect x="382" y="300" width="104" height="50" rx="5" fill="rgba(2,6,23,.6)" stroke="#334155" stroke-width="1"/>
+          <text x="434" y="324" fill="#22d3ee" font-size="15" font-weight="700" text-anchor="middle">一行</text>
+          <text x="434" y="341" fill="#64748b" font-size="8" text-anchor="middle">prompt 占用</text>
+
+          <text x="502" y="312" fill="#22d3ee" font-size="9.5" font-weight="600">生效时机</text>
+          <text x="502" y="330" fill="#cbd5e1" font-size="8.5">模型自己决定读不读</text>
+          <text x="502" y="348" fill="#cbd5e1" font-size="8.5">按需 rule://&lt;name&gt; 取全文</text>
+
+          <!-- 收口 -->
+          <rect x="16" y="402" width="668" height="88" rx="6" fill="rgba(76,29,149,.14)" stroke="#a78bfa" stroke-width="1"/>
+          <text x="32" y="423" fill="#a78bfa" font-size="9.5" font-weight="600">所以准确的说法不是「TTSR 取代 prompt 规则」</text>
+          <text x="32" y="444" fill="#cbd5e1" font-size="9">而是同一份规则文件，按时间尺度配不同的执行时机 ——</text>
+          <text x="32" y="463" fill="#cbd5e1" font-size="9">秒级的错误交给流式匹配，恒定的约束交给 prompt，其余的留给模型按需取。</text>
+          <text x="32" y="482" fill="#64748b" font-size="8">TTSR = prompt 预算为 0 的规则；always-apply = 每次请求都要付的固定税</text>
+        </svg>
+      </div>
+
+      <div class="figure">
+        <svg viewBox="0 0 440 495" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="16" fill="#a78bfa" font-size="10.5" font-weight="600">TTSR = Time Traveling Stream Rules</text>
+          <text x="16" y="33" fill="#94a3b8" font-size="8.5">规则在违规 token 写出的那一刻生效，再把时间倒回本轮开始前</text>
+
+          <rect x="16" y="44" width="408" height="44" rx="6" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="30" y="63" fill="#a78bfa" font-size="10" font-weight="600">① 逐 delta 匹配</text>
+          <text x="30" y="79" fill="#cbd5e1" font-size="8.5">text / thinking / toolcall 三种流，正则或 ast-grep</text>
+
+          <rect x="16" y="96" width="408" height="44" rx="6" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="30" y="115" fill="#a78bfa" font-size="10" font-weight="600">② abort()</text>
+          <text x="30" y="131" fill="#cbd5e1" font-size="8.5">命中即中断，可只中断被命中的那个工具</text>
+
+          <rect x="16" y="148" width="408" height="44" rx="6" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="30" y="167" fill="#a78bfa" font-size="10" font-weight="600">③ replaceMessages</text>
+          <text x="30" y="183" fill="#cbd5e1" font-size="8.5">contextMode: discard —— 半截 assistant 消息整条删掉</text>
+
+          <rect x="16" y="200" width="408" height="44" rx="6" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="30" y="219" fill="#a78bfa" font-size="10" font-weight="600">④ 注入 &lt;system-interrupt&gt;</text>
+          <text x="30" y="235" fill="#cbd5e1" font-size="8.5">模板里写明「这不是 prompt injection，是在执行项目规则」</text>
+
+          <rect x="16" y="252" width="408" height="44" rx="6" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="30" y="271" fill="#a78bfa" font-size="10" font-weight="600">⑤ continue() 重跑</text>
+          <text x="30" y="287" fill="#cbd5e1" font-size="8.5">延迟 50ms；抑制以 ttsr_injection 跨 resume 持久化</text>
+
+          <rect x="16" y="308" width="408" height="86" rx="6" fill="rgba(6,78,59,.14)" stroke="#34d399" stroke-width="1"/>
+          <text x="30" y="328" fill="#34d399" font-size="9.5" font-weight="600">这套东西真正的红利：规则可测试、可生成</text>
+          <text x="30" y="347" fill="#cbd5e1" font-size="8.5">omp ttsr test / list / scan —— 喂一段代码进真实管线</text>
+          <text x="30" y="365" fill="#cbd5e1" font-size="8.5">/omfg：从用户的抱怨生成规则，再回放历史 assistant</text>
+          <text x="30" y="383" fill="#cbd5e1" font-size="8.5">输出校验，不匹配就带 feedback 重生成</text>
+
+          <rect x="16" y="406" width="408" height="74" rx="6" fill="rgba(136,19,55,.16)" stroke="#fb7185" stroke-width="1"/>
+          <text x="30" y="426" fill="#fb7185" font-size="9.5" font-weight="600">但它不是白来的</text>
+          <text x="30" y="445" fill="#cbd5e1" font-size="8.5">每个 delta 拼全量缓冲再跑正则 = O(n²)，issue #4245</text>
+          <text x="30" y="464" fill="#cbd5e1" font-size="8.5">打断一次 = 本轮全部重跑，已付过的 token 直接丢弃</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src"><b>docs/rulebook-matching-pipeline.md:187-206</b> · 三桶判据；<b>session/ttsr-coordinator.ts:399-455</b> · 中断与重跑</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

@@ -1,0 +1,47 @@
+<section class="slide" data-ch="开篇" data-title="上一讲的三处更正：先认错，再讲课">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot rose"></span>更正 · ERRATA</div>
+    <h1 class="s-title">上一讲讲 omp 那一页，<span class="hl-r">错了三处</span></h1>
+    <div class="s-sub">这次是把仓库整个 clone 下来重查的。<b style="color:#e2e8f0">错在哪、为什么会错，都写清楚。</b></div>
+  </div>
+
+  <div class="s-body center">
+    <div class="cards c3">
+      <div class="card rose">
+        <div class="card-head"><span class="card-dot rose"></span><h3>① FORK.md 的归属</h3><span class="card-num">最严重</span></div>
+        <ul>
+          <li><strong>上一讲说</strong>：omp 最该抄的是它的 <em>FORK.md</em> tier 成本模型，页脚标了 <em>oh-my-pi/FORK.md</em></li>
+          <li><strong>实情</strong>：该文件<strong>从未存在于 can1357/oh-my-pi</strong>。全史 16,613 commit，<em>git log --all -- FORK.md</em> 零命中</li>
+          <li>那份 tier 模型出自某个<strong>私有下游 fork</strong> 自己写的维护手册，被我张冠李戴</li>
+          <li class="note">tier 模型本身依然成立 —— 但它不是 omp 的东西，本讲按「某下游 fork 的做法」重新归属</li>
+        </ul>
+      </div>
+
+      <div class="card amber">
+        <div class="card-head"><span class="card-dot amber"></span><h3>② 「画成点阵图」</h3><span class="card-num">措辞误导</span></div>
+        <ul>
+          <li><strong>上一讲说</strong>：snapcompact 把旧记录<em>画成点阵图</em>，零 LLM 调用</li>
+          <li><strong>实情</strong>：方向对，但不是信息可视化，是<strong>缩微胶片</strong> —— 文本用点阵字体印成 PNG，vision 模型 <strong>OCR 读回</strong></li>
+          <li>「零 LLM 调用」也要限定：是零<strong>额外</strong>调用，帧此后每轮重附，按 vision token 计费</li>
+          <li class="note">这个区别不是抠字眼 —— 它决定了压缩率怎么算，见 CH3</li>
+        </ul>
+      </div>
+
+      <div class="card violet">
+        <div class="card-head"><span class="card-dot violet"></span><h3>③ BM25 工具发现</h3><span class="card-num">已过时</span></div>
+        <ul>
+          <li><strong>上一讲说</strong>：默认只给 6 个必备工具，其余模型自己 <em>BM25</em> 搜出来</li>
+          <li><strong>实情</strong>：该机制<strong>已被删除</strong>，CHANGELOG 有明确删除记录，改为 <em>xd://</em> 虚拟设备挂载</li>
+          <li>写上一讲时依据的是 v16.3.12 的旧笔记；omp <strong>2.4 天一个版本号</strong>，讲快速演进的项目，取证日期必须和结论绑在一起</li>
+          <li class="note">本讲每页页脚都标了取证基准 HEAD，就是为了防这种事</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">复核基准 · <b>can1357/oh-my-pi HEAD 09a7c865</b>（2026-08-01，unshallow 全史）· 上一讲 P23</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

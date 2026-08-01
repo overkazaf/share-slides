@@ -1,0 +1,98 @@
+<section class="slide" data-ch="CH5 Rust" data-title="一行 assert 讲清整件事：同进程化后 POSIX 白送的三样全部失效">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot orange"></span>CH 5 · Rust 热路径</div>
+    <h1 class="s-title">一行 assert 讲清<span class="hl-r">整件事</span></h1>
+    <div class="s-sub">把 <b style="color:#e2e8f0">mkdir / grep</b> 变成同一进程里的函数调用之后，POSIX 白送的三样东西同时失效。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 505" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="18" fill="#fb923c" font-size="10.5" font-weight="600">回归测试里的一行 · shell.rs:2598</text>
+
+          <rect x="16" y="30" width="668" height="128" rx="6" fill="rgba(2,6,23,.7)" stroke="#334155" stroke-width="1"/>
+          <text x="34" y="54" fill="#64748b" font-size="11.5" font-family="ui-monospace,Menlo,monospace">// mkdir 走的是进程内 builtin，不是子进程</text>
+          <text x="34" y="76" fill="#cbd5e1" font-size="11.5" font-family="ui-monospace,Menlo,monospace">run("mkdir -p a/b/c", cwd = tmp);</text>
+          <text x="34" y="106" fill="#cbd5e1" font-size="11.5" font-family="ui-monospace,Menlo,monospace">assert!(</text>
+          <text x="34" y="126" fill="#cbd5e1" font-size="11.5" font-family="ui-monospace,Menlo,monospace">    !Path::new("a/b/c").exists(),</text>
+          <text x="34" y="146" fill="#fb7185" font-size="11.5" font-family="ui-monospace,Menlo,monospace">    "mkdir leaked into process cwd"</text>
+
+          <text x="16" y="182" fill="#cbd5e1" font-size="9.5">它防的是：builtin 若按<tspan fill="#fff">进程全局的 cwd</tspan> 解析相对路径，目录就会落在宿主进程当前目录下。</text>
+          <text x="16" y="200" fill="#94a3b8" font-size="9.5">同一句话可以换成 fd 或信号说三遍 —— 进程边界一没，三样保证一起没。</text>
+
+          <text x="16" y="230" fill="#94a3b8" font-size="9.5" font-weight="600">进程免费给的三样，现在都得自己写</text>
+
+          <rect x="16" y="242" width="212" height="140" rx="6" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="30" y="263" fill="#fb923c" font-size="10.5" font-weight="600">① fd 表</text>
+          <text x="30" y="283" fill="#94a3b8" font-size="8.5">函数调用没法 dup2(1)，</text>
+          <text x="30" y="299" fill="#94a3b8" font-size="8.5">重定向拿不到</text>
+          <text x="30" y="321" fill="#cbd5e1" font-size="8.5">执行前从 brush 上下文取</text>
+          <text x="30" y="337" fill="#cbd5e1" font-size="8.5">出这条命令真正的 fd，</text>
+          <text x="30" y="353" fill="#cbd5e1" font-size="8.5">装进 thread-local；</text>
+          <text x="30" y="369" fill="#cbd5e1" font-size="8.5">一次调用一条专属线程</text>
+
+          <rect x="244" y="242" width="212" height="140" rx="6" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="258" y="263" fill="#fb923c" font-size="10.5" font-weight="600">② cwd</text>
+          <text x="258" y="283" fill="#94a3b8" font-size="8.5">全进程只有一个 cwd，</text>
+          <text x="258" y="299" fill="#94a3b8" font-size="8.5">但会话可以有很多个</text>
+          <text x="258" y="321" fill="#cbd5e1" font-size="8.5">全 crate set_current_dir</text>
+          <text x="258" y="337" fill="#cbd5e1" font-size="8.5">命中数为 0；cwd 挂在</text>
+          <text x="258" y="353" fill="#cbd5e1" font-size="8.5">每个 shell 实例上，路径</text>
+          <text x="258" y="369" fill="#cbd5e1" font-size="8.5">参数逐个过 ctx::resolve</text>
+
+          <rect x="472" y="242" width="212" height="140" rx="6" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="486" y="263" fill="#fb923c" font-size="10.5" font-weight="600">③ 信号</text>
+          <text x="486" y="283" fill="#94a3b8" font-size="8.5">你没法给一个函数</text>
+          <text x="486" y="299" fill="#94a3b8" font-size="8.5">发 SIGKILL</text>
+          <text x="486" y="321" fill="#cbd5e1" font-size="8.5">改成协作式：共享一个</text>
+          <text x="486" y="337" fill="#cbd5e1" font-size="8.5">原子标志位，stdin 读到</text>
+          <text x="486" y="353" fill="#cbd5e1" font-size="8.5">合成 EOF 自然退栈，</text>
+          <text x="486" y="369" fill="#cbd5e1" font-size="8.5">卡死的管道靠 200ms 分片</text>
+
+          <rect x="16" y="396" width="668" height="56" rx="6" fill="rgba(251,146,60,.14)" stroke="#fb923c" stroke-width="1.2"/>
+          <text x="30" y="418" fill="#fb923c" font-size="10" font-weight="600">补这三个洞的全部代码：pi-uutils-ctx，446 行</text>
+          <text x="30" y="438" fill="#cbd5e1" font-size="9.5">全仓最小的 crate，却是那 60 个进程内 builtin 能成立的前提</text>
+        </svg>
+      </div>
+
+      <div class="figure">
+        <svg viewBox="0 0 440 495" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="18" fill="#94a3b8" font-size="10.5" font-weight="600">Ctx 的字段，恰好就是那三样</text>
+
+          <rect x="16" y="28" width="408" height="168" rx="6" fill="rgba(2,6,23,.7)" stroke="#334155" stroke-width="1"/>
+          <text x="30" y="50" fill="#cbd5e1" font-size="10.5" font-family="ui-monospace,Menlo,monospace">pub struct Ctx {</text>
+          <text x="30" y="68" fill="#fb923c" font-size="10.5" font-family="ui-monospace,Menlo,monospace">    stdout: Box&lt;dyn Write + Send&gt;,</text>
+          <text x="30" y="86" fill="#fb923c" font-size="10.5" font-family="ui-monospace,Menlo,monospace">    stderr: Box&lt;dyn Write + Send&gt;,</text>
+          <text x="30" y="104" fill="#fb923c" font-size="10.5" font-family="ui-monospace,Menlo,monospace">    stdin:  Box&lt;dyn Read  + Send&gt;,</text>
+          <text x="30" y="122" fill="#fb923c" font-size="10.5" font-family="ui-monospace,Menlo,monospace">    cwd:    PathBuf,</text>
+          <text x="30" y="140" fill="#94a3b8" font-size="10.5" font-family="ui-monospace,Menlo,monospace">    env:    HashMap&lt;String, String&gt;,</text>
+          <text x="30" y="158" fill="#fb923c" font-size="10.5" font-family="ui-monospace,Menlo,monospace">    cancel: Arc&lt;AtomicBool&gt;,</text>
+          <text x="30" y="176" fill="#cbd5e1" font-size="10.5" font-family="ui-monospace,Menlo,monospace">}</text>
+
+          <text x="16" y="214" fill="#64748b" font-size="8.5">三行 stdio ＝ fd 表 · cwd ＝ 相对路径 · cancel ＝ 信号 · env 是附赠的第四样</text>
+
+          <rect x="16" y="226" width="408" height="140" rx="6" fill="rgba(136,19,55,.24)" stroke="#fb7185" stroke-width="1.4"/>
+          <text x="30" y="248" fill="#fb7185" font-size="10.5" font-weight="600">高潮：没装上下文的时候怎么办</text>
+          <text x="30" y="272" fill="#cbd5e1" font-size="10" font-family="ui-monospace,Menlo,monospace">if !ctx::is_active() { /* 丢弃 */ }</text>
+          <text x="30" y="298" fill="#cbd5e1" font-size="9.5">写入被<tspan fill="#fff">丢弃</tspan>，而不是落到宿主进程真实的 fd 1 / 2</text>
+          <text x="30" y="318" fill="#cbd5e1" font-size="9.5">因为宿主的 fd 1 / 2 是 TUI 的画布</text>
+          <text x="30" y="340" fill="#fff" font-size="10" font-weight="600">泄漏一个字节，整屏就花了</text>
+          <text x="30" y="358" fill="#64748b" font-size="8.5">pi-uutils-ctx/src/lib.rs:256-258</text>
+
+          <rect x="16" y="378" width="408" height="98" rx="6" fill="rgba(251,146,60,.12)" stroke="#fb923c" stroke-width="1"/>
+          <text x="30" y="399" fill="#fb923c" font-size="10" font-weight="600">顺手补回的第四样：panic 隔离</text>
+          <text x="30" y="419" fill="#cbd5e1" font-size="9">真实事故：vendored 的 uu-tail 对 BrokenPipe 做了 unwrap</text>
+          <text x="30" y="437" fill="#cbd5e1" font-size="9">现在 panic 被接住，变成 exit 1 加一行 internal error</text>
+          <text x="30" y="459" fill="#94a3b8" font-size="9">子进程模型里内核替你做的隔离，现在每一样都要自己写</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src"><b>crates/pi-shell/src/shell.rs:2598</b> · Ctx 定义 pi-uutils-ctx/src/lib.rs:28-44 · fail-safe lib.rs:256-258</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

@@ -1,0 +1,124 @@
+<section class="slide" data-ch="CH1 体量" data-title="omp 在用 omp 开发 omp：2,564 个 commit 署名给仓库自己的 bot">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot emerald"></span>CH 1 · 体量</div>
+    <h1 class="s-title">omp 的代码，有一部分是 <span class="hl-a">omp 自己写的</span></h1>
+    <div class="s-sub">全史 16,613 个 commit 里，<b style="color:#e2e8f0">2,564 个</b>署名给项目自己驱动的机器人 roboomp。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 505" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="sh-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#64748b"/>
+            </marker>
+            <marker id="sh-ar2" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#fb923c"/>
+            </marker>
+          </defs>
+
+          <text x="16" y="22" fill="#34d399" font-size="11" font-weight="600">自举回路：仓库用自己的产品维护自己</text>
+          <text x="16" y="40" fill="#64748b" font-size="9">python/robomp/README.md:1-22 描述的完整链路</text>
+
+          <rect x="30" y="52" width="470" height="58" rx="6" fill="rgba(8,51,68,.3)" stroke="#22d3ee" stroke-width="1.2"/>
+          <text x="46" y="72" fill="#22d3ee" font-size="10" font-weight="600">① GitHub issue 开启</text>
+          <text x="46" y="90" fill="#cbd5e1" font-size="9">允许列表内的仓库触发 issues.opened；robomp 先分类打标签</text>
+          <text x="46" y="104" fill="#64748b" font-size="8.5">bug / documentation / question / enhancement / proposal / invalid / duplicate</text>
+
+          <path d="M 265 110 L 265 120" fill="none" stroke="#64748b" stroke-width="1.2" marker-end="url(#sh-ar)"/>
+
+          <rect x="30" y="122" width="470" height="58" rx="6" fill="rgba(6,78,59,.28)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="46" y="142" fill="#34d399" font-size="10" font-weight="600">② 起一个 omp 子进程</text>
+          <text x="46" y="160" fill="#cbd5e1" font-size="9">把 omp --mode rpc 当子进程驱动，每个 issue 一个 git worktree</text>
+          <text x="46" y="174" fill="#64748b" font-size="8.5">PAT 不给 agent，写回 GitHub 走单独的 sidecar</text>
+
+          <path d="M 265 180 L 265 190" fill="none" stroke="#64748b" stroke-width="1.2" marker-end="url(#sh-ar)"/>
+
+          <rect x="30" y="192" width="470" height="58" rx="6" fill="rgba(6,78,59,.28)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="46" y="212" fill="#34d399" font-size="10" font-weight="600">③ 复现 → 定位 → 修</text>
+          <text x="46" y="230" fill="#cbd5e1" font-size="9">bug / documentation：在新分支上复现并修复，跑验证</text>
+          <text x="46" y="244" fill="#64748b" font-size="8.5">question：一条评论 + 4 小时内无人反对就自动关闭；enhancement：只评论</text>
+
+          <path d="M 265 250 L 265 260" fill="none" stroke="#64748b" stroke-width="1.2" marker-end="url(#sh-ar)"/>
+
+          <rect x="30" y="262" width="470" height="58" rx="6" fill="rgba(76,29,149,.25)" stroke="#a78bfa" stroke-width="1.2"/>
+          <text x="46" y="282" fill="#a78bfa" font-size="10" font-weight="600">④ 开 PR，格式固定</text>
+          <text x="46" y="300" fill="#cbd5e1" font-size="9">正文必须有 ## Repro / ## Cause / ## Fix / ## Verification 与 Fixes #N</text>
+          <text x="46" y="314" fill="#64748b" font-size="8.5">后续 issue 评论用 --continue 恢复同一个 omp session</text>
+
+          <path d="M 265 320 L 265 330" fill="none" stroke="#64748b" stroke-width="1.2" marker-end="url(#sh-ar)"/>
+
+          <rect x="30" y="332" width="470" height="58" rx="6" fill="rgba(120,53,15,.28)" stroke="#fbbf24" stroke-width="1.2"/>
+          <text x="46" y="352" fill="#fbbf24" font-size="10" font-weight="600">⑤ 合并 → 回到 omp 自己的代码</text>
+          <text x="46" y="370" fill="#cbd5e1" font-size="9">全史 16,613 commit 中，omp@can.ac 署名 2,564 个</text>
+          <text x="46" y="384" fill="#64748b" font-size="8.5">commit 长这样：fix(mnemopi): anchored think stripping to leading blocks</text>
+
+          <path d="M 500 391 L 552 391 L 552 81 L 508 81" fill="none" stroke="#fb923c" stroke-width="1.4" stroke-dasharray="4,3" marker-end="url(#sh-ar2)"/>
+          <text x="566" y="212" fill="#fb923c" font-size="9">改好的</text>
+          <text x="566" y="226" fill="#fb923c" font-size="9">omp</text>
+          <text x="566" y="240" fill="#fb923c" font-size="9">下一轮</text>
+          <text x="566" y="254" fill="#fb923c" font-size="9">接着用</text>
+
+          <rect x="30" y="418" width="640" height="72" rx="6" fill="rgba(136,19,55,.22)" stroke="#fb7185" stroke-width="1"/>
+          <text x="46" y="438" fill="#fb7185" font-size="9.5" font-weight="600">这条不能过度解读</text>
+          <text x="46" y="456" fill="#cbd5e1" font-size="8.5">omp@can.ac 与 me@can.ac 同域同人，git 元数据分不出「bot 自主提交」与「人用 omp 辅助后署名」。</text>
+          <text x="46" y="472" fill="#94a3b8" font-size="8.5">能讲的是：2,564 个 commit 署名给了项目自己的 bot 账号；不能讲「这些代码由 AI 独立写成」。</text>
+        </svg>
+      </div>
+
+      <div class="figure">
+        <svg viewBox="0 0 440 495" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="20" fill="#94a3b8" font-size="10.5" font-weight="600">全史 16,613 commit 的署名构成</text>
+          <text x="16" y="34" fill="#64748b" font-size="8.5">git log --all（已 unshallow）· 2026-08-01 HEAD</text>
+
+          <rect x="16" y="44" width="216" height="30" fill="rgba(6,78,59,.6)" stroke="#34d399" stroke-width="1"/>
+          <rect x="232" y="44" width="63" height="30" fill="rgba(251,146,60,.6)" stroke="#fb923c" stroke-width="1"/>
+          <rect x="295" y="44" width="33" height="30" fill="rgba(8,51,68,.7)" stroke="#22d3ee" stroke-width="1"/>
+          <rect x="328" y="44" width="96" height="30" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+
+          <rect x="16" y="86" width="10" height="10" fill="rgba(6,78,59,.6)" stroke="#34d399" stroke-width="1"/>
+          <text x="32" y="95" fill="#cbd5e1" font-size="9">me@can.ac · Can Bölük 本人</text>
+          <text x="424" y="95" fill="#fff" font-size="9.5" text-anchor="end">8,807 · 53.0%</text>
+
+          <rect x="16" y="106" width="10" height="10" fill="rgba(251,146,60,.6)" stroke="#fb923c" stroke-width="1"/>
+          <text x="32" y="115" fill="#cbd5e1" font-size="9">omp@can.ac · roboomp（自己的 bot）</text>
+          <text x="424" y="115" fill="#fb923c" font-size="9.5" text-anchor="end">2,564 · 15.4%</text>
+
+          <rect x="16" y="126" width="10" height="10" fill="rgba(8,51,68,.7)" stroke="#22d3ee" stroke-width="1"/>
+          <text x="32" y="135" fill="#cbd5e1" font-size="9">Mario Zechner · 上游 pi 时期的提交</text>
+          <text x="424" y="135" fill="#fff" font-size="9.5" text-anchor="end">1,339 · 8.1%</text>
+
+          <rect x="16" y="146" width="10" height="10" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="32" y="155" fill="#cbd5e1" font-size="9">其余 200+ 个提交身份（含其他 bot）</text>
+          <text x="424" y="155" fill="#fff" font-size="9.5" text-anchor="end">3,903 · 23.5%</text>
+
+          <rect x="16" y="176" width="408" height="126" rx="6" fill="rgba(136,19,55,.22)" stroke="#fb7185" stroke-width="1"/>
+          <text x="30" y="196" fill="#fb7185" font-size="9.5" font-weight="600">CONTRIBUTING.md:28-32 —— 贡献指南给机器人让路</text>
+          <text x="30" y="216" fill="#fff" font-size="9">「Do not open an issue for work you are about to submit」</text>
+          <text x="30" y="234" fill="#cbd5e1" font-size="8.5">如果你打算自己实现某个改动，不要先为它开 issue。</text>
+          <text x="30" y="250" fill="#cbd5e1" font-size="8.5">robomp 会把「可行动的 issue」当成工单捡起来，可能并行</text>
+          <text x="30" y="266" fill="#cbd5e1" font-size="8.5">做同一个修复，浪费算力和维护者时间。</text>
+          <text x="30" y="290" fill="#fbbf24" font-size="8.5">协作规则第一次要为「AI 贡献者」腾地方 —— 不是修辞。</text>
+
+          <rect x="16" y="314" width="408" height="86" rx="6" fill="rgba(120,53,15,.25)" stroke="#fbbf24" stroke-width="1"/>
+          <text x="30" y="334" fill="#fbbf24" font-size="9.5" font-weight="600">同一份文件的另一面：CONTRIBUTING.md:38-51</text>
+          <text x="30" y="352" fill="#cbd5e1" font-size="8.5">「AI agents are welcome as tools, not as unattended</text>
+          <text x="30" y="366" fill="#cbd5e1" font-size="8.5">contributors.」必须逐个文件审阅、亲自跑验证；</text>
+          <text x="30" y="384" fill="#94a3b8" font-size="8.5">PR 正文至少一句你自己写的话，「bun check 通过」不算验证。</text>
+
+          <rect x="16" y="412" width="408" height="68" rx="6" fill="rgba(6,78,59,.16)" stroke="#34d399" stroke-width="1"/>
+          <text x="30" y="432" fill="#34d399" font-size="9.5" font-weight="600">所以</text>
+          <text x="30" y="450" fill="#cbd5e1" font-size="8.5">153 万行不是靠人手敲出来的 —— 是一条回路跑出来的。</text>
+          <text x="30" y="468" fill="#94a3b8" font-size="8.5">下一章看这条回路的内核：主循环到底改了什么。</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src"><b>python/robomp/README.md:1-22</b> · <b>CONTRIBUTING.md:28-32</b> · git log --all 全史 16,613 commit</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

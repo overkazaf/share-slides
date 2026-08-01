@@ -1,0 +1,132 @@
+<section class="slide" data-ch="CH4 模型层" data-title="dialect：为 native tool calling 的失败模式兜底">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot amber"></span>CH 4 · 模型层</div>
+    <h1 class="s-title">dialect 兜的不是语法，是 native 通道<span class="hl-r">不会出现的失败模式</span></h1>
+    <div class="s-sub">11 种方言，显式 <code>PI_DIALECT</code> opt-in —— 不设就走 native。一旦把工具调用挪进正文，就得自己收拾三种新的烂摊子。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 505" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="14" fill="#94a3b8" font-size="9.5">这三种失败模式，native 通道里根本不存在</text>
+
+          <!-- A -->
+          <rect x="16" y="24" width="668" height="150" rx="6" fill="rgba(136,19,55,.16)" stroke="#fb7185" stroke-width="1.2"/>
+          <text x="30" y="46" fill="#fb7185" font-size="10" font-weight="700">A</text>
+          <text x="46" y="46" fill="#fb7185" font-size="11" font-weight="600">模型伪造工具执行结果（fabrication）</text>
+          <text x="30" y="66" fill="#64748b" font-size="8.5">native 通道：结果由 runtime 注入，模型没有机会编</text>
+          <text x="30" y="82" fill="#94a3b8" font-size="8.5">in-band：模型顺手把「工具返回了什么」也编出来，再基于幻觉往下推</text>
+          <text x="30" y="104" fill="#cbd5e1" font-size="9">对策：每种方言登记一组「工具结果开启 token」，流里撞见即刻停</text>
+          <text x="30" y="120" fill="#cbd5e1" font-size="9">abort 模式立刻掐断上游请求；discard 模式排干流但丢弃边界之后的一切</text>
+          <text x="30" y="136" fill="#64748b" font-size="8">"so the provider stops spending tokens on the hallucinated continuation"</text>
+          <text x="30" y="158" fill="#64748b" font-size="8">RESPONSE_OPEN_TOKENS</text>
+          <rect x="134" y="146" width="86" height="18" rx="3" fill="rgba(2,6,23,.6)" stroke="#334155" stroke-width="1"/>
+          <text x="177" y="158.5" fill="#cbd5e1" font-size="8" text-anchor="middle">&lt;tool_response&gt;</text>
+          <rect x="228" y="146" width="76" height="18" rx="3" fill="rgba(2,6,23,.6)" stroke="#334155" stroke-width="1"/>
+          <text x="266" y="158.5" fill="#cbd5e1" font-size="8" text-anchor="middle">&lt;|im_system|&gt;</text>
+          <rect x="312" y="146" width="100" height="18" rx="3" fill="rgba(2,6,23,.6)" stroke="#334155" stroke-width="1"/>
+          <text x="362" y="158.5" fill="#cbd5e1" font-size="8" text-anchor="middle">&lt;function_results&gt;</text>
+          <rect x="420" y="146" width="86" height="18" rx="3" fill="rgba(2,6,23,.6)" stroke="#334155" stroke-width="1"/>
+          <text x="463" y="158.5" fill="#cbd5e1" font-size="8" text-anchor="middle">```tool_outputs</text>
+          <rect x="514" y="146" width="132" height="18" rx="3" fill="rgba(2,6,23,.6)" stroke="#334155" stroke-width="1"/>
+          <text x="580" y="158.5" fill="#cbd5e1" font-size="8" text-anchor="middle">&lt;｜tool▁outputs▁begin｜&gt;</text>
+
+          <!-- B -->
+          <rect x="16" y="180" width="668" height="150" rx="6" fill="rgba(136,19,55,.16)" stroke="#fb7185" stroke-width="1.2"/>
+          <text x="30" y="202" fill="#fb7185" font-size="10" font-weight="700">B</text>
+          <text x="46" y="202" fill="#fb7185" font-size="11" font-weight="600">GLM 把 &lt;/arg_value&gt; 误写成 &lt;/arg_key&gt;</text>
+          <text x="30" y="222" fill="#64748b" font-size="8.5">native 通道：闭合由结构化字段保证，不存在标签写错这回事</text>
+          <text x="30" y="238" fill="#94a3b8" font-size="8.5">in-band：一个字符打错，后续全部参数被吞进同一个字段，直到流里下一个 &lt;/arg_value&gt;</text>
+          <text x="30" y="260" fill="#cbd5e1" font-size="9">对策：流式「愈合扫描」—— 识别两种修复签名（错误闭合 / 缺失闭合）</text>
+          <text x="30" y="276" fill="#cbd5e1" font-size="9">难在流式：签名可能只写到一半就断 chunk，所以返回三态 none / partial / heal</text>
+          <text x="30" y="292" fill="#cbd5e1" font-size="9">partial 时调用方必须 hold 住这段，不往下游 emit</text>
+          <text x="30" y="308" fill="#64748b" font-size="8">防误伤：HEAL_WS_MAX = 32（标签间空白）、HEAL_KEY_MAX = 128（key 长度），超了放弃愈合</text>
+          <text x="30" y="320" fill="#64748b" font-size="8">反向保护测试：leaves values containing tag-like prose intact</text>
+
+          <!-- C -->
+          <rect x="16" y="336" width="668" height="150" rx="6" fill="rgba(136,19,55,.16)" stroke="#fb7185" stroke-width="1.2"/>
+          <text x="30" y="358" fill="#fb7185" font-size="10" font-weight="700">C</text>
+          <text x="46" y="358" fill="#fb7185" font-size="11" font-weight="600">native 与 in-band 双通道同时开火</text>
+          <text x="30" y="378" fill="#64748b" font-size="8.5">native 通道：只有一条路，不存在抢答</text>
+          <text x="30" y="394" fill="#94a3b8" font-size="8.5">in-band：即使 tools 已置空，Gemini via OpenRouter 照样返回 functionCall parts</text>
+          <text x="30" y="416" fill="#cbd5e1" font-size="9">不转发它 → 整轮没有可执行内容 → loop 在 reasoning-only 消息上无限重试</text>
+          <text x="30" y="432" fill="#cbd5e1" font-size="9">对策：哪条通道先产出「真」调用就锁死哪条，另一条整轮丢弃</text>
+          <text x="30" y="448" fill="#cbd5e1" font-size="9">没有 name 的空 native 块算 ghost，不锁通道</text>
+          <text x="30" y="464" fill="#64748b" font-size="8">测试：drops a nameless native ghost but keeps the real native call</text>
+        </svg>
+      </div>
+
+      <div class="figure">
+        <svg viewBox="0 0 440 495" xmlns="http://www.w3.org/2000/svg">
+          <text x="12" y="14" fill="#fbbf24" font-size="10" font-weight="600">11 种方言 · 显式 opt-in</text>
+          <text x="12" y="30" fill="#64748b" font-size="8.5">config.dialect ?? PI_DIALECT；不设就走 native</text>
+
+          <rect x="12" y="42" width="132" height="22" rx="4" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="21" y="57" fill="#cbd5e1" font-size="8.5">anthropic</text>
+          <text x="135" y="57" fill="#64748b" font-size="8" text-anchor="end">Claude</text>
+          <rect x="154" y="42" width="132" height="22" rx="4" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="163" y="57" fill="#cbd5e1" font-size="8.5">glm</text>
+          <text x="277" y="57" fill="#64748b" font-size="8" text-anchor="end">GLM</text>
+          <rect x="296" y="42" width="132" height="22" rx="4" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="305" y="57" fill="#cbd5e1" font-size="8.5">gemini</text>
+          <text x="419" y="57" fill="#64748b" font-size="8" text-anchor="end">Gemini</text>
+
+          <rect x="12" y="70" width="132" height="22" rx="4" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="21" y="85" fill="#cbd5e1" font-size="8.5">gemma</text>
+          <text x="135" y="85" fill="#64748b" font-size="8" text-anchor="end">Gemma</text>
+          <rect x="154" y="70" width="132" height="22" rx="4" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="163" y="85" fill="#cbd5e1" font-size="8.5">kimi</text>
+          <text x="277" y="85" fill="#64748b" font-size="8" text-anchor="end">Moonshot</text>
+          <rect x="296" y="70" width="132" height="22" rx="4" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="305" y="85" fill="#cbd5e1" font-size="8.5">qwen3</text>
+          <text x="419" y="85" fill="#64748b" font-size="8" text-anchor="end">Qwen</text>
+
+          <rect x="12" y="98" width="132" height="22" rx="4" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="21" y="113" fill="#cbd5e1" font-size="8.5">deepseek</text>
+          <text x="135" y="113" fill="#64748b" font-size="8" text-anchor="end">DeepSeek</text>
+          <rect x="154" y="98" width="132" height="22" rx="4" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="163" y="113" fill="#cbd5e1" font-size="8.5">minimax</text>
+          <text x="277" y="113" fill="#64748b" font-size="8" text-anchor="end">MiniMax</text>
+          <rect x="296" y="98" width="132" height="22" rx="4" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="305" y="113" fill="#cbd5e1" font-size="8.5">harmony</text>
+          <text x="419" y="113" fill="#64748b" font-size="8" text-anchor="end">gpt-oss</text>
+
+          <rect x="12" y="126" width="132" height="22" rx="4" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="21" y="141" fill="#cbd5e1" font-size="8.5">hermes</text>
+          <text x="135" y="141" fill="#64748b" font-size="8" text-anchor="end">需显式指定</text>
+          <rect x="154" y="126" width="132" height="22" rx="4" fill="rgba(120,53,15,.28)" stroke="#fbbf24" stroke-width="1"/>
+          <text x="163" y="141" fill="#fbbf24" font-size="8.5">xml</text>
+          <text x="277" y="141" fill="#64748b" font-size="8" text-anchor="end">FALLBACK</text>
+
+          <rect x="12" y="160" width="416" height="88" rx="6" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="24" y="180" fill="#94a3b8" font-size="9.5" font-weight="600">opt-in 之后，请求侧三件事一起做</text>
+          <text x="24" y="200" fill="#cbd5e1" font-size="8.5">① system prompt 追加工具清单 + 方言语法说明</text>
+          <text x="24" y="218" fill="#cbd5e1" font-size="8.5">② 历史里的调用与结果按方言回写成文本</text>
+          <text x="24" y="236" fill="#cbd5e1" font-size="8.5">③ tools 置 undefined，toolChoice 清空，描述剪裁关闭</text>
+
+          <rect x="12" y="260" width="416" height="104" rx="6" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="24" y="280" fill="#94a3b8" font-size="9.5" font-weight="600">对比锚点：pi 完全信任 native tool calling</text>
+          <text x="24" y="300" fill="#64748b" font-size="8.5">pi 的 packages/ai：grep -rn "dialect|inband" src → 零命中</text>
+          <text x="24" y="322" fill="#cbd5e1" font-size="9">packages/ai 行数：21,429 → 99,265</text>
+          <rect x="24" y="332" width="60" height="8" rx="2" fill="#475569"/>
+          <text x="92" y="339" fill="#64748b" font-size="8">pi 21,429</text>
+          <rect x="24" y="344" width="278" height="8" rx="2" fill="#fbbf24"/>
+          <text x="310" y="351" fill="#fbbf24" font-size="8">omp 99,265</text>
+
+          <rect x="12" y="376" width="416" height="100" rx="6" fill="rgba(120,53,15,.22)" stroke="#fbbf24" stroke-width="1"/>
+          <text x="24" y="396" fill="#fbbf24" font-size="9.5" font-weight="600">它不是「更好的 tool calling」</text>
+          <text x="24" y="416" fill="#cbd5e1" font-size="8.5">而是「上游把 native tool calling 做坏了」时的兜底通道，</text>
+          <text x="24" y="434" fill="#cbd5e1" font-size="8.5">所以它必须处理 native 通道里不会出现的失败模式。</text>
+          <text x="24" y="456" fill="#64748b" font-size="8">被删掉的 pi 自研方言曾宣称省 46% token —— 省 token 没能留住它</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src"><b>packages/ai/src/dialect/owned-stream.ts:19-31,116-134,180-186</b> · glm.ts:403-480 · agent-loop.ts:1500,1523-1531 · catalog/src/identity/dialect.ts:3-14</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

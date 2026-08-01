@@ -1,0 +1,25 @@
+<section class="slide chapter" data-ch="CH05 Rust" data-title="第 05 章 · Rust 热路径">
+  <div class="chapter-inner">
+    <div>
+      <div class="ch-no">05</div>
+      <h1>Rust 热路径</h1>
+      <div class="ch-q"><b>一个纯 TS 的 agent，为什么要自研 9 个 Rust crate？</b></div>
+      <div class="ch-sub">答案不是「Rust 更快」，是<b>把子进程边界换成函数调用边界</b> —— 收益和代价，全部来自同一处边界的消失。</div>
+      <div class="ch-prog"><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="on"></span><span class=""></span><span class=""></span></div>
+    </div>
+    <div>
+      <ul class="ch-list">
+        <div class="ch-list-h">本章内容</div>
+        <li><span class="n">23</span><span class="t">4 万行 shell 里 69% 不是 shell<i>那 2.8 万行省的是 token 和注意力，不是 CPU</i></span></li>
+        <li><span class="n">24</span><span class="t">一行 assert 讲清整件事<i>同进程化之后，POSIX 白送的 fd 表 / cwd / 信号全部失效</i></span></li>
+        <li><span class="n">25</span><span class="t">最诚实的一张 benchmark<i>小 payload 上 Rust 0.86×，更慢；「若更慢，不要切换调用点」</i></span></li>
+      </ul>
+      <div class="ch-sub" style="margin-top:22px;border-color:var(--orange)">自研 Rust 实测 <b>84,448 行</b>（9 个 crate，vendored 的 100,565 行不算），约等于全仓 TS 的 <b>6.7%</b> —— 不是用 Rust 重写 agent，是把最脏的 6% 换成 Rust。</div>
+    </div>
+  </div>
+  <div class="s-foot">
+    <span class="src">第 05 章 / 共 7 章</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

@@ -1,0 +1,130 @@
+<section class="slide" data-ch="CH3 上下文" data-title="压缩率不是重点，确定性才是">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot violet"></span>CH 3 · 上下文</div>
+    <h1 class="s-title">压缩率不是重点，<span class="hl-v">确定性</span>才是</h1>
+    <div class="s-sub">在 Claude 上它<b style="color:#e2e8f0">几乎不省 token</b>。真正的卖点是：上下文已经爆了、摘要式压缩恰好失效的那一刻，它还能跑。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 505" xmlns="http://www.w3.org/2000/svg">
+          <rect x="6" y="6" width="340" height="80" rx="6" fill="rgba(136,19,55,.28)" stroke="#fb7185" stroke-width="1.2"/>
+          <text x="20" y="27" fill="#fb7185" font-size="10" font-weight="600">常见讲法</text>
+          <text x="20" y="48" fill="#cbd5e1" font-size="9.5">把文本变成图，token 立刻省下来</text>
+          <text x="20" y="68" fill="#94a3b8" font-size="8.5">「一张图胜过千言万语」，图肯定比文本便宜</text>
+
+          <rect x="352" y="6" width="342" height="80" rx="6" fill="rgba(76,29,149,.28)" stroke="#a78bfa" stroke-width="1.2"/>
+          <text x="366" y="27" fill="#a78bfa" font-size="10" font-weight="600">实情</text>
+          <text x="366" y="48" fill="#cbd5e1" font-size="9.5">省不省完全取决于 provider 的图片计费模型</text>
+          <text x="366" y="68" fill="#94a3b8" font-size="8.5">Anthropic 线 4.2 chars/token，纯文本基线 4.0 —— 打平</text>
+
+          <text x="6" y="104" fill="#94a3b8" font-size="9" font-weight="600">每帧字符数 ÷ 每帧计费 token</text>
+          <text x="534" y="104" fill="#64748b" font-size="8">chars/token</text>
+          <text x="612" y="104" fill="#64748b" font-size="8">vs 纯文本</text>
+
+          <text x="6" y="128" fill="#cbd5e1" font-size="9">Gemini 3.x</text>
+          <text x="6" y="140" fill="#64748b" font-size="7.5">8on22-bw @2048px</text>
+          <rect x="130" y="112" width="390" height="24" rx="3" fill="rgba(76,29,149,.5)" stroke="#a78bfa" stroke-width="1.2"/>
+          <text x="534" y="129" fill="#fff" font-size="11" font-weight="700">21.26</text>
+          <text x="612" y="129" fill="#a78bfa" font-size="9" font-weight="600">×5.3</text>
+
+          <text x="6" y="168" fill="#cbd5e1" font-size="9">Kimi / GLM</text>
+          <text x="6" y="180" fill="#64748b" font-size="7.5">8on16-bw @1568px</text>
+          <rect x="130" y="152" width="122" height="24" rx="3" fill="rgba(30,41,59,.7)" stroke="#64748b" stroke-width="1"/>
+          <text x="534" y="169" fill="#cbd5e1" font-size="11" font-weight="700">6.66</text>
+          <text x="612" y="169" fill="#94a3b8" font-size="9">×1.67</text>
+
+          <text x="6" y="208" fill="#cbd5e1" font-size="9">GPT / Codex</text>
+          <text x="6" y="220" fill="#64748b" font-size="7.5">8on22-bw @1568px</text>
+          <rect x="130" y="192" width="89" height="24" rx="3" fill="rgba(30,41,59,.7)" stroke="#64748b" stroke-width="1"/>
+          <text x="534" y="209" fill="#cbd5e1" font-size="11" font-weight="700">4.83</text>
+          <text x="612" y="209" fill="#94a3b8" font-size="9">×1.21</text>
+
+          <text x="6" y="248" fill="#fff" font-size="9" font-weight="600">Claude Opus4.7+</text>
+          <text x="6" y="260" fill="#64748b" font-size="7.5">11on16-bw @1932px</text>
+          <rect x="130" y="232" width="77" height="24" rx="3" fill="rgba(136,19,55,.4)" stroke="#fb7185" stroke-width="1.2"/>
+          <text x="534" y="249" fill="#fb7185" font-size="11" font-weight="700">4.20</text>
+          <text x="612" y="249" fill="#fb7185" font-size="9" font-weight="600">×1.05</text>
+
+          <text x="6" y="288" fill="#94a3b8" font-size="9">纯文本（基线）</text>
+          <text x="6" y="300" fill="#64748b" font-size="7.5">仓库自己的换算口径</text>
+          <rect x="130" y="272" width="73" height="24" rx="3" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1" stroke-dasharray="4,3"/>
+          <text x="534" y="289" fill="#94a3b8" font-size="11" font-weight="700">4.00</text>
+          <text x="612" y="289" fill="#64748b" font-size="9">—</text>
+
+          <rect x="6" y="314" width="688" height="64" rx="6" fill="rgba(76,29,149,.16)" stroke="#a78bfa" stroke-width="1"/>
+          <text x="20" y="334" fill="#a78bfa" font-size="9.5" font-weight="600">为什么只有 Gemini 吃到红利</text>
+          <text x="20" y="353" fill="#cbd5e1" font-size="8.5">familyBilling() 的 google 分支：frameTokenEstimate 恒定 1120，与像素无关</text>
+          <text x="20" y="370" fill="#94a3b8" font-size="8.5">→ 把帧放大到 2048px 是纯白嫖；Anthropic 走 ceil((size/28)²) × 1.05，放大就得加钱</text>
+
+          <rect x="6" y="388" width="688" height="68" rx="6" fill="rgba(120,53,15,.28)" stroke="#fbbf24" stroke-width="1.2"/>
+          <text x="20" y="408" fill="#fbbf24" font-size="9" font-weight="600">⚠ 这张 chars/token 表是按代码公式手算的，不是实测</text>
+          <text x="20" y="425" fill="#94a3b8" font-size="8">依据两处公式：几何 geometry() :1411-1419、计费 familyBilling() :234-247；基线 4.0 chars/token 取自仓库自己的注释</text>
+          <text x="20" y="441" fill="#94a3b8" font-size="8">本机无 bun，仓库测试与 eval 脚本均未跑；若按更密的 3.5 chars/token 算，所有比值上浮 5%–25%</text>
+
+          <text x="6" y="478" fill="#64748b" font-size="8">仓库里的 packages/snapcompact/research/ 有 80 个 .py 脚本，但 results/ 未入库，跑起来需要真实 API key</text>
+        </svg>
+      </div>
+
+      <div class="figure">
+        <svg viewBox="0 0 440 495" xmlns="http://www.w3.org/2000/svg">
+          <text x="6" y="16" fill="#94a3b8" font-size="9.5" font-weight="600">那它到底换来了什么</text>
+
+          <text x="8" y="40" fill="#64748b" font-size="8">维度</text>
+          <text x="217" y="40" fill="#fb7185" font-size="8.5" font-weight="600" text-anchor="middle">LLM 摘要（主流）</text>
+          <text x="364" y="40" fill="#a78bfa" font-size="8.5" font-weight="600" text-anchor="middle">snapcompact</text>
+          <path d="M 6 48 L 434 48" stroke="#334155" stroke-width="1"/>
+
+          <text x="8" y="68" fill="#cbd5e1" font-size="8.5">额外 LLM 调用</text>
+          <text x="217" y="68" fill="#94a3b8" font-size="8.5" text-anchor="middle">1 次</text>
+          <text x="364" y="68" fill="#fff" font-size="8.5" text-anchor="middle">0 次</text>
+
+          <text x="8" y="92" fill="#cbd5e1" font-size="8.5">确定性</text>
+          <text x="217" y="92" fill="#94a3b8" font-size="8.5" text-anchor="middle">否，每次都不同</text>
+          <text x="364" y="92" fill="#fff" font-size="8.5" text-anchor="middle">是，纯函数</text>
+
+          <text x="8" y="116" fill="#cbd5e1" font-size="8.5">幻觉风险</text>
+          <text x="217" y="116" fill="#94a3b8" font-size="8.5" text-anchor="middle">有</text>
+          <text x="364" y="116" fill="#fff" font-size="8.5" text-anchor="middle">无，原文逐字</text>
+
+          <rect x="6" y="126" width="428" height="26" rx="4" fill="rgba(76,29,149,.28)" stroke="#a78bfa" stroke-width="1"/>
+          <text x="8" y="144" fill="#fff" font-size="8.5" font-weight="600">上下文已经爆了</text>
+          <text x="217" y="144" fill="#fb7185" font-size="8.5" text-anchor="middle" font-weight="600">不可用</text>
+          <text x="364" y="144" fill="#a78bfa" font-size="8.5" text-anchor="middle" font-weight="600">可用</text>
+
+          <text x="8" y="172" fill="#cbd5e1" font-size="8.5">压缩率</text>
+          <text x="217" y="172" fill="#94a3b8" font-size="8.5" text-anchor="middle">极高，100k→2k</text>
+          <text x="364" y="172" fill="#94a3b8" font-size="8.5" text-anchor="middle">低，Claude ≈1.05×</text>
+
+          <text x="8" y="196" fill="#cbd5e1" font-size="8.5">对模型的要求</text>
+          <text x="217" y="196" fill="#94a3b8" font-size="8.5" text-anchor="middle">任意模型</text>
+          <text x="364" y="196" fill="#94a3b8" font-size="8.5" text-anchor="middle">必须能读图</text>
+
+          <rect x="6" y="216" width="428" height="102" rx="6" fill="rgba(76,29,149,.16)" stroke="#a78bfa" stroke-width="1"/>
+          <text x="18" y="236" fill="#a78bfa" font-size="9.5" font-weight="600">真正的卖点在第 4 行</text>
+          <text x="18" y="255" fill="#cbd5e1" font-size="8.5">摘要式压缩要先发一次请求，而那次请求</text>
+          <text x="18" y="271" fill="#cbd5e1" font-size="8.5">要复用已经溢出的上下文 —— 鸡生蛋。</text>
+          <text x="18" y="292" fill="#fff" font-size="9.5">snapcompact 在那一刻依然能跑，</text>
+          <text x="18" y="310" fill="#fff" font-size="9.5">因为它根本不需要模型。</text>
+
+          <rect x="6" y="328" width="428" height="104" rx="6" fill="rgba(136,19,55,.28)" stroke="#fb7185" stroke-width="1.2"/>
+          <text x="18" y="348" fill="#fb7185" font-size="9.5" font-weight="600">代价也很实</text>
+          <text x="18" y="367" fill="#cbd5e1" font-size="8.5">① 绑死 vision 模型，纯文本模型自动降级回摘要</text>
+          <text x="18" y="384" fill="#cbd5e1" font-size="8.5">② 每轮重附 MB 级 base64，前缀缓存吃亏</text>
+          <text x="18" y="401" fill="#cbd5e1" font-size="8.5">③ 信息不是被压缩了，是被降级成 OCR 可读性</text>
+          <text x="18" y="420" fill="#94a3b8" font-size="8">f1 在 .287 ~ .973 之间剧烈波动 —— 下一页就讲这个</text>
+
+          <text x="6" y="454" fill="#64748b" font-size="8">omp 并没有二选一：context-full（LLM 摘要）保留为</text>
+          <text x="6" y="470" fill="#64748b" font-size="8">fallback，非 vision 模型自动切回去。是互补，不是替代。</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src"><b>snapcompact.ts:234-247, 346-348, 1411-1419</b> · <b>docs/compaction.md:109</b> · chars/token 为手算，非实测</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

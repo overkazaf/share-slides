@@ -1,0 +1,94 @@
+<section class="slide" data-ch="开篇" data-title="关于这一篇：四篇的位置，以及利益冲突声明">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot cyan"></span>开篇 · 关于这一篇</div>
+    <h1 class="s-title">前三讲拆别人的，<span class="hl">这一讲拆自己的</span></h1>
+    <div class="s-sub">所以先把话说在前面：<b style="color:#fb7185">本讲主讲人就是 re-agent 的作者</b>。夸自家项目的话不值钱，能核对的行号才值钱。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="ab-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#fb923c"/>
+            </marker>
+          </defs>
+
+          <text x="16" y="16" fill="#94a3b8" font-size="9.5" font-weight="600">四篇的分工 · 每一篇回答一个不同的问题</text>
+
+          <rect x="16" y="28" width="668" height="72" rx="7" fill="rgba(8,51,68,.26)" stroke="#22d3ee" stroke-width="1.2"/>
+          <text x="34" y="50" fill="#22d3ee" font-size="10.5" font-weight="700">Chapter 1 · Getting Started</text>
+          <text x="34" y="72" fill="#e2e8f0" font-size="11">地图 —— agent 是什么，造一个需要哪六样</text>
+          <text x="34" y="90" fill="#94a3b8" font-size="9">同时留下了一份「逆向工程的七道坎」清单，本讲要逐条回来交账</text>
+
+          <rect x="16" y="110" width="326" height="72" rx="7" fill="rgba(6,78,59,.26)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="34" y="132" fill="#34d399" font-size="10.5" font-weight="700">Chapter 2 · 解剖 pi</text>
+          <text x="34" y="153" fill="#e2e8f0" font-size="10.5">下限 —— 四个工具就能做 agent</text>
+          <text x="34" y="171" fill="#94a3b8" font-size="9">证明内核可以小到读得完</text>
+
+          <rect x="358" y="110" width="326" height="72" rx="7" fill="rgba(136,19,55,.26)" stroke="#fb7185" stroke-width="1.2"/>
+          <text x="376" y="132" fill="#fb7185" font-size="10.5" font-weight="700">Chapter 3 · 解剖 oh-my-pi</text>
+          <text x="376" y="153" fill="#e2e8f0" font-size="10.5">上限 —— 同一基座 6.45 倍体量</text>
+          <text x="376" y="171" fill="#94a3b8" font-size="9">证明改造的天花板有多贵</text>
+
+          <path d="M 350 190 L 350 212" stroke="#fb923c" stroke-width="1.4" marker-end="url(#ab-ar)"/>
+
+          <rect x="16" y="220" width="668" height="86" rx="7" fill="rgba(120,53,15,.28)" stroke="#fbbf24" stroke-width="1.5"/>
+          <text x="34" y="243" fill="#fbbf24" font-size="10.5" font-weight="700">Chapter 4 · re-agent（本讲）</text>
+          <text x="34" y="266" fill="#fff" font-size="11.5">落地 —— 把地图上的六样，按<tspan font-weight="700">一个行业的规矩</tspan>重新焊一遍</text>
+          <text x="34" y="286" fill="#cbd5e1" font-size="9.5">不 fork、不改造，从零用 Go 写一个。这个选择的账，第 09 页和第 27 页各算一次</text>
+          <text x="34" y="300" fill="#94a3b8" font-size="8.5">第一讲结尾承诺的「动手写：按自己的活造一个」，就是这一讲</text>
+
+          <path d="M 16 320 L 684 320" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="342" fill="#fb7185" font-size="10" font-weight="700">本讲的三条自律</text>
+
+          <rect x="16" y="352" width="216" height="66" rx="6" fill="rgba(2,6,23,.6)" stroke="#334155" stroke-width="1"/>
+          <text x="30" y="372" fill="#e2e8f0" font-size="9.5" font-weight="600">① 优点页配代价</text>
+          <text x="30" y="391" fill="#94a3b8" font-size="8.5">凡讲一条长处，同页必须</text>
+          <text x="30" y="407" fill="#94a3b8" font-size="8.5">给出它的局限或成本</text>
+
+          <rect x="242" y="352" width="216" height="66" rx="6" fill="rgba(2,6,23,.6)" stroke="#334155" stroke-width="1"/>
+          <text x="256" y="372" fill="#e2e8f0" font-size="9.5" font-weight="600">② 对比章先自我拆台</text>
+          <text x="256" y="391" fill="#94a3b8" font-size="8.5">能靠改配置得到的差异，</text>
+          <text x="256" y="407" fill="#94a3b8" font-size="8.5">一律不算差异，单列一页</text>
+
+          <rect x="468" y="352" width="216" height="66" rx="6" fill="rgba(2,6,23,.6)" stroke="#334155" stroke-width="1"/>
+          <text x="482" y="372" fill="#e2e8f0" font-size="9.5" font-weight="600">③ 规划分两栏</text>
+          <text x="482" y="391" fill="#94a3b8" font-size="8.5">仓库里明写的计划，和从</text>
+          <text x="482" y="407" fill="#94a3b8" font-size="8.5">代码缝里推的缺口，分开放</text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
+        <div class="card amber">
+          <div class="card-head"><span class="card-dot"></span><h3>本讲取证方式：只读，不跑</h3></div>
+          <ul>
+            <li>全程<strong>静态代码取证</strong> —— 不执行 <em>0xaf</em> 二进制、不联网、不跑 demo</li>
+            <li>所以本讲<strong>没有任何性能或成功率数字</strong>；凡是效果类说法一律标为「文档声称」</li>
+          </ul>
+        </div>
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>为什么这条自律特别重要</h3></div>
+          <ul>
+            <li>讲别人的项目，偏见会被读者的怀疑抵消；<strong>讲自己的项目，读者的怀疑往往还不够</strong></li>
+            <li>所以本讲的判据只有一个：<strong>你能不能照着行号自己翻开看一眼</strong></li>
+          </ul>
+        </div>
+        <div class="card cyan">
+          <div class="card-head"><span class="card-dot cyan"></span><h3>时间不够就抓两章</h3></div>
+          <ul>
+            <li><strong>CH3 实现原理</strong> —— 一个函数就是全部控制流，这套结构可以直接抄</li>
+            <li><strong>CH5 三方对比</strong> —— 特别是「哪些差异只是配置」那一页</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">前三讲的研究笔记同仓可查 · build-your-own-agent{,-2,-3}/research/</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

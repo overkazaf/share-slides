@@ -1,0 +1,26 @@
+<section class="slide chapter" data-ch="CH02 内核" data-title="第 02 章 · 内核">
+  <div class="chapter-inner">
+    <div>
+      <div class="ch-no">02</div>
+      <h1>内核</h1>
+      <div class="ch-q"><b>同一份骨架，为什么一个 792 行、一个 2,869 行？</b></div>
+      <div class="ch-sub">这一章只看 <b>packages/agent</b> 和它旁边那一层：主循环、切包、abort 与错误恢复，外加两个名字最唬人的包。</div>
+      <div class="ch-prog"><span class="done"></span><span class="on"></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span></div>
+    </div>
+    <div>
+      <ul class="ch-list">
+        <div class="ch-list-h">本章内容</div>
+        <li><span class="n">10</span><span class="t">主循环：骨架没变，钩子从 8 涨到 40<i>差距不在状态机，在可插拔点密度</i></span></li>
+        <li><span class="n">11</span><span class="t">切包才是真重构<i>pi 的 harness 在 agent 包，omp 把 agent 清成纯内核</i></span></li>
+        <li><span class="n">12</span><span class="t">abort 四信号 + 两层错误恢复<i>排队的插话永不硬杀已产生副作用的前台工具</i></span></li>
+        <li><span class="n">13</span><span class="t">打假两则<i>metaharness 不是 harness 的 harness；swarm 比宣传的弱</i></span></li>
+      </ul>
+      <div class="ch-sub" style="margin-top:22px;border-color:var(--emerald)">一句话 —— 内核的差别不在<b>它怎么想</b>，在<b>它把多少决定外包给了宿主</b>。</div>
+    </div>
+  </div>
+  <div class="s-foot">
+    <span class="src">第 02 章 / 共 7 章</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

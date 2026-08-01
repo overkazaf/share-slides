@@ -1,0 +1,101 @@
+<section class="slide" data-ch="CH3 上下文" data-title="他们主动把压缩率降了 8 倍，换可读性">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot violet"></span>CH 3 · 上下文</div>
+    <h1 class="s-title">他们主动把压缩率<span class="hl-r">降了 8 倍</span>，换可读性</h1>
+    <div class="s-sub">165k → 14k 字符/帧，OCR f1 .351 → .806。<b style="color:#e2e8f0">更值得学的是：这两个数字被写在了代码注释里。</b></div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 505" xmlns="http://www.w3.org/2000/svg">
+          <rect x="6" y="6" width="340" height="72" rx="6" fill="rgba(136,19,55,.28)" stroke="#fb7185" stroke-width="1.2"/>
+          <text x="20" y="27" fill="#fb7185" font-size="10" font-weight="600">常见直觉</text>
+          <text x="20" y="48" fill="#cbd5e1" font-size="9.5">压缩率当然是越高越好</text>
+          <text x="20" y="66" fill="#94a3b8" font-size="8.5">字印得越小，一帧塞得越多，越省钱</text>
+
+          <rect x="352" y="6" width="342" height="72" rx="6" fill="rgba(76,29,149,.28)" stroke="#a78bfa" stroke-width="1.2"/>
+          <text x="366" y="27" fill="#a78bfa" font-size="10" font-weight="600">实情</text>
+          <text x="366" y="48" fill="#cbd5e1" font-size="9.5">压得太狠，模型不是读错，是直接摆烂</text>
+          <text x="366" y="66" fill="#94a3b8" font-size="8.5">于是他们把压缩率主动砍掉 8 倍，换回可读性</text>
+
+          <rect x="6" y="92" width="340" height="152" rx="6" fill="rgba(136,19,55,.28)" stroke="#fb7185" stroke-width="1.2"/>
+          <text x="20" y="114" fill="#fb7185" font-size="11.5" font-weight="700">5x8-sent @ 2576px</text>
+          <text x="240" y="114" fill="#64748b" font-size="8.5">已废弃</text>
+          <text x="20" y="142" fill="#fff" font-size="16" font-weight="700">165,830</text>
+          <text x="110" y="142" fill="#94a3b8" font-size="8.5">字符 / 帧</text>
+          <text x="20" y="170" fill="#fff" font-size="16" font-weight="700">33.0</text>
+          <text x="76" y="170" fill="#94a3b8" font-size="8.5">chars/token（×8.3 于纯文本）</text>
+          <text x="20" y="202" fill="#fb7185" font-size="15" font-weight="700">f1 .351</text>
+          <text x="110" y="202" fill="#94a3b8" font-size="8.5">opus-4.8 工具输出 bench</text>
+          <text x="20" y="226" fill="#94a3b8" font-size="8.5">低于 OCR ~16px/char 下限 → 模型放弃回答</text>
+
+          <rect x="352" y="92" width="342" height="152" rx="6" fill="rgba(76,29,149,.28)" stroke="#a78bfa" stroke-width="1.4"/>
+          <text x="366" y="114" fill="#a78bfa" font-size="11.5" font-weight="700">11on16-bw @ 1568px</text>
+          <text x="600" y="114" fill="#34d399" font-size="8.5">当前默认</text>
+          <text x="366" y="142" fill="#fff" font-size="16" font-weight="700">13,916</text>
+          <text x="440" y="142" fill="#94a3b8" font-size="8.5">字符 / 帧（新线 1932px 为 21,000）</text>
+          <text x="366" y="170" fill="#fff" font-size="16" font-weight="700">4.23</text>
+          <text x="422" y="170" fill="#94a3b8" font-size="8.5">chars/token（×1.06 —— 几乎不省）</text>
+          <text x="366" y="202" fill="#34d399" font-size="15" font-weight="700">f1 .806</text>
+          <text x="456" y="202" fill="#94a3b8" font-size="8.5">同一个 bench，同一个模型</text>
+          <text x="366" y="226" fill="#94a3b8" font-size="8.5">加了字间距，字号过了门槛，模型愿意读</text>
+
+          <rect x="6" y="256" width="688" height="46" rx="6" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="20" y="276" fill="#fbbf24" font-size="9.5" font-weight="600">净换算：压缩率 ÷ 7.8，f1 × 2.3</text>
+          <text x="20" y="293" fill="#94a3b8" font-size="8.5">同批对照组：8on16-bw .755；Gemini 线上 doc-8on16-sent-dim 只有 .287 —— 同一个现象，换个模型再现一次</text>
+
+          <rect x="6" y="314" width="688" height="96" rx="6" fill="rgba(76,29,149,.16)" stroke="#a78bfa" stroke-width="1"/>
+          <text x="20" y="334" fill="#a78bfa" font-size="9.5" font-weight="600">失败机理也写在注释里，而且很具体</text>
+          <text x="20" y="353" fill="#cbd5e1" font-size="8.5">"fell below the OCR ~16px/char floor and abstained"</text>
+          <text x="20" y="374" fill="#fff" font-size="10">字太小时，模型不是读错 —— 是判断自己读不了，然后拒绝回答。</text>
+          <text x="20" y="396" fill="#94a3b8" font-size="8.5">所以这不是缓慢劣化，是过了门槛就断崖。调参时要找的不是最优点，是那条线在哪。</text>
+
+          <rect x="6" y="420" width="688" height="66" rx="6" fill="rgba(120,53,15,.28)" stroke="#fbbf24" stroke-width="1.2"/>
+          <text x="20" y="440" fill="#fbbf24" font-size="9" font-weight="600">⚠ 上面这些 f1 来自代码注释，不是本次实测</text>
+          <text x="20" y="457" fill="#94a3b8" font-size="8">作者跑完 bench 后手写进注释的结论（snapcompact.ts:17-33、:255-273）；仓库里没有可复跑的结果文件</text>
+          <text x="20" y="473" fill="#94a3b8" font-size="8">research/ 下 80 个 eval 脚本都需要真实 API key，results/ 未入库；本机无 bun，一行也没跑</text>
+        </svg>
+      </div>
+
+      <div class="figure">
+        <svg viewBox="0 0 440 495" xmlns="http://www.w3.org/2000/svg">
+          <text x="6" y="16" fill="#94a3b8" font-size="9.5" font-weight="600">最值得学的不是这两个数字</text>
+
+          <rect x="6" y="26" width="428" height="108" rx="6" fill="rgba(76,29,149,.16)" stroke="#a78bfa" stroke-width="1.5"/>
+          <text x="18" y="54" fill="#fff" font-size="14" font-weight="700">eval 数字被写进代码注释，</text>
+          <text x="18" y="78" fill="#fff" font-size="14" font-weight="700">和它决定的那个参数住在一起。</text>
+          <text x="18" y="100" fill="#94a3b8" font-size="8.5">位置就在 shape 表的正上方 —— 不是 README，不是 wiki</text>
+          <text x="18" y="118" fill="#94a3b8" font-size="8.5">改参数的人一定会看见：当初为什么选它，对照组是谁</text>
+
+          <text x="6" y="156" fill="#64748b" font-size="8">注释长这样（节选）</text>
+          <rect x="6" y="164" width="428" height="118" rx="6" fill="rgba(2,6,23,.7)" stroke="#334155" stroke-width="1"/>
+          <text x="18" y="184" fill="#64748b" font-size="8">// packages/snapcompact/src/snapcompact.ts:17-33</text>
+          <text x="18" y="204" fill="#cbd5e1" font-size="9">opus-4.8      11on16-bw    f1 .806</text>
+          <text x="18" y="221" fill="#94a3b8" font-size="9">              8on16-bw     f1 .755</text>
+          <text x="18" y="238" fill="#fb7185" font-size="9">              6x12-dim     f1 .351</text>
+          <text x="18" y="255" fill="#cbd5e1" font-size="9">gemini-3.5    8on22-bw     f1 .934</text>
+          <text x="18" y="272" fill="#cbd5e1" font-size="9">kimi          8on16-bw     f1 .973</text>
+
+          <rect x="6" y="294" width="428" height="80" rx="6" fill="rgba(136,19,55,.28)" stroke="#fb7185" stroke-width="1.2"/>
+          <text x="18" y="314" fill="#fb7185" font-size="9.5" font-weight="600">对照：我们通常怎么做</text>
+          <text x="18" y="333" fill="#cbd5e1" font-size="8.5">参数留在代码里，实验结果留在某个人的</text>
+          <text x="18" y="349" fill="#cbd5e1" font-size="8.5">notebook 或聊天记录里。半年后没人知道</text>
+          <text x="18" y="365" fill="#cbd5e1" font-size="8.5">1568 这个数是怎么来的，也就没人敢改。</text>
+
+          <rect x="6" y="386" width="428" height="96" rx="6" fill="rgba(6,78,59,.14)" stroke="#34d399" stroke-width="1"/>
+          <text x="18" y="406" fill="#34d399" font-size="9.5" font-weight="600">能搬走的一条</text>
+          <text x="18" y="426" fill="#cbd5e1" font-size="8.5">任何魔数旁边写清三件事：对照组是谁、</text>
+          <text x="18" y="442" fill="#cbd5e1" font-size="8.5">指标是什么、什么时候跑的。</text>
+          <text x="18" y="463" fill="#fff" font-size="9.5">它不如测试严格，但比测试耐放。</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src"><b>packages/snapcompact/src/snapcompact.ts:17-33, 20-21, 255-273</b> · f1 引自代码注释，非本次实测</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

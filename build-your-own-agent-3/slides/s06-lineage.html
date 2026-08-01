@@ -1,0 +1,94 @@
+<section class="slide" data-ch="CH1 体量" data-title="血缘只剩 LICENSE 的两行版权：omp 与 pi 是两个独立仓库">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot emerald"></span>CH 1 · 体量</div>
+    <h1 class="s-title">血缘只剩两行版权：omp 与 pi 是<span class="hl-r">两个独立仓库</span></h1>
+    <div class="s-sub">它是 pi 的<b style="color:#e2e8f0">代码级深度 fork</b>，但不是 GitHub 意义上那种带 upstream 指针的 fork。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 505" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="lg-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#64748b"/>
+            </marker>
+          </defs>
+
+          <text x="16" y="22" fill="#34d399" font-size="11" font-weight="600">三层血统：一条直线，两次性质不同的复制</text>
+
+          <rect x="40" y="44" width="620" height="86" rx="6" fill="rgba(30,41,59,.5)" stroke="#22d3ee" stroke-width="1.4"/>
+          <text x="60" y="68" fill="#22d3ee" font-size="11" font-weight="600">L1 · 上游本体</text>
+          <text x="60" y="92" fill="#fff" font-size="14" font-weight="700">earendil-works/pi</text>
+          <text x="60" y="112" fill="#94a3b8" font-size="9">Mario Zechner · 原 badlogic/pi-mono · agent 工具包本体</text>
+          <text x="644" y="92" fill="#cbd5e1" font-size="10" text-anchor="end">112,232 行 TS 源码</text>
+
+          <path d="M 350 130 L 350 176" fill="none" stroke="#64748b" stroke-width="1.4" marker-end="url(#lg-ar)"/>
+          <text x="368" y="152" fill="#94a3b8" font-size="9.5">① 代码级深度 fork —— 仓库层面独立，不是 GitHub 的 Fork 按钮</text>
+
+          <rect x="40" y="178" width="620" height="96" rx="6" fill="rgba(30,41,59,.5)" stroke="#34d399" stroke-width="1.8"/>
+          <text x="60" y="202" fill="#34d399" font-size="11" font-weight="600">L2 · 深度 fork（本篇主角）</text>
+          <text x="60" y="226" fill="#fff" font-size="14" font-weight="700">can1357/oh-my-pi</text>
+          <text x="60" y="246" fill="#94a3b8" font-size="9">Can Bölük · omp · v17.2.3 · 独立仓库，非 GitHub fork</text>
+          <text x="60" y="264" fill="#cbd5e1" font-size="9">LICENSE 里保留两行版权 —— 这是血缘最硬的本地证据</text>
+          <text x="644" y="226" fill="#cbd5e1" font-size="10" text-anchor="end">723,921 行 TS + 18.5 万行 Rust</text>
+
+          <path d="M 350 274 L 350 316" fill="none" stroke="#64748b" stroke-width="1.4" marker-end="url(#lg-ar)"/>
+          <text x="368" y="298" fill="#94a3b8" font-size="9.5">② git clone —— 本地这份没有任何私有改动</text>
+
+          <rect x="40" y="318" width="620" height="80" rx="6" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1.2" stroke-dasharray="5,4"/>
+          <text x="60" y="342" fill="#94a3b8" font-size="11" font-weight="600">L3 · 本地工作副本（本篇的取证现场）</text>
+          <text x="60" y="364" fill="#cbd5e1" font-size="12">~/research/ohmypi/oh-my-pi</text>
+          <text x="60" y="384" fill="#64748b" font-size="8.5">git remote -v → origin = can1357/oh-my-pi；git branch -a 只有 main / origin/main</text>
+
+          <rect x="40" y="414" width="620" height="74" rx="6" fill="rgba(136,19,55,.22)" stroke="#fb7185" stroke-width="1"/>
+          <text x="58" y="436" fill="#fb7185" font-size="9.5" font-weight="600">最容易搞混的一点</text>
+          <text x="58" y="456" fill="#94a3b8" font-size="9">常见讲法：oh-my-pi 是 pi 的一个 GitHub fork</text>
+          <text x="58" y="474" fill="#cbd5e1" font-size="9">实情：仓库层面完全独立，没有 fork 关系；同步靠人工，见 docs/porting-from-pi-mono.md</text>
+        </svg>
+      </div>
+
+      <div class="figure">
+        <svg viewBox="0 0 440 495" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="20" fill="#34d399" font-size="10.5" font-weight="600">LICENSE 原文（前 4 行）</text>
+
+          <rect x="16" y="32" width="408" height="92" rx="6" fill="rgba(2,6,23,.7)" stroke="#334155" stroke-width="1"/>
+          <text x="32" y="56" fill="#94a3b8" font-size="11">MIT License</text>
+          <text x="32" y="80" fill="#22d3ee" font-size="10.5">Copyright (c) 2025 Mario Zechner</text>
+          <text x="32" y="102" fill="#34d399" font-size="10.5">Copyright (c) 2025-2026 Can Bölük</text>
+
+          <text x="16" y="145" fill="#cbd5e1" font-size="9">两行并列，不是替换 —— 上游署名一个字没删。</text>
+
+          <rect x="16" y="160" width="408" height="76" rx="6" fill="rgba(76,29,149,.2)" stroke="#a78bfa" stroke-width="1"/>
+          <text x="30" y="180" fill="#a78bfa" font-size="9.5" font-weight="600">为什么说「不是 GitHub 意义上的 fork」</text>
+          <text x="30" y="198" fill="#94a3b8" font-size="8.5">GitHub 的 fork 会留下 upstream 指针、能直接提 PR</text>
+          <text x="30" y="214" fill="#cbd5e1" font-size="8.5">omp 是独立仓库：自己的 issue、发布、版本号</text>
+          <text x="30" y="230" fill="#64748b" font-size="8.5">同步靠人工：docs/porting-from-pi-mono.md，387 行</text>
+
+          <rect x="16" y="246" width="408" height="76" rx="6" fill="rgba(8,51,68,.28)" stroke="#22d3ee" stroke-width="1"/>
+          <text x="30" y="266" fill="#22d3ee" font-size="9.5" font-weight="600">本地这份：clone，不是私有 fork</text>
+          <text x="30" y="284" fill="#cbd5e1" font-size="8">origin = https://github.com/can1357/oh-my-pi.git</text>
+          <text x="30" y="300" fill="#94a3b8" font-size="8.5">分支只有 main / origin/main，无任何本地改动</text>
+          <text x="30" y="316" fill="#64748b" font-size="8.5">所以本篇引的每个 文件:行号，都是上游本体的</text>
+
+          <rect x="16" y="332" width="408" height="88" rx="6" fill="rgba(120,53,15,.25)" stroke="#fbbf24" stroke-width="1"/>
+          <text x="30" y="352" fill="#fbbf24" font-size="9.5" font-weight="600">顺带更正上一篇</text>
+          <text x="30" y="370" fill="#94a3b8" font-size="8.5">上一篇讲的 FORK.md 三层成本模型，出自某个</text>
+          <text x="30" y="386" fill="#94a3b8" font-size="8.5">私有下游 fork 的维护手册，不在 omp 上游仓库里</text>
+          <text x="30" y="402" fill="#fb7185" font-size="8.5">全史 16,613 commit 里 FORK.md 零命中</text>
+
+          <rect x="16" y="424" width="408" height="60" rx="6" fill="rgba(6,78,59,.16)" stroke="#34d399" stroke-width="1"/>
+          <text x="30" y="444" fill="#34d399" font-size="9.5" font-weight="600">所以</text>
+          <text x="30" y="462" fill="#cbd5e1" font-size="8.5">同一份 MIT 代码，换个人接手就是另一个量级。</text>
+          <text x="30" y="478" fill="#94a3b8" font-size="8.5">下一页：153 万行到底是怎么堆出来的。</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src"><b>LICENSE:1-4</b> · git remote -v / git branch -a 实测 · HEAD 09a7c865（2026-08-01）</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

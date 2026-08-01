@@ -1,0 +1,124 @@
+<section class="slide" data-ch="CH2 内核" data-title="切包才是真重构：把 harness 从内核包踢出去">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot emerald"></span>CH 2 · 内核</div>
+    <h1 class="s-title">切包才是真重构：把 harness <span class="hl-e">踢出内核包</span></h1>
+    <div class="s-sub">pi 的 harness 住在 <code>packages/agent</code>；omp 把 agent 清成纯内核，harness 整体搬进 coding-agent。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 505" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="20" fill="#22d3ee" font-size="11" font-weight="700">pi-mono</text>
+          <text x="364" y="20" fill="#34d399" font-size="11" font-weight="700">oh-my-pi</text>
+
+          <rect x="16" y="30" width="320" height="140" rx="8" fill="rgba(8,51,68,.18)" stroke="#22d3ee" stroke-width="1.2"/>
+          <text x="28" y="48" fill="#22d3ee" font-size="9.5" font-weight="600">packages/agent/src · 10,368 行</text>
+          <rect x="28" y="56" width="296" height="44" rx="5" fill="rgba(136,19,55,.28)" stroke="#fb7185" stroke-width="1.2"/>
+          <text x="40" y="74" fill="#fb7185" font-size="9.5" font-weight="600">harness/ · 8,108 行</text>
+          <text x="40" y="90" fill="#94a3b8" font-size="8">AgentHarness · session store · tools · prompt</text>
+          <rect x="28" y="106" width="296" height="24" rx="5" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="40" y="122" fill="#cbd5e1" font-size="8.5">agent-loop.ts 792</text>
+          <rect x="28" y="136" width="296" height="24" rx="5" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="40" y="152" fill="#cbd5e1" font-size="8.5">agent.ts 577 · types.ts 437 · compaction/ 1,287</text>
+
+          <rect x="364" y="30" width="320" height="212" rx="8" fill="rgba(6,78,59,.16)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="376" y="48" fill="#34d399" font-size="9.5" font-weight="600">packages/agent/src · 14,873 行 —— 纯内核</text>
+          <rect x="376" y="56" width="296" height="30" rx="5" fill="rgba(136,19,55,.16)" stroke="#fb7185" stroke-width="1.2" stroke-dasharray="4,3"/>
+          <text x="388" y="76" fill="#fb7185" font-size="9.5" font-weight="600">无 harness 目录（0 行）</text>
+          <rect x="376" y="92" width="296" height="24" rx="5" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="388" y="108" fill="#cbd5e1" font-size="8.5">agent-loop.ts 2,869 · agent.ts 1,650</text>
+          <rect x="376" y="120" width="296" height="24" rx="5" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="388" y="136" fill="#cbd5e1" font-size="8.5">types.ts 862 · pause.ts 107</text>
+          <rect x="376" y="148" width="296" height="24" rx="5" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="388" y="164" fill="#cbd5e1" font-size="8.5">telemetry.ts 2,078 · run-collector.ts 631</text>
+          <rect x="376" y="176" width="296" height="24" rx="5" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="388" y="192" fill="#cbd5e1" font-size="8.5">compaction/ 5,667（13 文件）</text>
+          <rect x="376" y="204" width="296" height="24" rx="5" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="388" y="220" fill="#cbd5e1" font-size="8.5">append-only-context.ts 348 · proxy · tokenizer</text>
+
+          <rect x="16" y="262" width="320" height="70" rx="8" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="28" y="282" fill="#22d3ee" font-size="9.5" font-weight="600">packages/coding-agent/src · 56,431 行</text>
+          <text x="28" y="300" fill="#94a3b8" font-size="8.5">core/session-manager.ts 1,712 —— 老会话实现</text>
+          <text x="28" y="316" fill="#64748b" font-size="8">harness 不在这里，在 agent 包里</text>
+
+          <rect x="364" y="262" width="320" height="70" rx="8" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="376" y="282" fill="#34d399" font-size="9.5" font-weight="600">packages/coding-agent/src · 398,480 行（7×）</text>
+          <text x="376" y="300" fill="#94a3b8" font-size="8.5">session/agent-session.ts 8,814 行（单文件）</text>
+          <text x="376" y="316" fill="#94a3b8" font-size="8.5">session/turn-recovery.ts 1,787 行 · task/ ~430 KB</text>
+
+          <rect x="16" y="346" width="668" height="56" rx="6" fill="rgba(76,29,149,.16)" stroke="#a78bfa" stroke-width="1"/>
+          <text x="30" y="366" fill="#a78bfa" font-size="9.5" font-weight="600">这次重构的一句话：把 harness 从内核包踢出去</text>
+          <text x="30" y="386" fill="#cbd5e1" font-size="8.5">pi · AgentHarness（harness/agent-harness.ts:173，1,185 行）　→　omp · AgentSession（session/agent-session.ts，8,814 行）</text>
+
+          <text x="16" y="424" fill="#cbd5e1" font-size="9">① 内核包只留循环与其配套设施，可以被别的宿主复用</text>
+          <text x="16" y="444" fill="#cbd5e1" font-size="9">② 代价：AgentSession 变成 8,814 行单文件 —— 复杂度没消失，只换了地方</text>
+          <text x="16" y="464" fill="#cbd5e1" font-size="9">③ omp 没跟进 pi 后来在 packages/agent/src/harness/session/ 的 SDK 化重构</text>
+          <text x="16" y="484" fill="#64748b" font-size="8">口径：本次对比基准下未见对应实现，不等于 omp 删除（omp 记录的上游同步点 2026-03-22）</text>
+        </svg>
+      </div>
+
+      <div class="figure">
+        <svg viewBox="0 0 440 495" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="18" fill="#34d399" font-size="11" font-weight="600">体量对照（源码行数）</text>
+
+          <text x="16" y="42" fill="#64748b" font-size="8">路径</text>
+          <text x="300" y="42" fill="#22d3ee" font-size="8" text-anchor="end">pi</text>
+          <text x="424" y="42" fill="#34d399" font-size="8" text-anchor="end">omp</text>
+          <path d="M 16 48 L 424 48" stroke="#1e293b" stroke-width="1"/>
+
+          <text x="16" y="66" fill="#cbd5e1" font-size="8.5">packages/agent/src</text>
+          <text x="300" y="66" fill="#94a3b8" font-size="8.5" text-anchor="end">10,368</text>
+          <text x="424" y="66" fill="#fff" font-size="8.5" text-anchor="end">14,873</text>
+          <path d="M 16 74 L 424 74" stroke="rgba(30,41,59,.7)" stroke-width="1"/>
+
+          <text x="16" y="92" fill="#fb7185" font-size="8.5">　└ harness/</text>
+          <text x="300" y="92" fill="#94a3b8" font-size="8.5" text-anchor="end">8,108</text>
+          <text x="424" y="92" fill="#fb7185" font-size="8.5" text-anchor="end">无此目录</text>
+          <path d="M 16 100 L 424 100" stroke="rgba(30,41,59,.7)" stroke-width="1"/>
+
+          <text x="16" y="118" fill="#cbd5e1" font-size="8.5">　└ agent-loop.ts</text>
+          <text x="300" y="118" fill="#94a3b8" font-size="8.5" text-anchor="end">792</text>
+          <text x="424" y="118" fill="#fff" font-size="8.5" text-anchor="end">2,869</text>
+          <path d="M 16 126 L 424 126" stroke="rgba(30,41,59,.7)" stroke-width="1"/>
+
+          <text x="16" y="144" fill="#cbd5e1" font-size="8.5">　└ agent.ts</text>
+          <text x="300" y="144" fill="#94a3b8" font-size="8.5" text-anchor="end">577</text>
+          <text x="424" y="144" fill="#fff" font-size="8.5" text-anchor="end">1,650</text>
+          <path d="M 16 152 L 424 152" stroke="rgba(30,41,59,.7)" stroke-width="1"/>
+
+          <text x="16" y="170" fill="#cbd5e1" font-size="8.5">　└ types.ts</text>
+          <text x="300" y="170" fill="#94a3b8" font-size="8.5" text-anchor="end">437</text>
+          <text x="424" y="170" fill="#fff" font-size="8.5" text-anchor="end">862</text>
+          <path d="M 16 178 L 424 178" stroke="rgba(30,41,59,.7)" stroke-width="1"/>
+
+          <text x="16" y="196" fill="#cbd5e1" font-size="8.5">packages/coding-agent/src</text>
+          <text x="300" y="196" fill="#94a3b8" font-size="8.5" text-anchor="end">56,431</text>
+          <text x="424" y="196" fill="#fff" font-size="8.5" text-anchor="end">398,480</text>
+
+          <rect x="16" y="216" width="408" height="92" rx="6" fill="rgba(6,78,59,.14)" stroke="#34d399" stroke-width="1"/>
+          <text x="30" y="236" fill="#22d3ee" font-size="9.5" font-weight="600">pi · AgentHarness</text>
+          <text x="30" y="251" fill="#64748b" font-size="8">packages/agent/src/harness/agent-harness.ts:173 · 1,185 行</text>
+          <text x="30" y="275" fill="#34d399" font-size="9.5" font-weight="600">↓　omp · AgentSession</text>
+          <text x="30" y="290" fill="#64748b" font-size="8">packages/coding-agent/src/session/agent-session.ts · 8,814 行</text>
+
+          <rect x="16" y="322" width="408" height="66" rx="6" fill="rgba(136,19,55,.16)" stroke="#fb7185" stroke-width="1"/>
+          <text x="30" y="342" fill="#fb7185" font-size="9.5" font-weight="600">代价</text>
+          <text x="30" y="359" fill="#cbd5e1" font-size="8.5">内核干净了，但 harness 的复杂度没有消失 ——</text>
+          <text x="30" y="375" fill="#cbd5e1" font-size="8.5">它变成了一个 8,814 行的单文件类。</text>
+
+          <text x="16" y="412" fill="#cbd5e1" font-size="9.5">能抄的是这个动作：把「循环」和「产品」分包</text>
+          <text x="16" y="432" fill="#94a3b8" font-size="8.5">抄不了的是它的规模 —— 分包本身几乎零成本，</text>
+          <text x="16" y="447" fill="#94a3b8" font-size="8.5">值钱的是「内核里什么都不许放」这条纪律。</text>
+          <text x="16" y="472" fill="#64748b" font-size="8">omp 同时也没跟进 pi 新的 harness/session SDK 化抽象</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src"><b>packages/agent/src · packages/coding-agent/src/session/agent-session.ts</b> · 对照 pi-mono packages/agent/src/harness/agent-harness.ts:173</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
