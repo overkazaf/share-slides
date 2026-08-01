@@ -2,7 +2,7 @@
   <div class="s-head">
     <div class="s-kicker"><span class="dot orange"></span>CH 7 · 实践 · 1/2</div>
     <h1 class="s-title">先看牌面：<span class="hl-a">各家模型什么脾气、多少钱</span></h1>
-    <div class="s-sub">数字都是从官方定价页 / model card 抓的（快照 <b style="color:#e2e8f0">2026-08-01</b>）。价格按美元 / 百万 token 算。</div>
+    <div class="s-sub">价格 = 美元 / 百万 token，抓自官方页（<b style="color:#e2e8f0">2026-08-01</b>）。</div>
   </div>
 
   <div class="s-body">
@@ -16,41 +16,41 @@
         </thead>
         <tbody>
           <tr><td class="k">Claude Opus 5</td><td>1M</td><td><b style="color:#22d3ee">$5 / $25</b></td><td>2026-05</td>
-              <td>长时 agent 主力；<b style="color:#e2e8f0">知识截止最新</b></td>
-              <td>深度重构、跨仓库、跑测试</td></tr>
+              <td>长时主力，<b style="color:#e2e8f0">知识最新</b></td>
+              <td>深度重构、跑测试</td></tr>
           <tr><td class="k">Claude Sonnet 5</td><td>1M</td><td><b style="color:#34d399">$2 / $10</b><span class="note">促销至 08-31，之后 $3 / $15</span></td><td>2026-01</td>
-              <td>Claude Code 默认，性价比档</td>
-              <td><b style="color:#e2e8f0">日常八成的活</b>，卡了再升</td></tr>
+              <td>Claude Code 默认档</td>
+              <td><b style="color:#e2e8f0">日常八成的活</b></td></tr>
           <tr><td class="k">Claude Fable 5</td><td>1M</td><td><b style="color:#fb7185">$10 / $50</b></td><td>2026-01</td>
-              <td>Mythos 级，全场最贵</td>
+              <td>全场最贵</td>
               <td>硬骨头才开一次</td></tr>
           <tr><td class="k">GPT-5.6 Sol</td><td>1.05M</td><td>$5 / $30</td><td>2026-02</td>
-              <td>OpenAI 前沿档；新增 <code style="color:#fbbf24">max</code> 档</td>
+              <td>OpenAI 前沿档</td>
               <td>Codex 云端长任务</td></tr>
           <tr><td class="k">GPT-5.6 Terra</td><td>1.05M</td><td><b style="color:#34d399">$2 / $12</b></td><td>2026-02</td>
-              <td>官方定位"智能与成本的平衡"</td>
+              <td>智能与成本的平衡</td>
               <td>批量 PR、升依赖</td></tr>
           <tr><td class="k">GPT-5.6 Luna</td><td>1.05M</td><td><b style="color:#34d399">$0.20 / $1.20</b></td><td>2026-02</td>
-              <td>高并发低成本，比 Sol 便宜 <b style="color:#fbbf24">25 倍</b></td>
-              <td>批量分类、粗筛、过日志</td></tr>
+              <td>比 Sol 便宜 <b style="color:#fbbf24">25 倍</b></td>
+              <td>批量粗筛、过日志</td></tr>
           <tr><td class="k">Gemini 3.6 Flash</td><td>1.05M</td><td>$1.50 / $7.50</td><td>—</td>
-              <td>长文档多模态；Notebook 侧 source-grounded</td>
-              <td>长材料消化，要引用</td></tr>
+              <td>长文档多模态，可溯源</td>
+              <td>啃长材料、要出处</td></tr>
           <tr><td class="k">Grok 4.5</td><td>500k</td><td>$2 / $6<span class="note">&lt;200k 档；≥200k 翻倍</span></td><td>—</td>
-              <td>定位 coding / agentic；接 X 实时检索</td>
+              <td>接 X 实时检索</td>
               <td>实时舆情、交叉复核</td></tr>
           <tr><td class="k">Kimi K3<span class="note">自定义许可</span></td><td>1M</td>
               <td>—</td><td>—</td>
-              <td>Terminal-Bench 2.1 <b style="color:#34d399">88.3</b> vs GPT-5.6 Sol 88.8，<b style="color:#e2e8f0">差 0.5 分</b></td>
-              <td>Q4 量化 <b style="color:#fb7185">1.51 TB</b> —— 开放权重，跑不动</td></tr>
+              <td>Terminal-Bench 2.1 <b style="color:#34d399">88.3</b>，只差 <b style="color:#e2e8f0">0.5 分</b></td>
+              <td>Q4 要 <b style="color:#fb7185">1.51 TB</b>，跑不动</td></tr>
           <tr><td class="k">DeepSeek-V4-Flash<span class="note">MIT 权重</span></td><td>1M</td>
               <td><b style="color:#34d399">$0.14 / $0.28</b></td><td>—</td>
-              <td>3:1 混合价，<b style="color:#34d399">比 Opus 5 便宜 57 倍</b></td>
-              <td>批量粗活、成本极敏感</td></tr>
+              <td><b style="color:#34d399">比 Opus 5 便宜 57 倍</b></td>
+              <td>批量粗活</td></tr>
           <tr><td class="k">Qwen3.6-35B-A3B<span class="note">Apache 2.0</span></td><td>—</td>
               <td>本地免费</td><td>—</td>
               <td>35B 总参 / 3B 激活，Q4 <b style="color:#34d399">仅 22.1 GB</b></td>
-              <td><b style="color:#e2e8f0">唯一单卡能跑的</b>，本地实验首选</td></tr>
+              <td><b style="color:#e2e8f0">唯一单卡能跑的</b></td></tr>
         </tbody>
       </table>
     </div>
@@ -59,22 +59,22 @@
       <div class="card amber">
         <div class="card-head"><span class="card-dot amber"></span><h3>开放权重到底值不值</h3></div>
         <ul>
-          <li><strong>好处</strong>：跑分离第一梯队只差 <em>0.5–7 分</em>，价格差 <em>4.6–57 倍</em></li>
-          <li><strong>坏处</strong>：<b style="color:#fb7185">整仓库的长活还差 12–21 分</b>（GLM-5.2 在 NL2Repo 比 Opus 4.8 低 20.8 分）—— 短活追平了，长活没有</li>
-          <li>别信"下载就能跑"：第一梯队权重 <strong>200GB–1.5TB</strong>，单卡跑得动的只有 35B-A3B</li>
+          <li><strong>好处</strong>：跑分只差 <em>0.5–7 分</em>，价格差 <em>4.6–57 倍</em></li>
+          <li><strong>坏处</strong>：<b style="color:#fb7185">长活还差 12–21 分</b>（GLM-5.2 比 Opus 4.8 低 20.8 分）</li>
+          <li>权重 <strong>200GB–1.5TB</strong>，单卡跑得动的只有 35B-A3B</li>
         </ul>
       </div>
       <div class="card violet">
         <div class="card-head"><span class="card-dot violet"></span><h3>一个容易搞反的点</h3></div>
         <ul>
-          <li><strong>发布得晚，不代表它知道的事更新。</strong>Opus 5（7 月发布）知识到 <em>2026-05</em>，比更早的 Fable 5（<em>2026-01</em>）还新四个月 —— 看<strong>知识截止，别看发布日期</strong></li>
+          <li><strong>发布得晚，不代表知道的事更新。</strong>Opus 5 知识到 <em>2026-05</em>，比更早的 Fable 5（<em>2026-01</em>）还新 —— <strong>看知识截止，别看发布日期</strong></li>
         </ul>
       </div>
     </div>
   </div>
 
   <div class="s-foot">
-    <span class="src">数据 · 各家官方定价页（claude / openai / gemini / x.ai）· HF model card（2026-08-01 抓取）</span>
+    <span class="src">各家官方定价页 · HF model card · 2026-08-01</span>
     <span class="spacer"></span>
     <span class="pg"></span>
   </div>

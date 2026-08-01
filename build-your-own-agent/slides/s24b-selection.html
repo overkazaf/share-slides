@@ -2,7 +2,7 @@
   <div class="s-head">
     <div class="s-kicker"><span class="dot orange"></span>CH 7 · 实践 · 2/2</div>
     <h1 class="s-title">再看用法：<span class="hl-a">为什么我这样搭</span></h1>
-    <div class="s-sub">每条尽量给个能查的数字撑着；<b style="color:#e2e8f0">纯凭感觉的我会明说</b>。</div>
+    <div class="s-sub">每条都有数字撑着，<b style="color:#e2e8f0">纯凭感觉的我会明说</b>。</div>
   </div>
 
   <div class="s-body">
@@ -10,25 +10,25 @@
       <div class="card cyan">
         <div class="card-head"><span class="card-dot cyan"></span><h3>Claude Code</h3><span class="card-num">主力</span></div>
         <ul>
-          <li><strong>闭环最完整</strong>：改完能跑、挂了能看见、能改回来</li>
+          <li><strong>闭环最完整</strong>：能跑、能看见、能改回来</li>
         </ul>
       </div>
       <div class="card emerald">
         <div class="card-head"><span class="card-dot emerald"></span><h3>Codex</h3><span class="card-num">派活</span></div>
         <ul>
-          <li><strong>自己一个沙箱、自己一份 git</strong>：套路清楚的活派出去就不管，回来收 PR</li>
+          <li><strong>自带沙箱和 git</strong>：套路清楚的活派出去，回来收 PR</li>
         </ul>
       </div>
       <div class="card violet">
         <div class="card-head"><span class="card-dot violet"></span><h3>Gemini Notebook</h3><span class="card-num">消化</span></div>
         <ul>
-          <li><strong>只照你给的材料答</strong>（source-grounded），方便核对它没编</li>
+          <li><strong>只照你给的材料答</strong>，方便核对它没编</li>
         </ul>
       </div>
       <div class="card amber">
         <div class="card-head"><span class="card-dot amber"></span><h3>Grok</h3><span class="card-num">探风向</span></div>
         <ul>
-          <li><strong>接 X 实时流</strong>：真实用户在骂什么 —— 官方博客不会告诉你</li>
+          <li><strong>接 X 实时流</strong>：看真实用户在骂什么</li>
         </ul>
       </div>
     </div>
@@ -39,19 +39,19 @@
           <thead><tr><th style="width:30%">任务类型</th><th style="width:22%">首选</th><th>量化依据</th></tr></thead>
           <tbody>
             <tr><td class="k">深度重构 / 跑测试</td><td><span class="tag cyan">Claude Code + Opus 5</span></td>
-                <td>评测<b style="color:#e2e8f0">必须真跑测试</b></td></tr>
+                <td><b style="color:#e2e8f0">必须真跑测试</b></td></tr>
             <tr><td class="k">日常八成的活</td><td><span class="tag emerald">Claude Code + Sonnet 5</span></td>
-                <td>$2/$10 vs $5/$25，<b style="color:#34d399">便宜 2.5 倍</b></td></tr>
+                <td><b style="color:#34d399">便宜 2.5 倍</b></td></tr>
             <tr><td class="k">同时跑一堆 / 批量 PR</td><td><span class="tag emerald">Codex 云端 + Terra</span></td>
                 <td>$2/$12，价格正合适</td></tr>
             <tr><td class="k">批量粗筛 / 过日志</td><td><span class="tag emerald">GPT-5.6 Luna</span></td>
-                <td>$0.20/$1.20，<b style="color:#34d399">比同代旗舰便宜 25 倍</b></td></tr>
+                <td><b style="color:#34d399">比旗舰便宜 25 倍</b></td></tr>
             <tr><td class="k">几个仓库一起翻</td><td><span class="tag cyan">子代理分头找</span></td>
-                <td><b style="color:#e2e8f0">各看各的资料不互相带偏</b>，代价是烧 token</td></tr>
+                <td><b style="color:#e2e8f0">不互相带偏</b>，费 token</td></tr>
             <tr><td class="k">啃长文档还要给出处</td><td><span class="tag violet">Gemini Notebook</span></td>
-                <td><span class="note" style="display:inline">无量化对比，凭经验</span></td></tr>
+                <td><span class="note" style="display:inline">凭经验</span></td></tr>
             <tr><td class="k">私有化 / 数据不出境</td><td><span class="tag emerald">开放权重自建</span></td>
-                <td>短活差 0.5–7 分、价差 <b style="color:#34d399">4.6–57 倍</b>；<b style="color:#fb7185">长活还差 12–21 分</b></td></tr>
+                <td><b style="color:#fb7185">长活差 12–21 分</b></td></tr>
           </tbody>
         </table>
       </div>
@@ -60,23 +60,22 @@
         <div class="card rose">
           <div class="card-head"><span class="card-dot rose"></span><h3>有句话得说清楚</h3></div>
           <ul>
-            <li>Terminal-Bench 榜上 <strong>Claude Code 的默认配置不是第一</strong>：同一个 Opus 4.6，最好的 harness 76.4%，Claude Code 58.0%</li>
-            <li>我选它不是因为分高，是因为<strong>能改的地方最多</strong> —— 这是两回事</li>
+            <li>同一个 Opus 4.6，最好的 harness <strong>76.4%</strong>，Claude Code <strong>58.0%</strong></li>
+            <li>我选它不是因为分高，是因为<strong>能改的地方最多</strong></li>
           </ul>
         </div>
         <div class="card emerald">
           <div class="card-head"><span class="card-dot emerald"></span><h3>怎么挑，一句话</h3></div>
           <ul>
-            <li>按<strong>"你人在不在旁边"</strong>分，比看牌子管用：<br><b style="color:#22d3ee">人守着</b> → 终端 / 编辑器；<b style="color:#34d399">人走开</b> → 丢云上；<b style="color:#a78bfa">人在读材料</b> → 检索型</li>
-            <li><strong>默认便宜档，卡住再升</strong> —— 不是反过来</li>
+            <li>按<strong>"你人在不在旁边"</strong>分：<b style="color:#22d3ee">人守着</b> → 终端；<b style="color:#34d399">人走开</b> → 丢云上；<b style="color:#a78bfa">人在读材料</b> → 检索型</li>
+            <li><strong>默认便宜档，卡住再升</strong></li>
           </ul>
         </div>
         <div class="card amber">
           <div class="card-head"><span class="card-dot amber"></span><h3>但这么切来切去，本身就很累</h3></div>
           <ul>
-            <li>四个工具、七种任务、每天在脑子里做一次路由 —— <strong>这份心智负担没人给你算钱</strong></li>
-            <li>所以我想回到最开始那个定义：<strong>下一步由谁决定</strong>。把我这行里<em>路子说得清、对错判得出</em>的那一段，一次性写死成我自己的 agent</li>
-            <li><strong>挑哪一段？挑 ROI 最高的那段</strong> —— 我每天都干、干得最烦、而且错了我一眼能看出来</li>
+            <li>四个工具、七种任务，每天在脑子里路由一次 —— <strong>这份心智负担没人给你算钱</strong></li>
+            <li>所以回到那个定义：<strong>下一步由谁决定</strong>。<strong>挑 ROI 最高的那段</strong>写死成自己的 agent —— 每天都干、干得最烦、错了一眼能看出来</li>
           </ul>
         </div>
       </div>
