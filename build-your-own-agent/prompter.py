@@ -7,7 +7,7 @@
   ← →     上/下一页（跟 slides 的页码一一对应）
   空格/↓  往下滚一屏   ↑ 往上滚
   A       自动滚动开关，[ ] 调速度
-  + -     调字号        M 只看「怎么讲」
+  + -     调字号        F 展开/收起全文（默认只看提词）
   /       搜索          O 页面总览
 """
 import html
@@ -20,9 +20,10 @@ OUT = ROOT / "prompter.html"
 
 SEC_RE = re.compile(r"^## +P(\d+) +·? *(.*)$")
 # 讲稿里的小节标题，如 **怎么讲**：
-BLOCK_RE = re.compile(r"^\*\*(一句话主旨|怎么讲|别漏了说|可能被问|过渡到下一页|收尾)\*\*[：:]?\s*(.*)$")
+BLOCK_RE = re.compile(r"^\*\*(提词|一句话主旨|怎么讲|别漏了说|可能被问|过渡到下一页|收尾)\*\*[：:]?\s*(.*)$")
 
 BLOCK_KEY = {
+    "提词": "cue",
     "一句话主旨": "gist",
     "怎么讲": "say",
     "别漏了说": "must",
@@ -106,7 +107,7 @@ def parse():
     return [pages[k] for k in sorted(pages)]
 
 
-LABEL = {"gist": "一句话主旨", "say": "怎么讲", "must": "别漏了说",
+LABEL = {"cue": "提词", "gist": "一句话主旨", "say": "怎么讲", "must": "别漏了说",
          "qa": "可能被问", "next": "过渡"}
 
 CSS = """
@@ -133,8 +134,16 @@ h2{font-size:calc(var(--fs) * .82);color:#fff;font-weight:700;margin-bottom:26px
 .blk{margin:0 0 34px}
 .blk>.lb{display:inline-block;font-size:12px;letter-spacing:.12em;color:#0b1220;background:#64748b;
  padding:2px 10px;border-radius:4px;margin-bottom:14px;font-weight:700}
+.blk.cue>.lb{background:#22d3ee}
 .blk.gist>.lb{background:#a78bfa}.blk.say>.lb{background:#34d399}
 .blk.must>.lb{background:#fbbf24}.blk.qa>.lb{background:#fb923c}.blk.next>.lb{background:#22d3ee}
+.blk.cue{margin-bottom:28px}
+.blk.cue ul{margin:0}
+.blk.cue li{font-size:calc(var(--fs) * 1.34);color:#fff;font-weight:600;line-height:1.62;
+ padding-left:30px;margin-bottom:16px;letter-spacing:.01em}
+.blk.cue li::before{content:"—";color:#22d3ee;font-weight:700}
+.blk.cue li b{color:#34d399}
+.blk.cue .cue{color:#fb7185;font-size:.7em;vertical-align:middle}
 .blk.gist p{font-size:calc(var(--fs) * .96);color:#c4b5fd}
 .blk.say p{font-size:var(--fs);color:#f1f5f9;margin-bottom:22px}
 .blk.must,.blk.qa,.blk.next{font-size:calc(var(--fs) * .72);color:#94a3b8}
@@ -151,7 +160,10 @@ i{font-style:normal;color:#fbbf24}
 code{background:#111a2b;color:#67e8f9;padding:1px 6px;border-radius:4px;font-size:.86em}
 .cue{color:#fb7185;font-weight:700}
 blockquote{border-left:3px solid #334155;padding-left:14px;color:#94a3b8;margin-bottom:14px}
-body.mini .blk.must,body.mini .blk.qa{display:none}
+body.cues .blk.gist,body.cues .blk.say,body.cues .blk.must,body.cues .blk.qa{display:none}
+body.cues .blk.next{font-size:calc(var(--fs) * .78)}
+/* 没写提词块的页面，收起模式下退回显示「怎么讲」 */
+body.cues .pg-sec.nocue .blk.say,body.cues .pg-sec.nocue .blk.gist{display:block}
 #ov{position:fixed;inset:0;background:rgba(3,6,14,.97);z-index:40;display:none;overflow:auto;padding:70px 5vw}
 #ov.on{display:block}
 #ov .g{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
@@ -182,7 +194,16 @@ function show(n){
   localStorage.setItem('prompter-pos',i);
 }
 function tick(){ if(auto){ window.scrollBy(0,spd); } raf=requestAnimationFrame(tick); }
-function setAuto(v){ auto=v; st.innerHTML = auto? '自动滚动 <b>开</b> ×'+spd.toFixed(1) : '自动滚动 关'; }
+function setAuto(v){ auto=v; renderStatus(); }
+function setMode(){
+  const full=!document.body.classList.contains('cues');
+  document.getElementById('btn-full').textContent = full? '收起全文 F' : '展开全文 F';
+  renderStatus();
+}
+function renderStatus(){
+  const full=!document.body.classList.contains('cues');
+  st.innerHTML = (full?'全文':'<b>提词</b>') + ' · ' + (auto? '自动滚 ×'+spd.toFixed(1) : '手动');
+}
 document.addEventListener('keydown',e=>{
   if(document.getElementById('find').classList.contains('on') && e.key!=='Escape') return;
   const k=e.key;
@@ -196,7 +217,10 @@ document.addEventListener('keydown',e=>{
   else if(k==='['){spd=Math.max(0.2,spd-0.3);setAuto(auto)}
   else if(k==='+'||k==='='){bump(2)}
   else if(k==='-'){bump(-2)}
-  else if(k==='m'||k==='M'){document.body.classList.toggle('mini')}
+  else if(k==='f'||k==='F'){
+    const full=document.body.classList.toggle('cues')===false;
+    localStorage.setItem('prompter-full',full?'1':'0'); setMode();
+  }
   else if(k==='o'||k==='O'){document.getElementById('ov').classList.toggle('on')}
   else if(k==='/'){openFind();e.preventDefault()}
   else if(k==='Escape'){document.getElementById('ov').classList.remove('on');closeFind()}
@@ -225,10 +249,15 @@ document.getElementById('btn-prev').onclick=()=>show(i-1);
 document.getElementById('btn-next').onclick=()=>show(i+1);
 document.getElementById('btn-auto').onclick=()=>setAuto(!auto);
 document.getElementById('btn-ov').onclick=()=>document.getElementById('ov').classList.toggle('on');
+document.getElementById('btn-full').onclick=()=>{
+  const full=document.body.classList.toggle('cues')===false;
+  localStorage.setItem('prompter-full',full?'1':'0'); setMode();
+};
 const fs=localStorage.getItem('prompter-fs');
 if(fs) document.documentElement.style.setProperty('--fs',fs+'px');
+if(localStorage.getItem('prompter-full')!=='1') document.body.classList.add('cues');
 show(+(localStorage.getItem('prompter-pos')||0));
-setAuto(false); tick();
+setAuto(false); setMode(); tick();
 """
 
 
@@ -240,7 +269,7 @@ def build():
     body, cards = [], []
     for idx, p in enumerate(pages):
         blocks = []
-        for key in ["gist", "say", "must", "qa", "next"]:
+        for key in ["cue", "gist", "say", "must", "qa", "next"]:
             if key not in p["blocks"]:
                 continue
             content = render_lines(p["blocks"][key])
@@ -249,8 +278,9 @@ def build():
             blocks.append(
                 f'<div class="blk {key}"><span class="lb">{LABEL[key]}</span>{content}</div>')
         t = html.escape(p["title"])
+        nocue = "" if "cue" in p["blocks"] else " nocue"
         body.append(
-            f'<section class="pg-sec" data-n="{p["n"]}" data-title="{t}">'
+            f'<section class="pg-sec{nocue}" data-n="{p["n"]}" data-title="{t}">'
             f'<h2>P{p["n"]} · {t}</h2>{"".join(blocks)}</section>')
         cards.append(
             f'<div class="c" data-i="{idx}"><span class="n">{p["n"]}</span>'
@@ -267,6 +297,7 @@ def build():
   <span class="st" id="st"></span>
   <button id="btn-prev">‹ 上一页</button>
   <button id="btn-next">下一页 ›</button>
+  <button id="btn-full">展开全文 F</button>
   <button id="btn-auto">自动滚 A</button>
   <button id="btn-ov">总览 O</button>
 </div>
