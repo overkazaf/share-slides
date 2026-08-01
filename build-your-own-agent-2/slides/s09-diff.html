@@ -1,0 +1,99 @@
+<section class="slide" data-ch="CH2 循环" data-title="差异清单：教科书 6 行 vs 真实产品 121+517 行">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot emerald"></span>CH 2 · 循环</div>
+    <h1 class="s-title">教科书 6 行，真实产品 <span class="hl">121 + 517</span> 行</h1>
+    <div class="s-sub">多出来的代码，九成在解决同一件事：<b style="color:#e2e8f0">跑到一半，世界变了。</b></div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="16" fill="#94a3b8" font-size="9.5" font-weight="600">多出来的 25 件事，按「跑到一半发生了什么」归类</text>
+
+          <rect x="16" y="26" width="330" height="118" rx="6" fill="rgba(8,51,68,.26)" stroke="#22d3ee" stroke-width="1.2"/>
+          <text x="30" y="45" fill="#22d3ee" font-size="10" font-weight="600">用户变了</text>
+          <text x="30" y="63" fill="#cbd5e1" font-size="8.5">· 又发了一条 → follow-up 第二层循环</text>
+          <text x="30" y="79" fill="#cbd5e1" font-size="8.5">· 跑一半插话 → steering 队列，不撤已发出的工具</text>
+          <text x="30" y="95" fill="#cbd5e1" font-size="8.5">· 中途 /model 换模型 → 下一轮生效</text>
+          <text x="30" y="111" fill="#cbd5e1" font-size="8.5">· 按了 Ctrl-C → 五处检查 + 穿透到 provider 和工具</text>
+          <text x="30" y="130" fill="#64748b" font-size="8">交互式 agent 和批处理脚本的分水岭，全在这一格</text>
+
+          <rect x="354" y="26" width="330" height="118" rx="6" fill="rgba(120,53,15,.24)" stroke="#fbbf24" stroke-width="1.2"/>
+          <text x="368" y="45" fill="#fbbf24" font-size="10" font-weight="600">模型侧变了</text>
+          <text x="368" y="63" fill="#cbd5e1" font-size="8.5">· token 过期 → 每轮重新解析 API key</text>
+          <text x="368" y="79" fill="#cbd5e1" font-size="8.5">· 输出被截断 → 整批工具不执行</text>
+          <text x="368" y="95" fill="#cbd5e1" font-size="8.5">· 参数填法各家有偏差 → 先归一化再校验</text>
+          <text x="368" y="111" fill="#cbd5e1" font-size="8.5">· 上下文快满了 → 压缩挂载点在转换成 LLM 消息之前</text>
+          <text x="368" y="130" fill="#64748b" font-size="8">这一格的每一条，都是被某个真实模型坑出来的</text>
+
+          <rect x="16" y="152" width="330" height="118" rx="6" fill="rgba(6,78,59,.24)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="30" y="171" fill="#34d399" font-size="10" font-weight="600">工具侧变了</text>
+          <text x="30" y="189" fill="#cbd5e1" font-size="8.5">· 有副作用的工具 → 一票否决整批并发</text>
+          <text x="30" y="205" fill="#cbd5e1" font-size="8.5">· 并行执行 → UI 按完成序、历史按声明序，两条时间线</text>
+          <text x="30" y="221" fill="#cbd5e1" font-size="8.5">· 工具想终止整轮 → 全票制，一个说了不算</text>
+          <text x="30" y="237" fill="#cbd5e1" font-size="8.5">· 执行前后各留一个钩子 → 拦截、脱敏、改写</text>
+          <text x="30" y="256" fill="#64748b" font-size="8">「并行调工具」四个字，背后是这四条</text>
+
+          <rect x="354" y="152" width="330" height="118" rx="6" fill="rgba(76,29,149,.22)" stroke="#a78bfa" stroke-width="1.2"/>
+          <text x="368" y="171" fill="#a78bfa" font-size="10" font-weight="600">内外两套账</text>
+          <text x="368" y="189" fill="#cbd5e1" font-size="8.5">· 内部消息模型 ≠ 喂给模型的消息 → 中间要投影一次</text>
+          <text x="368" y="205" fill="#cbd5e1" font-size="8.5">· 一份喂模型、一份喂落盘，生命周期不同 → 双写</text>
+          <text x="368" y="221" fill="#cbd5e1" font-size="8.5">· 10 个生命周期事件，增量事件自带全量快照</text>
+          <text x="368" y="237" fill="#cbd5e1" font-size="8.5">· 事件监听器全部结算完，才算这一轮真的闲下来</text>
+          <text x="368" y="256" fill="#64748b" font-size="8">没有这一格，就没有 TUI，也没有可回放的 session</text>
+
+          <path d="M 16 284 L 684 284" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="304" fill="#94a3b8" font-size="9.5" font-weight="600">分层落点：什么该进循环，什么坚决不进</text>
+
+          <rect x="16" y="314" width="668" height="30" rx="5" fill="rgba(136,19,55,.18)" stroke="#fb7185" stroke-width="1.1"/>
+          <text x="30" y="333" fill="#fb7185" font-size="9">循环之外</text>
+          <text x="120" y="333" fill="#cbd5e1" font-size="8.5">重试 · 压缩后续跑 · session 落盘 · 33 个扩展钩子　—— 这些都不该让循环知道</text>
+
+          <rect x="16" y="348" width="668" height="30" rx="5" fill="rgba(6,78,59,.3)" stroke="#34d399" stroke-width="1.4"/>
+          <text x="30" y="367" fill="#34d399" font-size="9">循环本体 121 行</text>
+          <text x="120" y="367" fill="#cbd5e1" font-size="8.5">纯逻辑：<tspan fill="#fff">没有 IO、没有 timer、没有重试</tspan>　—— 所以它才测得动、读得懂</text>
+
+          <rect x="16" y="382" width="668" height="30" rx="5" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1.1"/>
+          <text x="30" y="401" fill="#94a3b8" font-size="9">循环之下</text>
+          <text x="120" y="401" fill="#cbd5e1" font-size="8.5">工具执行 517 行 · provider 层把出错和中断都变成「消息终态」，不往上抛</text>
+
+          <text x="16" y="424" fill="#64748b" font-size="8">agent-loop.ts:155-275 循环体 / :381-754 工具执行 · agent-session.ts:1064 重试续跑　583f153</text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>这一页就是本讲的中心论点</h3></div>
+          <ul>
+            <li>教科书循环解决的是<em>「怎么把工具结果喂回去」</em>；真实循环九成代码在解决<strong>「跑到一半，世界变了」</strong></li>
+          </ul>
+        </div>
+        <div class="card cyan">
+          <div class="card-head"><span class="card-dot cyan"></span><h3>自己造的时候照这个顺序补</h3></div>
+          <ul>
+            <li>先有<strong>中断</strong>，再有<strong>插话</strong>，再有<strong>压缩</strong>，最后才轮到并行 —— 前两个不补，做出来只是个脚本</li>
+          </ul>
+        </div>
+        <div class="card violet">
+          <div class="card-head"><span class="card-dot violet"></span><h3>一条反向差异</h3></div>
+          <ul>
+            <li>教科书爱加 <em>max_steps</em>，pi <strong>刻意不加</strong>：停不停交给宿主判断和用户的 Ctrl-C —— 这是取舍，不是疏忽</li>
+          </ul>
+        </div>
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>留个把柄</h3></div>
+          <ul>
+            <li>那个「宿主喊停」的钩子，全仓<strong>只有测试在用</strong>，产品路径没接 —— 设计留了口，产品还没用上</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">25 条完整清单见研究笔记 P02 §7 · <b>583f153</b></span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

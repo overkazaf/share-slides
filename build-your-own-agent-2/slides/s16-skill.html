@@ -1,0 +1,101 @@
+<section class="slide" data-ch="CH4 上下文" data-title="SKILL：结构体里根本没有 content 字段">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot violet"></span>CH 4 · 上下文</div>
+    <h1 class="s-title">SKILL 的秘密：结构体里<span class="hl-r">没有</span> content 字段</h1>
+    <div class="s-sub">常驻上下文里只放<b style="color:#e2e8f0">名字、描述、文件路径</b>三行；正文什么时候读？<b style="color:#e2e8f0">模型自己用 read 去拿。</b></div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="sk-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#a78bfa"/>
+            </marker>
+          </defs>
+
+          <text x="16" y="16" fill="#94a3b8" font-size="9.5" font-weight="600">Skill 结构体只有六个字段（本讲复核：说法成立，行号都没变）</text>
+
+          <rect x="16" y="26" width="330" height="94" rx="6" fill="rgba(2,6,23,.7)" stroke="#334155"/>
+          <text x="32" y="45" fill="#cbd5e1" font-size="9">name　　 description　　 filePath</text>
+          <text x="32" y="62" fill="#cbd5e1" font-size="9">baseDir　 sourceInfo　　 disableModelInvocation</text>
+          <text x="32" y="84" fill="#fb7185" font-size="9" font-weight="600">没有 content。正文永远在磁盘上。</text>
+          <text x="32" y="102" fill="#64748b" font-size="8">description 是硬性必填 —— 没有描述的 skill 直接不加载</text>
+
+          <rect x="354" y="26" width="330" height="94" rx="6" fill="rgba(76,29,149,.2)" stroke="#a78bfa" stroke-width="1.3"/>
+          <text x="368" y="45" fill="#a78bfa" font-size="10" font-weight="600">常驻 vs 展开</text>
+          <text x="368" y="66" fill="#fff" font-size="14" font-weight="700">380 字符　→　3,097 字符</text>
+          <text x="368" y="84" fill="#cbd5e1" font-size="8.5">每个 skill 常驻只花 380 字符，用到才展开正文</text>
+          <text x="368" y="102" fill="#34d399" font-size="8.5">压缩比 <tspan fill="#fff">8 : 1</tspan>，而且<tspan fill="#fff">不占任何工具槽位</tspan></text>
+
+          <text x="16" y="146" fill="#94a3b8" font-size="9.5" font-weight="600">三级加载：每一级都由模型自己决定要不要往下走</text>
+
+          <rect x="16" y="156" width="200" height="62" rx="6" fill="rgba(30,41,59,.5)" stroke="#334155"/>
+          <text x="30" y="175" fill="#e2e8f0" font-size="9" font-weight="600">① 常驻</text>
+          <text x="30" y="192" fill="#94a3b8" font-size="8.5">名字 + 描述 + 路径</text>
+          <text x="30" y="208" fill="#64748b" font-size="8">system prompt 里的一小段 XML</text>
+
+          <path d="M 220 187 L 244 187" stroke="#a78bfa" stroke-width="1.3" marker-end="url(#sk-ar)"/>
+
+          <rect x="250" y="156" width="200" height="62" rx="6" fill="rgba(76,29,149,.22)" stroke="#a78bfa"/>
+          <text x="264" y="175" fill="#a78bfa" font-size="9" font-weight="600">② 觉得对得上</text>
+          <text x="264" y="192" fill="#cbd5e1" font-size="8.5">用 read 工具去读那个路径</text>
+          <text x="264" y="208" fill="#64748b" font-size="8">和读任何一个文件没区别</text>
+
+          <path d="M 454 187 L 478 187" stroke="#a78bfa" stroke-width="1.3" marker-end="url(#sk-ar)"/>
+
+          <rect x="484" y="156" width="200" height="62" rx="6" fill="rgba(6,78,59,.24)" stroke="#34d399"/>
+          <text x="498" y="175" fill="#34d399" font-size="9" font-weight="600">③ 正文进上下文</text>
+          <text x="498" y="192" fill="#cbd5e1" font-size="8.5">里面还能再引相对路径的附件</text>
+          <text x="498" y="208" fill="#64748b" font-size="8">要几层就几层</text>
+
+          <rect x="16" y="234" width="668" height="52" rx="6" fill="rgba(120,53,15,.2)" stroke="#fbbf24" stroke-width="1.2"/>
+          <text x="30" y="253" fill="#fbbf24" font-size="9.5" font-weight="600">一个很能说明设计品味的条件：没有 read 工具，就一个 skill 都不列</text>
+          <text x="30" y="271" fill="#cbd5e1" font-size="8.5">因为模型<tspan fill="#fff">没手段把正文拉进来</tspan> —— 列了也是白花 token。能力不在，索引就不发</text>
+
+          <path d="M 16 300 L 684 300" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="320" fill="#94a3b8" font-size="9.5" font-weight="600">为什么这招值钱：它把「功能多」和「上下文贵」解耦了</text>
+
+          <rect x="16" y="330" width="330" height="52" rx="6" fill="rgba(136,19,55,.18)" stroke="#fb7185" stroke-width="1.1"/>
+          <text x="30" y="349" fill="#fb7185" font-size="9" font-weight="600">常见做法</text>
+          <text x="30" y="366" fill="#cbd5e1" font-size="8.5">能力越多 → prompt 越长 → 每轮都重付一次</text>
+
+          <rect x="354" y="330" width="330" height="52" rx="6" fill="rgba(6,78,59,.2)" stroke="#34d399" stroke-width="1.1"/>
+          <text x="368" y="349" fill="#34d399" font-size="9" font-weight="600">这里的做法</text>
+          <text x="368" y="366" fill="#cbd5e1" font-size="8.5">能力越多 → 索引长一点点 → 正文<tspan fill="#fff">用到才付</tspan></text>
+
+          <text x="16" y="404" fill="#cbd5e1" font-size="9">另一条路是显式喊：<tspan fill="#fff">/skill:名字</tspan> —— 这时才是 pi 主动读盘，把正文塞进这一轮。</text>
+          <text x="16" y="420" fill="#64748b" font-size="8">core/skills.ts:74-81 结构体 · :335-361 注入格式 · system-prompt.ts:154 注入条件 · agent-session.ts:1312 读盘点　583f153</text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
+        <div class="card violet">
+          <div class="card-head"><span class="card-dot violet"></span><h3>这是最容易抄的一条</h3></div>
+          <ul>
+            <li>不需要任何框架：<strong>一个目录 + 每个文件写好 description + 让模型自己 read</strong>。你今天下午就能给自己的 agent 加上</li>
+          </ul>
+        </div>
+        <div class="card cyan">
+          <div class="card-head"><span class="card-dot cyan"></span><h3>描述比正文重要</h3></div>
+          <ul>
+            <li>模型只靠那一句 description 决定要不要展开 —— <strong>description 写砸了，正文写得再好也永远不会被读到</strong></li>
+          </ul>
+        </div>
+        <div class="card amber">
+          <div class="card-head"><span class="card-dot amber"></span><h3>SDK 那套反而有 content</h3></div>
+          <ul>
+            <li>但<strong>依然不进 prompt</strong> —— 字段有没有是实现细节，「常驻只放索引」这条语义两边一致</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src"><b>core/skills.ts</b> · 583f153 · 研究笔记 P05 §4（含复核证据三条）</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

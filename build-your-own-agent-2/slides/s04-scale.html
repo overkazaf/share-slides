@@ -1,0 +1,100 @@
+<section class="slide" data-ch="CH1 起手" data-title="基线：9 个包 11 万行，先把口径钉死">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot cyan"></span>CH 1 · 起手</div>
+    <h1 class="s-title">十一万行，一半压在<span class="hl">一个包</span>里</h1>
+    <div class="s-sub">全场数字都来自本地实测（commit <b style="color:#e2e8f0">583f153</b> · v0.83.0）—— <b style="color:#e2e8f0">不引用官方口径</b>。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="16" fill="#94a3b8" font-size="9.5" font-weight="600">9 个包 · src 行数（实测 find + wc -l）</text>
+          <text x="470" y="16" fill="#64748b" font-size="8.5">合计 112,232 行 / 495 文件</text>
+          <path d="M 16 26 L 684 26" stroke="#1e293b" stroke-width="1"/>
+
+          <text x="16" y="63" fill="#e2e8f0" font-size="9.5" font-weight="600">coding-agent</text>
+          <rect x="150" y="54" width="372" height="12" rx="2" fill="#34d399" opacity=".55"/>
+          <text x="528" y="64" fill="#94a3b8" font-size="8.5">56,431 行 · 183 文件</text>
+          <text x="16" y="76" fill="#64748b" font-size="8">产品本体 · CLI/TUI/会话/工具</text>
+
+          <text x="16" y="101" fill="#e2e8f0" font-size="9.5" font-weight="600">ai</text>
+          <rect x="150" y="92" width="141" height="12" rx="2" fill="#fbbf24" opacity=".55"/>
+          <text x="297" y="102" fill="#94a3b8" font-size="8.5">21,429 行 · 169 文件</text>
+          <text x="16" y="114" fill="#64748b" font-size="8">统一多厂商 LLM API</text>
+
+          <text x="16" y="139" fill="#e2e8f0" font-size="9.5" font-weight="600">tui</text>
+          <rect x="150" y="130" width="94" height="12" rx="2" fill="#22d3ee" opacity=".55"/>
+          <text x="250" y="140" fill="#94a3b8" font-size="8.5">14,184 行 · 37 文件</text>
+          <text x="16" y="152" fill="#64748b" font-size="8">差分渲染终端 UI 库</text>
+
+          <text x="16" y="177" fill="#e2e8f0" font-size="9.5" font-weight="600">agent</text>
+          <rect x="150" y="168" width="68" height="12" rx="2" fill="#34d399" opacity=".55"/>
+          <text x="224" y="178" fill="#94a3b8" font-size="8.5">10,368 行 · 37 文件</text>
+          <text x="16" y="190" fill="#64748b" font-size="8">agent 内核 + harness</text>
+
+          <text x="16" y="215" fill="#e2e8f0" font-size="9.5" font-weight="600">server</text>
+          <rect x="150" y="206" width="28" height="12" rx="2" fill="#94a3b8" opacity=".55"/>
+          <text x="184" y="216" fill="#94a3b8" font-size="8.5">4,281 行 · 30 文件</text>
+          <text x="16" y="228" fill="#64748b" font-size="8">实验性 server</text>
+
+          <text x="16" y="253" fill="#e2e8f0" font-size="9.5" font-weight="600">storage/sqlite-node</text>
+          <rect x="150" y="244" width="12" height="12" rx="2" fill="#a78bfa" opacity=".55"/>
+          <text x="168" y="254" fill="#94a3b8" font-size="8.5">1,796 行 · 13 文件</text>
+          <text x="16" y="266" fill="#64748b" font-size="8">SQLite 会话后端</text>
+
+          <text x="16" y="291" fill="#e2e8f0" font-size="9.5" font-weight="600">evals</text>
+          <rect x="150" y="282" width="8" height="12" rx="2" fill="#94a3b8" opacity=".55"/>
+          <text x="164" y="292" fill="#94a3b8" font-size="8.5">1,277 行 · 8 文件</text>
+          <text x="16" y="304" fill="#64748b" font-size="8">评测（不发布）</text>
+
+          <text x="16" y="329" fill="#e2e8f0" font-size="9.5" font-weight="600">protocol</text>
+          <rect x="150" y="320" width="8" height="12" rx="2" fill="#fb923c" opacity=".55"/>
+          <text x="164" y="330" fill="#94a3b8" font-size="8.5">1,233 行 · 8 文件</text>
+          <text x="16" y="342" fill="#64748b" font-size="8">CBOR 远程会话协议</text>
+
+          <text x="16" y="367" fill="#e2e8f0" font-size="9.5" font-weight="600">client</text>
+          <rect x="150" y="358" width="8" height="12" rx="2" fill="#fb923c" opacity=".55"/>
+          <text x="164" y="368" fill="#94a3b8" font-size="8.5">1,233 行 · 10 文件</text>
+          <text x="16" y="380" fill="#64748b" font-size="8">远程会话客户端</text>
+
+          <path d="M 16 398 L 684 398" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="416" fill="#cbd5e1" font-size="9">前三个包＝<tspan fill="#fff">82.0%</tspan>；产品本体一个包＝<tspan fill="#fff">50.3%</tspan>。<tspan fill="#fb923c">tui / ai / protocol 对内零依赖，可单独拿走。</tspan></text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>UI 和内核一个量级</h3></div>
+          <ul>
+            <li>产品包里 <strong>core 27,951 行</strong>，而跑各种界面模式的 <strong>modes 18,862 行</strong> —— 一个「agent 框架」，力气不全花在 agent 上</li>
+          </ul>
+        </div>
+        <div class="card cyan">
+          <div class="card-head"><span class="card-dot cyan"></span><h3>依赖只有 27 个</h3></div>
+          <ul>
+            <li>11 万行源码，去重后<strong>外部生产依赖 27 个</strong>；内核包只依赖 <em>diff / ignore / typebox / yaml</em> 四个</li>
+          </ul>
+        </div>
+        <div class="card violet">
+          <div class="card-head"><span class="card-dot violet"></span><h3>测试 0.885 倍，且一行都不在 src 里</h3></div>
+          <ul>
+            <li>测试 <strong>99,331 行</strong> vs 源码 112,232 行；全部落在各包 <em>test/</em>，<strong>src 目录零测试文件</strong></li>
+          </ul>
+        </div>
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>供应链八道闸</h3></div>
+          <ul>
+            <li>安装脚本默认拒绝，白名单只放行 <strong>2 个包</strong>（各附人肉审计理由）；新版本 <strong>冷却 2 天</strong>；CI Action 按 SHA 钉死</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">本地实测 · <b>583f153</b> · v0.83.0 · 命令见研究笔记 P01</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

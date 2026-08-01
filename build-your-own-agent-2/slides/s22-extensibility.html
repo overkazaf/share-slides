@@ -1,0 +1,106 @@
+<section class="slide" data-ch="CH6 外壳" data-title="扩展面：33 个钩子，14 个能真正改变流程">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot"></span>CH 6 · 外壳</div>
+    <h1 class="s-title">33 个钩子，其中 <span class="hl">14 个</span>能真正改流程</h1>
+    <div class="s-sub">扩展是<b style="color:#e2e8f0">就地转译的 TypeScript</b>，不编译、不打包、无沙箱，直接跑在主进程里。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="16" fill="#94a3b8" font-size="9.5" font-weight="600">可外挂的资源，精确只有四类（写死在一行里）</text>
+
+          <rect x="16" y="26" width="160" height="40" rx="6" fill="rgba(6,78,59,.26)" stroke="#34d399"/>
+          <text x="96" y="44" fill="#34d399" font-size="10" text-anchor="middle" font-weight="600">extensions</text>
+          <text x="96" y="59" fill="#94a3b8" font-size="8" text-anchor="middle">改行为</text>
+
+          <rect x="186" y="26" width="160" height="40" rx="6" fill="rgba(76,29,149,.24)" stroke="#a78bfa"/>
+          <text x="266" y="44" fill="#a78bfa" font-size="10" text-anchor="middle" font-weight="600">skills</text>
+          <text x="266" y="59" fill="#94a3b8" font-size="8" text-anchor="middle">加知识</text>
+
+          <rect x="356" y="26" width="160" height="40" rx="6" fill="rgba(120,53,15,.24)" stroke="#fbbf24"/>
+          <text x="436" y="44" fill="#fbbf24" font-size="10" text-anchor="middle" font-weight="600">prompts</text>
+          <text x="436" y="59" fill="#94a3b8" font-size="8" text-anchor="middle">存套路</text>
+
+          <rect x="526" y="26" width="158" height="40" rx="6" fill="rgba(8,51,68,.3)" stroke="#22d3ee"/>
+          <text x="605" y="44" fill="#22d3ee" font-size="10" text-anchor="middle" font-weight="600">themes</text>
+          <text x="605" y="59" fill="#94a3b8" font-size="8" text-anchor="middle">换皮</text>
+
+          <text x="16" y="86" fill="#64748b" font-size="8">四类共用同一条流水线：发现 → 过信任闸 → 合并；同一张文件类型表。加第五类要改内核，所以它一直只有四类。</text>
+
+          <path d="M 16 96 L 684 96" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="116" fill="#94a3b8" font-size="9.5" font-weight="600">加载分两趟，中间夹一道信任闸 —— 这个顺序是关键</text>
+
+          <rect x="16" y="126" width="212" height="62" rx="6" fill="rgba(30,41,59,.45)" stroke="#334155"/>
+          <text x="30" y="145" fill="#e2e8f0" font-size="9" font-weight="600">第一趟</text>
+          <text x="30" y="162" fill="#cbd5e1" font-size="8.5">强制「本项目<tspan fill="#fff">不可信</tspan>」</text>
+          <text x="30" y="178" fill="#94a3b8" font-size="8">只加载你自己的全局扩展</text>
+
+          <rect x="244" y="126" width="212" height="62" rx="6" fill="rgba(120,53,15,.22)" stroke="#fbbf24"/>
+          <text x="258" y="145" fill="#fbbf24" font-size="9" font-weight="600">用这个「干净的 pi」问你</text>
+          <text x="258" y="162" fill="#cbd5e1" font-size="8.5">要不要信任这个项目</text>
+          <text x="258" y="178" fill="#94a3b8" font-size="8">问话的那个 pi 自己没被项目污染</text>
+
+          <rect x="472" y="126" width="212" height="62" rx="6" fill="rgba(6,78,59,.22)" stroke="#34d399"/>
+          <text x="486" y="145" fill="#34d399" font-size="9" font-weight="600">第二趟</text>
+          <text x="486" y="162" fill="#cbd5e1" font-size="8.5">点头之后才碰项目目录</text>
+          <text x="486" y="178" fill="#94a3b8" font-size="8">四类资源全部受这道闸管</text>
+
+          <rect x="16" y="200" width="330" height="76" rx="6" fill="rgba(136,19,55,.16)" stroke="#fb7185" stroke-width="1.2"/>
+          <text x="30" y="219" fill="#fb7185" font-size="9.5" font-weight="600">代价说清楚：扩展没有沙箱</text>
+          <text x="30" y="237" fill="#cbd5e1" font-size="8.5">就地转译的 TS，<tspan fill="#fff">跑在 pi 主进程里</tspan></text>
+          <text x="30" y="253" fill="#cbd5e1" font-size="8.5">能力上限 ＝ pi 本身的能力上限</text>
+          <text x="30" y="269" fill="#94a3b8" font-size="8">所以那道信任闸不是形式，是这套设计唯一的护栏</text>
+
+          <rect x="354" y="200" width="330" height="76" rx="6" fill="rgba(6,78,59,.18)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="368" y="219" fill="#34d399" font-size="9.5" font-weight="600">扩展面到底能干多大的事</text>
+          <text x="368" y="237" fill="#cbd5e1" font-size="8.5">· 一个 558 行的扩展 = 完整重建 plan mode</text>
+          <text x="368" y="253" fill="#cbd5e1" font-size="8.5">· 一个 321 行的扩展 = <tspan fill="#fff">同名覆盖内置 bash</tspan>，接管沙箱</text>
+          <text x="368" y="269" fill="#cbd5e1" font-size="8.5">· 一个 610 行的扩展 = 接一整个新模型厂商，含登录流程</text>
+
+          <path d="M 16 292 L 684 292" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="312" fill="#94a3b8" font-size="9.5" font-weight="600">接上一讲的成本模型：扩展面把哪些需求降成了「零冲突」</text>
+
+          <rect x="16" y="322" width="330" height="52" rx="6" fill="rgba(6,78,59,.2)" stroke="#34d399" stroke-width="1.1"/>
+          <text x="30" y="341" fill="#34d399" font-size="9" font-weight="600">降到外挂即可（功能层）</text>
+          <text x="30" y="358" fill="#cbd5e1" font-size="8.5">模式 · 权限 · 沙箱 · 子代理 · 新厂商 · 压缩策略 · 界面外观</text>
+
+          <rect x="354" y="322" width="330" height="52" rx="6" fill="rgba(136,19,55,.18)" stroke="#fb7185" stroke-width="1.1"/>
+          <text x="368" y="341" fill="#fb7185" font-size="9" font-weight="600">仍然得改内核（语义层）</text>
+          <text x="368" y="358" fill="#cbd5e1" font-size="8.5">循环怎么判停 · 会话条目有哪几种 · 资源就这四类</text>
+
+          <rect x="16" y="384" width="668" height="34" rx="6" fill="rgba(76,29,149,.16)" stroke="#a78bfa" stroke-width="1.1"/>
+          <text x="30" y="405" fill="#cbd5e1" font-size="9">这也正好解释了上一讲的那个 fork：<tspan fill="#fff">oh-my-pi 想改的恰恰是语义层</tspan>，所以它只能重写，挂扩展够不着。</text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>复核并修正上一讲</h3></div>
+          <ul>
+            <li>上一讲说「8 个钩子能改流程」，这次逐个数：<strong>是 14 个</strong> —— 上次只数了集中定义的那一块，漏了散落三处的</li>
+          </ul>
+        </div>
+        <div class="card cyan">
+          <div class="card-head"><span class="card-dot cyan"></span><h3>扩展面好不好，只看一个指标</h3></div>
+          <ul>
+            <li>不是「有多少钩子」，是<strong>「能不能只靠钩子做完一件真事」</strong>。上面三个例子就是它的答卷</li>
+          </ul>
+        </div>
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>它也有反例</h3></div>
+          <ul>
+            <li>本该外挂的东西留在了内核里：<strong>默认不启用的三个工具、746 行 HTML 导出、写死到某家平台的分享功能</strong> —— 谁都会有历史包袱</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src"><b>core/extensions/</b> · examples/extensions 79 个样例 · docs/extensions.md 2,984 行 · 583f153 · P07</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

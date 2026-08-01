@@ -1,0 +1,108 @@
+<section class="slide" data-ch="CH3 会话" data-title="会话模型：一个 parentId 撑起整棵树">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot amber"></span>CH 3 · 会话</div>
+    <h1 class="s-title">整棵树，只靠<span class="hl">一个字段</span></h1>
+    <div class="s-sub">文件里从不存「children」；分叉不是复制历史，是<b style="color:#e2e8f0">把叶子指针挪回去</b>。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="t-ar" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
+              <polygon points="0 0, 7 2.5, 0 5" fill="#475569"/>
+            </marker>
+          </defs>
+
+          <text x="16" y="16" fill="#94a3b8" font-size="9.5" font-weight="600">条目基类只有四个字段，树全在 parentId 上</text>
+          <rect x="16" y="24" width="300" height="72" rx="6" fill="rgba(2,6,23,.7)" stroke="#334155"/>
+          <text x="32" y="43" fill="#cbd5e1" font-size="9">type：这条是什么</text>
+          <text x="32" y="59" fill="#cbd5e1" font-size="9">id：自己是谁</text>
+          <text x="32" y="75" fill="#fbbf24" font-size="9" font-weight="600">parentId：接在谁后面　← 唯一的结构字段</text>
+          <text x="32" y="90" fill="#64748b" font-size="8">timestamp：什么时候</text>
+
+          <text x="336" y="40" fill="#94a3b8" font-size="8.5">children 是<tspan fill="#fff">现算</tspan>的：要看某条的孩子，全表扫一遍</text>
+          <text x="336" y="56" fill="#94a3b8" font-size="8.5">append-only：条目<tspan fill="#fff">不能改、不能删</tspan>（注释即契约）</text>
+          <text x="336" y="72" fill="#94a3b8" font-size="8.5">追加＝挂在当前叶子下面；分叉＝把叶子挪到旧节点</text>
+          <text x="336" y="88" fill="#64748b" font-size="8">session-manager.ts:46-51 / :1210 / :1296　583f153</text>
+
+          <path d="M 16 106 L 684 106" stroke="#1e293b" stroke-width="1"/>
+
+          <text x="16" y="126" fill="#94a3b8" font-size="9.5" font-weight="600">分叉的三种物理形态（越往下越贵）</text>
+
+          <circle cx="60" cy="160" r="9" fill="#334155" stroke="#64748b"/>
+          <circle cx="110" cy="160" r="9" fill="#334155" stroke="#64748b"/>
+          <circle cx="160" cy="160" r="9" fill="#334155" stroke="#64748b"/>
+          <circle cx="210" cy="140" r="9" fill="#334155" stroke="#64748b"/>
+          <circle cx="210" cy="182" r="9" fill="#34d399" stroke="#34d399"/>
+          <path d="M 69 160 L 101 160" stroke="#475569" stroke-width="1.2" marker-end="url(#t-ar)"/>
+          <path d="M 119 160 L 151 160" stroke="#475569" stroke-width="1.2" marker-end="url(#t-ar)"/>
+          <path d="M 168 155 L 201 143" stroke="#475569" stroke-width="1.2" marker-end="url(#t-ar)"/>
+          <path d="M 168 166 L 201 179" stroke="#34d399" stroke-width="1.2" marker-end="url(#t-ar)"/>
+          <text x="228" y="136" fill="#64748b" font-size="8">原来那条分支：留着，不删</text>
+          <text x="228" y="186" fill="#34d399" font-size="8.5">叶子挪到这，新内容长在这边</text>
+
+          <rect x="380" y="126" width="304" height="34" rx="5" fill="rgba(6,78,59,.24)" stroke="#34d399" stroke-width="1.1"/>
+          <text x="394" y="140" fill="#34d399" font-size="9" font-weight="600">① 只挪指针</text>
+          <text x="394" y="153" fill="#94a3b8" font-size="8">函数体三行，纯内存，零写盘</text>
+
+          <rect x="380" y="164" width="304" height="34" rx="5" fill="rgba(120,53,15,.24)" stroke="#fbbf24" stroke-width="1.1"/>
+          <text x="394" y="178" fill="#fbbf24" font-size="9" font-weight="600">② 挪指针 + 追加一条「分支摘要」</text>
+          <text x="394" y="191" fill="#94a3b8" font-size="8">旧分支的结论以文本形式带过来</text>
+
+          <rect x="380" y="202" width="304" height="34" rx="5" fill="rgba(136,19,55,.2)" stroke="#fb7185" stroke-width="1.1"/>
+          <text x="394" y="216" fill="#fb7185" font-size="9" font-weight="600">③ fork：新建一个 session 文件</text>
+          <text x="394" y="229" fill="#94a3b8" font-size="8">还要把父指针重新链一遍</text>
+
+          <path d="M 16 250 L 684 250" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="270" fill="#94a3b8" font-size="9.5" font-weight="600">九种条目，只有四种会被送进模型</text>
+
+          <rect x="16" y="280" width="330" height="82" rx="5" fill="rgba(6,78,59,.18)" stroke="#34d399" stroke-width="1.1"/>
+          <text x="30" y="298" fill="#34d399" font-size="9" font-weight="600">进上下文</text>
+          <text x="30" y="314" fill="#cbd5e1" font-size="8.5">message · compaction 摘要 · 分支摘要 · 自定义消息</text>
+          <text x="30" y="332" fill="#64748b" font-size="8">投影规则只有一个函数说了算：命中这四种才产出消息，</text>
+          <text x="30" y="346" fill="#64748b" font-size="8">其余一律返回空数组</text>
+
+          <rect x="354" y="280" width="330" height="82" rx="5" fill="rgba(30,41,59,.45)" stroke="#334155" stroke-width="1.1"/>
+          <text x="368" y="298" fill="#94a3b8" font-size="9" font-weight="600">只改状态，不进上下文</text>
+          <text x="368" y="314" fill="#cbd5e1" font-size="8.5">换模型 · 换思考档位 · 打标签 · 会话信息 · 自定义数据</text>
+          <text x="368" y="332" fill="#64748b" font-size="8">「什么该让模型看见」被收敛到一个函数里 ——</text>
+          <text x="368" y="346" fill="#64748b" font-size="8">这是最值得抄的一处结构设计</text>
+
+          <rect x="16" y="374" width="668" height="44" rx="6" fill="rgba(76,29,149,.18)" stroke="#a78bfa" stroke-width="1.1"/>
+          <text x="30" y="392" fill="#a78bfa" font-size="9.5" font-weight="600">同一个问题，两代实现给了三种答案：「我现在在树的哪个位置」</text>
+          <text x="30" y="410" fill="#cbd5e1" font-size="8.5">产品路径＝<tspan fill="#fff">内存变量</tspan>（重开会掉）→ SDK 路径＝<tspan fill="#fff">把叶子本身写成一条事件</tspan> → SQLite＝<tspan fill="#fff">一个可更新的列</tspan></text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
+        <div class="card amber">
+          <div class="card-head"><span class="card-dot amber"></span><h3>为什么值得做成树</h3></div>
+          <ul>
+            <li>回到三步之前换个思路，<strong>旧那条不删</strong>；压缩、分支摘要都能当成普通条目挂上去 —— 复盘时整个决策过程都在</li>
+          </ul>
+        </div>
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>一个真实的缺口（可以当教训讲）</h3></div>
+          <ul>
+            <li>产品路径的叶子指针<strong>不落盘</strong>：跳到旧节点后如果什么都不写就退出，下次打开会回到文件最后一条所在的分支</li>
+            <li>只要之后写了任何一条，就自然落回正确分支 —— 所以日常用不出问题，<strong>但它确实是个洞</strong></li>
+          </ul>
+        </div>
+        <div class="card violet">
+          <div class="card-head"><span class="card-dot violet"></span><h3>抄走这条</h3></div>
+          <ul>
+            <li><strong>「当前位置」是状态，不是日志。</strong> 想只用事件日志表达它，就得为它专门发明一种事件</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src"><b>core/session-manager.ts</b> · 583f153 · 研究笔记 P04</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

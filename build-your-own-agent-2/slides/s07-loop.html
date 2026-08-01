@@ -1,0 +1,113 @@
+<section class="slide" data-ch="CH2 循环" data-title="主循环：两层 while，四个判停点，没有迭代上限">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot emerald"></span>CH 2 · 循环</div>
+    <h1 class="s-title">两层 while，四个判停点，<span class="hl-r">没有</span>迭代上限</h1>
+    <div class="s-sub">真正的循环体 <b style="color:#e2e8f0">121 行</b>，藏在 792 行文件里，而且是<b style="color:#e2e8f0">私有函数</b> —— 外面四个入口全是门面。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="l-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#34d399"/>
+            </marker>
+            <marker id="l-rr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#fb7185"/>
+            </marker>
+          </defs>
+
+          <rect x="16" y="14" width="500" height="330" rx="8" fill="none" stroke="#34d399" stroke-width="1.4" stroke-dasharray="5,4"/>
+          <text x="30" y="34" fill="#34d399" font-size="9.5" font-weight="600">外层 while · follow-up（:170）</text>
+
+          <rect x="40" y="46" width="452" height="238" rx="8" fill="none" stroke="#22d3ee" stroke-width="1.4" stroke-dasharray="5,4"/>
+          <text x="54" y="66" fill="#22d3ee" font-size="9.5" font-weight="600">内层 while · 工具轮 + 插话（:174）</text>
+
+          <rect x="64" y="78" width="404" height="38" rx="6" fill="rgba(120,53,15,.28)" stroke="#fbbf24" stroke-width="1.2"/>
+          <text x="80" y="102" fill="#fbbf24" font-size="10" font-weight="600">① 轮前准备：热换模型 / 上下文 / 思考档位，重取 API key</text>
+
+          <rect x="64" y="124" width="404" height="38" rx="6" fill="rgba(120,53,15,.28)" stroke="#fbbf24" stroke-width="1.2"/>
+          <text x="80" y="148" fill="#fbbf24" font-size="10" font-weight="600">② 调模型（流式，signal 一路传进 fetch）</text>
+
+          <rect x="64" y="170" width="404" height="38" rx="6" fill="rgba(136,19,55,.26)" stroke="#fb7185" stroke-width="1.2"/>
+          <text x="80" y="188" fill="#fb7185" font-size="10" font-weight="600">③ 截断保护：stopReason = length</text>
+          <text x="80" y="202" fill="#cbd5e1" font-size="8">这一批工具<tspan fill="#fff">一个都不执行</tspan> —— 参数是抢救解析出来的，能过校验但内容是残的</text>
+
+          <rect x="64" y="216" width="404" height="52" rx="6" fill="rgba(6,78,59,.28)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="80" y="236" fill="#34d399" font-size="10" font-weight="600">④ 执行工具：串行 / 并行自动分派</text>
+          <text x="80" y="252" fill="#cbd5e1" font-size="8">有副作用的（edit / write）一票否决整批并发；</text>
+          <text x="80" y="264" fill="#cbd5e1" font-size="8">UI 按<tspan fill="#fff">完成顺序</tspan>刷，历史按<tspan fill="#fff">声明顺序</tspan>写 —— 两条时间线</text>
+
+          <path d="M 266 268 L 266 292 L 44 292 L 44 90 L 60 90" fill="none" stroke="#22d3ee" stroke-width="1.2" stroke-dasharray="4,3"/>
+          <text x="120" y="304" fill="#22d3ee" font-size="8.5">还有工具要调，或用户插了话 → 再来一轮</text>
+
+          <path d="M 508 300 L 508 320 L 20 320 L 20 40" fill="none" stroke="#34d399" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#l-ar)"/>
+          <text x="220" y="336" fill="#34d399" font-size="8.5">这一轮干完了，但用户排队的下一条还没处理 → 外层再转</text>
+
+          <text x="534" y="34" fill="#94a3b8" font-size="9.5" font-weight="600">四个判停点</text>
+          <rect x="534" y="44" width="150" height="46" rx="5" fill="rgba(30,41,59,.5)" stroke="#334155"/>
+          <text x="546" y="62" fill="#e2e8f0" font-size="9">① 出错 / 被中断</text>
+          <text x="546" y="78" fill="#64748b" font-size="8">stopReason 是 error / aborted</text>
+
+          <rect x="534" y="96" width="150" height="46" rx="5" fill="rgba(30,41,59,.5)" stroke="#334155"/>
+          <text x="546" y="114" fill="#e2e8f0" font-size="9">② 宿主喊停</text>
+          <text x="546" y="130" fill="#64748b" font-size="8">钩子留了，产品端没接</text>
+
+          <rect x="534" y="148" width="150" height="46" rx="5" fill="rgba(30,41,59,.5)" stroke="#34d399"/>
+          <text x="546" y="166" fill="#34d399" font-size="9">③ 没工具、没插话</text>
+          <text x="546" y="182" fill="#64748b" font-size="8">＝「它说完了」</text>
+
+          <rect x="534" y="200" width="150" height="46" rx="5" fill="rgba(30,41,59,.5)" stroke="#334155"/>
+          <text x="546" y="218" fill="#e2e8f0" font-size="9">④ 没有 follow-up</text>
+          <text x="546" y="234" fill="#64748b" font-size="8">队列空了才真的退</text>
+
+          <rect x="534" y="256" width="150" height="88" rx="5" fill="rgba(136,19,55,.2)" stroke="#fb7185"/>
+          <text x="546" y="274" fill="#fb7185" font-size="9" font-weight="600">刻意没有的东西</text>
+          <text x="546" y="292" fill="#cbd5e1" font-size="8">没有 maxIterations</text>
+          <text x="546" y="306" fill="#cbd5e1" font-size="8">没有 timer / 超时</text>
+          <text x="546" y="320" fill="#cbd5e1" font-size="8">没有一行重试代码</text>
+          <text x="546" y="336" fill="#64748b" font-size="7.5">停不停，交给宿主和 Ctrl-C</text>
+
+          <path d="M 16 362 L 684 362" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="382" fill="#cbd5e1" font-size="9.5">判「它说完了」<tspan fill="#fb7185">不看 stopReason</tspan>，只看这条回复里<tspan fill="#fff">还有没有工具调用</tspan>。</text>
+          <text x="16" y="400" fill="#94a3b8" font-size="8.5">stopReason 全程只被查三次：出错、被中断、被截断。模型说没说完，它不信模型的自述，只看有没有活儿。</text>
+          <text x="16" y="418" fill="#64748b" font-size="8">agent-loop.ts:155-275（循环体）· :203/:206 判停 · :211 截断保护 · :419 串并行分派　583f153</text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>为什么要第二层</h3></div>
+          <ul>
+            <li>agent 在跑的时候用户又发了一条 —— 这条<strong>不能丢，也不能插队打断当前工具</strong>，只能排进 follow-up 队列，等这一轮收干净再转一圈</li>
+          </ul>
+        </div>
+        <div class="card cyan">
+          <div class="card-head"><span class="card-dot cyan"></span><h3>跑一半能插话</h3></div>
+          <ul>
+            <li>steering 队列让你在工具跑着的时候补一句「不对，先看 X」；已经发出去的工具调用<strong>照样跑完</strong>，不撤销</li>
+          </ul>
+        </div>
+        <div class="card amber">
+          <div class="card-head"><span class="card-dot amber"></span><h3>每轮重新取一次 key</h3></div>
+          <ul>
+            <li>注释写得很直白：<em>为了会过期的 token</em>。一个长跑的工具阶段足够让 OAuth token 过期</li>
+          </ul>
+        </div>
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>最阴的一个 bug 被堵在这</h3></div>
+          <ul>
+            <li>输出被截断时，工具参数是流式抢救解析出来的：<strong>schema 校验能过，内容是残的</strong>。所以整批直接不执行</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src"><b>packages/agent/src/agent-loop.ts</b> · 583f153 · 研究笔记 P02</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

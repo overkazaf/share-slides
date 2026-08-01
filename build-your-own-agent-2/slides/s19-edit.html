@@ -1,0 +1,99 @@
+<section class="slide" data-ch="CH5 工具" data-title="edit 解剖：所谓模糊匹配，就是两次 indexOf">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot rose"></span>CH 5 · 工具</div>
+    <h1 class="s-title">所谓「模糊匹配」，就是<span class="hl">两次 indexOf</span></h1>
+    <div class="s-sub">没有编辑距离、没有打分、没有模型兜底 —— 只有<b style="color:#e2e8f0">一次确定性的字符归一化</b>，然后再找一次。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="ed-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/>
+            </marker>
+          </defs>
+
+          <rect x="16" y="18" width="200" height="44" rx="6" fill="rgba(6,78,59,.28)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="116" y="38" fill="#34d399" font-size="9.5" text-anchor="middle" font-weight="600">① 精确找一次</text>
+          <text x="116" y="54" fill="#94a3b8" font-size="8" text-anchor="middle">找到就用，结束</text>
+
+          <path d="M 220 40 L 244 40" stroke="#94a3b8" stroke-width="1.2" marker-end="url(#ed-ar)"/>
+
+          <rect x="250" y="18" width="230" height="44" rx="6" fill="rgba(120,53,15,.26)" stroke="#fbbf24" stroke-width="1.2"/>
+          <text x="365" y="38" fill="#fbbf24" font-size="9.5" text-anchor="middle" font-weight="600">② 两边都归一化，再找一次</text>
+          <text x="365" y="54" fill="#94a3b8" font-size="8" text-anchor="middle">归一化只做五类，别的一律不放过</text>
+
+          <path d="M 484 40 L 508 40" stroke="#94a3b8" stroke-width="1.2" marker-end="url(#ed-ar)"/>
+
+          <rect x="514" y="18" width="170" height="44" rx="6" fill="rgba(136,19,55,.26)" stroke="#fb7185" stroke-width="1.2"/>
+          <text x="599" y="38" fill="#fb7185" font-size="9.5" text-anchor="middle" font-weight="600">③ 还找不到就报错</text>
+          <text x="599" y="54" fill="#94a3b8" font-size="8" text-anchor="middle">带着修复指令回给模型</text>
+
+          <rect x="16" y="76" width="330" height="106" rx="6" fill="rgba(30,41,59,.4)" stroke="#334155"/>
+          <text x="30" y="95" fill="#e2e8f0" font-size="9.5" font-weight="600">归一化就这五类</text>
+          <text x="30" y="113" fill="#cbd5e1" font-size="8.5">· Unicode 兼容规范化</text>
+          <text x="30" y="129" fill="#cbd5e1" font-size="8.5">· 每行去掉行尾空白</text>
+          <text x="30" y="145" fill="#cbd5e1" font-size="8.5">· 弯引号 → 直引号</text>
+          <text x="30" y="161" fill="#cbd5e1" font-size="8.5">· 各种破折号 → 短横；各种怪空格 → 普通空格</text>
+          <text x="30" y="177" fill="#fb7185" font-size="8">缩进、大小写、行内空格数量 —— <tspan fill="#fff">一律不放过</tspan></text>
+
+          <rect x="354" y="76" width="330" height="106" rx="6" fill="rgba(136,19,55,.18)" stroke="#fb7185" stroke-width="1.2"/>
+          <text x="368" y="95" fill="#fb7185" font-size="9.5" font-weight="600">命中多处怎么办：报错，绝不选第一个</text>
+          <text x="368" y="115" fill="#cbd5e1" font-size="8.5">而且唯一性检查<tspan fill="#fff">无条件按模糊口径</tspan>数 ——</text>
+          <text x="368" y="131" fill="#cbd5e1" font-size="8.5">比匹配本身还严：精确只有一处、模糊有两处，也拒</text>
+          <text x="368" y="151" fill="#fbbf24" font-size="8.5">错误文案自带指令：<tspan fill="#fff">「请多给点上下文让它唯一」</tspan></text>
+          <text x="368" y="169" fill="#94a3b8" font-size="8">—— 模型下一轮几乎总能自己修好</text>
+
+          <path d="M 16 198 L 684 198" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="218" fill="#94a3b8" font-size="9.5" font-weight="600">一批编辑的原子性：全对才写，错一个字节都不落盘</text>
+
+          <rect x="16" y="228" width="668" height="62" rx="6" fill="rgba(6,78,59,.18)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="30" y="248" fill="#cbd5e1" font-size="8.5">· 一批 edit <tspan fill="#fff">全部对着同一份原始快照</tspan>匹配，不是改一次重读一次</text>
+          <text x="30" y="266" fill="#cbd5e1" font-size="8.5">· 施加时<tspan fill="#fff">从后往前逆序</tspan>来，前面的偏移就不会被后面的改动带歪</text>
+          <text x="30" y="283" fill="#cbd5e1" font-size="8.5">· 任何一处失败 → <tspan fill="#fb7185">整批放弃</tspan>，文件保持原样；重叠的编辑也会被检出来</text>
+
+          <rect x="16" y="304" width="330" height="52" rx="6" fill="rgba(76,29,149,.18)" stroke="#a78bfa" stroke-width="1.1"/>
+          <text x="30" y="323" fill="#a78bfa" font-size="9" font-weight="600">给模型擦屁股的兼容层</text>
+          <text x="30" y="340" fill="#cbd5e1" font-size="8.5">参数填歪了先归一化再校验；注释里<tspan fill="#fff">直接点名</tspan>了是哪几个模型</text>
+
+          <rect x="354" y="304" width="330" height="52" rx="6" fill="rgba(120,53,15,.18)" stroke="#fbbf24" stroke-width="1.1"/>
+          <text x="368" y="323" fill="#fbbf24" font-size="9" font-weight="600">校验失败时，把收到的参数原样回给模型</text>
+          <text x="368" y="340" fill="#cbd5e1" font-size="8.5">「你发了什么、错在哪个字段」—— <tspan fill="#fff">自愈信息量的上限</tspan></text>
+
+          <rect x="16" y="370" width="668" height="48" rx="6" fill="rgba(30,41,59,.45)" stroke="#334155"/>
+          <text x="30" y="389" fill="#94a3b8" font-size="9">错误文案没有统一包装：没有 &lt;error&gt; 标签、没有前缀、没有堆栈，<tspan fill="#e2e8f0">就是异常消息原文</tspan>。</text>
+          <text x="30" y="407" fill="#64748b" font-size="8.5">刻意的：<tspan fill="#cbd5e1">谁最懂这个错，谁写文案</tspan> —— 内核只负责原样搬运。</text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>这一页最该带走的一句</h3></div>
+          <ul>
+            <li>编辑工具的可靠性<strong>不来自更聪明的匹配，来自更严格的拒绝</strong>：宁可让模型再来一次，也不改到别处去</li>
+          </ul>
+        </div>
+        <div class="card cyan">
+          <div class="card-head"><span class="card-dot cyan"></span><h3>对照上一讲</h3></div>
+          <ul>
+            <li>oh-my-pi 的 hashline 走的是另一条路：<strong>给文件铸内容指纹</strong>，指纹不对就拒。两种解法，同一个问题</li>
+          </ul>
+        </div>
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>错误文案是产品的一部分</h3></div>
+          <ul>
+            <li>六种失败各有一句<strong>可执行的修复提示</strong>。写「操作失败」的那种工具，模型只能瞎猜</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src"><b>core/tools/edit-diff.ts</b>（560 行纯函数、零 IO）· 583f153 · 研究笔记 P06 §3</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

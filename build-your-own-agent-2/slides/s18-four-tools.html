@@ -1,0 +1,88 @@
+<section class="slide" data-ch="CH5 工具" data-title="工具：写了 7 个，默认只给模型 4 个">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot rose"></span>CH 5 · 工具</div>
+    <h1 class="s-title">写了 7 个工具，默认<span class="hl">只给 4 个</span></h1>
+    <div class="s-sub">另外三个不是没做完 —— 是<b style="color:#e2e8f0">故意让位给 bash</b>，省下三个槽位和 591 字符描述预算。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="16" fill="#94a3b8" font-size="9.5" font-weight="600">默认四件套 · 提示预算实测 2,595 字符</text>
+
+          <rect x="16" y="26" width="668" height="150" rx="6" fill="rgba(30,41,59,.3)" stroke="#334155"/>
+
+          <rect x="30" y="38" width="248" height="30" rx="4" fill="rgba(6,78,59,.35)" stroke="#34d399"/>
+          <text x="44" y="58" fill="#34d399" font-size="9.5" font-weight="600">read</text>
+          <text x="150" y="58" fill="#cbd5e1" font-size="8.5">492 字符</text>
+
+          <rect x="30" y="74" width="248" height="30" rx="4" fill="rgba(6,78,59,.35)" stroke="#34d399"/>
+          <text x="44" y="94" fill="#34d399" font-size="9.5" font-weight="600">bash</text>
+          <text x="150" y="94" fill="#cbd5e1" font-size="8.5">437 字符</text>
+
+          <rect x="30" y="110" width="640" height="30" rx="4" fill="rgba(136,19,55,.35)" stroke="#fb7185" stroke-width="1.4"/>
+          <text x="44" y="130" fill="#fb7185" font-size="9.5" font-weight="600">edit</text>
+          <text x="150" y="130" fill="#fff" font-size="8.5">1,388 字符　＝　默认四件套预算的 53%</text>
+
+          <rect x="30" y="146" width="140" height="20" rx="4" fill="rgba(6,78,59,.35)" stroke="#34d399"/>
+          <text x="44" y="160" fill="#34d399" font-size="9" font-weight="600">write</text>
+          <text x="150" y="160" fill="#cbd5e1" font-size="8.5">278 字符</text>
+
+          <text x="360" y="160" fill="#fbbf24" font-size="8.5">把描述预算<tspan fill="#fff">压在最容易出错的那一个工具</tspan>上 —— 这是取舍，不是随手写的</text>
+
+          <path d="M 16 190 L 684 190" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="210" fill="#94a3b8" font-size="9.5" font-weight="600">另外三个：grep / find / ls —— 做了，但默认不给</text>
+
+          <rect x="16" y="220" width="330" height="88" rx="6" fill="rgba(120,53,15,.2)" stroke="#fbbf24" stroke-width="1.2"/>
+          <text x="30" y="239" fill="#fbbf24" font-size="9.5" font-weight="600">代码里的直接证据</text>
+          <text x="30" y="257" fill="#cbd5e1" font-size="8.5">system prompt 里有一条<tspan fill="#fff">条件规则</tspan>：</text>
+          <text x="30" y="273" fill="#e2e8f0" font-size="8.5">「有 bash 而没有 grep/find/ls 时 →</text>
+          <text x="30" y="287" fill="#e2e8f0" font-size="8.5">　告诉模型：用 bash 干 ls / rg / find」</text>
+          <text x="30" y="302" fill="#64748b" font-size="8">默认配置下这条一定生效</text>
+
+          <rect x="354" y="220" width="330" height="88" rx="6" fill="rgba(30,41,59,.45)" stroke="#334155"/>
+          <text x="368" y="239" fill="#e2e8f0" font-size="9.5" font-weight="600">为什么能省</text>
+          <text x="368" y="257" fill="#cbd5e1" font-size="8.5">这三个本来就是外部命令的包装，</text>
+          <text x="368" y="273" fill="#cbd5e1" font-size="8.5">相对「bash 里跑一条」<tspan fill="#fff">没有信息增量</tspan></text>
+          <text x="368" y="291" fill="#94a3b8" font-size="8.5">要用随时能开：命令行一个参数的事</text>
+
+          <rect x="16" y="322" width="668" height="44" rx="6" fill="rgba(76,29,149,.18)" stroke="#a78bfa" stroke-width="1.2"/>
+          <text x="30" y="341" fill="#a78bfa" font-size="9.5" font-weight="600">描述分三层，这个结构值得抄</text>
+          <text x="30" y="358" fill="#cbd5e1" font-size="8.5">工具本身的 <tspan fill="#fff">description</tspan>　＋　塞进 system prompt 的 <tspan fill="#fff">片段</tspan>　＋　几条 <tspan fill="#fff">使用守则</tspan>　—— 三层各有各的位置，不混在一起写</text>
+
+          <rect x="16" y="376" width="668" height="42" rx="6" fill="rgba(6,78,59,.16)" stroke="#34d399" stroke-width="1.1"/>
+          <text x="30" y="394" fill="#34d399" font-size="9.5" font-weight="600">SDK 那套更狠：只有 4 个，而且是硬边界</text>
+          <text x="30" y="410" fill="#cbd5e1" font-size="8.5">「工具越多越强」在这份代码里<tspan fill="#fff">完全不成立</tspan> —— 它的方向是：<tspan fill="#fff">给一把能张成一切的原语</tspan></text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>先问「能不能用 bash 张出来」</h3></div>
+          <ul>
+            <li>加一个工具的成本不只是代码，是<strong>每一轮都要重付的描述 token + 一个会被选错的选项</strong></li>
+          </ul>
+        </div>
+        <div class="card amber">
+          <div class="card-head"><span class="card-dot amber"></span><h3>预算要分配，不是平均</h3></div>
+          <ul>
+            <li>最容易写错的工具（edit）拿走一半预算，最简单的（write）只有 278 字符 —— <strong>按出错概率分配文档</strong></li>
+          </ul>
+        </div>
+        <div class="card cyan">
+          <div class="card-head"><span class="card-dot cyan"></span><h3>可选装 ≠ 缺失</h3></div>
+          <ul>
+            <li>官方文档把七个都列出来，帮助文本里直接演示<em>只读四件套</em>怎么配 —— <strong>默认值是产品决策，不是能力上限</strong></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src"><b>core/tools/index.ts</b> · system-prompt.ts:97-105 · 583f153 · 研究笔记 P06</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

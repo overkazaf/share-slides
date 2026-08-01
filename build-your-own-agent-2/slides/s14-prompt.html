@@ -1,0 +1,87 @@
+<section class="slide" data-ch="CH4 上下文" data-title="system prompt：内核自带只有 1,311 token">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot violet"></span>CH 4 · 上下文</div>
+    <h1 class="s-title">内核自带的上下文，只有 <span class="hl">1,311</span> token</h1>
+    <div class="s-sub">而它自己项目里那份 AGENTS.md 是 <b style="color:#e2e8f0">2,683 token</b> —— <b style="color:#e2e8f0">你写的比它带的多一倍</b>。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="16" fill="#94a3b8" font-size="9.5" font-weight="600">开一个新会话，模型第一眼看到的东西（本地复刻实测）</text>
+
+          <rect x="16" y="28" width="300" height="46" rx="6" fill="rgba(6,78,59,.26)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="32" y="48" fill="#34d399" font-size="10" font-weight="600">system prompt 骨架</text>
+          <text x="32" y="65" fill="#cbd5e1" font-size="8.5">2,520 字符 ≈ <tspan fill="#fff">630 token</tspan></text>
+
+          <rect x="16" y="82" width="300" height="46" rx="6" fill="rgba(120,53,15,.26)" stroke="#fbbf24" stroke-width="1.2"/>
+          <text x="32" y="102" fill="#fbbf24" font-size="10" font-weight="600">四个工具的 schema</text>
+          <text x="32" y="119" fill="#cbd5e1" font-size="8.5">2,724 字符 ≈ <tspan fill="#fff">681 token</tspan></text>
+
+          <rect x="16" y="136" width="300" height="40" rx="6" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1.1"/>
+          <text x="32" y="161" fill="#94a3b8" font-size="9">环境信息：<tspan fill="#e2e8f0">只有一行 cwd</tspan> —— 没有日期、没有平台、没有 git 状态</text>
+
+          <rect x="336" y="28" width="348" height="148" rx="6" fill="rgba(76,29,149,.2)" stroke="#a78bfa" stroke-width="1.4"/>
+          <text x="352" y="48" fill="#a78bfa" font-size="10" font-weight="600">项目上下文文件（你写的那些）</text>
+          <text x="352" y="70" fill="#fff" font-size="16" font-weight="700">2,683 token</text>
+          <text x="352" y="86" fill="#94a3b8" font-size="8.5">＝ pi 自己仓库里的 AGENTS.md，10,731 字符</text>
+          <text x="352" y="110" fill="#cbd5e1" font-size="8.5">也就是说：一个 agent 的「性格」里，</text>
+          <text x="352" y="126" fill="#cbd5e1" font-size="8.5">内核只占三分之一，<tspan fill="#fff">三分之二是项目自己写的</tspan></text>
+          <text x="352" y="150" fill="#64748b" font-size="8">上一讲讲 harness 决定兑现多少；这一页是它最便宜的一种兑现方式</text>
+          <text x="352" y="166" fill="#64748b" font-size="8">—— 改一个 markdown 文件，不用改一行代码</text>
+
+          <path d="M 16 192 L 684 192" stroke="#1e293b" stroke-width="1"/>
+
+          <text x="16" y="212" fill="#94a3b8" font-size="9.5" font-weight="600">复核一条上一讲的说法：prompt 到底放在哪</text>
+
+          <rect x="16" y="222" width="330" height="62" rx="6" fill="rgba(136,19,55,.18)" stroke="#fb7185" stroke-width="1.2"/>
+          <text x="30" y="240" fill="#fb7185" font-size="9.5" font-weight="600">实测：内置 prompt 100% 写在 TS 字符串里</text>
+          <text x="30" y="257" fill="#cbd5e1" font-size="8.5">在源码目录里找 .md 文件 —— <tspan fill="#fff">一个都没有</tspan></text>
+          <text x="30" y="273" fill="#94a3b8" font-size="8">「prompt 一律进 .md」那条规矩是 oh-my-pi 的，不是 pi 的。别记串</text>
+
+          <rect x="354" y="222" width="330" height="62" rx="6" fill="rgba(6,78,59,.2)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="368" y="240" fill="#34d399" font-size="9.5" font-weight="600">走 .md 的是<tspan fill="#fff">用户侧</tspan>的五类</text>
+          <text x="368" y="257" fill="#cbd5e1" font-size="8.5">项目上下文 · 系统提示覆盖 · skill · 提示模板 · 主题</text>
+          <text x="368" y="273" fill="#94a3b8" font-size="8">分界很清楚：<tspan fill="#e2e8f0">内核的写死，你的可改</tspan></text>
+
+          <rect x="16" y="298" width="668" height="60" rx="6" fill="rgba(136,19,55,.2)" stroke="#fb7185" stroke-width="1.4"/>
+          <text x="30" y="318" fill="#fb7185" font-size="10" font-weight="600">顺手挖到的一个安全缺口（值得单独记一笔）</text>
+          <text x="30" y="336" fill="#cbd5e1" font-size="8.5">仓库里的 <tspan fill="#fff">.pi/SYSTEM.md</tspan> 要你先信任才加载；但 <tspan fill="#fff">AGENTS.md 不在信任清单里</tspan></text>
+          <text x="30" y="352" fill="#cbd5e1" font-size="8.5">克隆一个陌生仓库、里面只放 AGENTS.md —— <tspan fill="#fb7185">不弹任何提示，全文直接进 system prompt</tspan></text>
+
+          <rect x="16" y="368" width="668" height="48" rx="6" fill="rgba(30,41,59,.4)" stroke="#334155"/>
+          <text x="30" y="387" fill="#94a3b8" font-size="9">这正是上一讲那条红线的实物版：<tspan fill="#e2e8f0">输入不可信、又没隔开</tspan>。</text>
+          <text x="30" y="405" fill="#64748b" font-size="8.5">要抄的对策也很简单：<tspan fill="#cbd5e1">凡是从仓库里读进 system prompt 的文件，一律走同一道信任闸</tspan>，不要按文件名开小灶。</text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
+        <div class="card violet">
+          <div class="card-head"><span class="card-dot violet"></span><h3>先看这个数，再谈优化</h3></div>
+          <ul>
+            <li>内核 <strong>1,311 token</strong> 是个基准线。你的 agent 如果开局就吃掉一万 token，多半不是模型的问题</li>
+          </ul>
+        </div>
+        <div class="card amber">
+          <div class="card-head"><span class="card-dot amber"></span><h3>环境信息只给一行</h3></div>
+          <ul>
+            <li>没有日期、没有 OS、没有 git 分支 —— 需要就<strong>让它自己用 bash 去查</strong>，而不是每轮都塞给它</li>
+          </ul>
+        </div>
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>这一页要念出来的一句</h3></div>
+          <ul>
+            <li>system prompt 的成本不在长度，在<strong>「每一轮都要重付一遍」</strong>。所以它宁可少给，让模型按需去取</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">本地复刻实测 · <b>583f153</b> · 研究笔记 P05（含复刻脚本口径）</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

@@ -1,0 +1,112 @@
+<section class="slide" data-ch="CH2 循环" data-title="中断与出错：不抛异常，建模成消息终态">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot emerald"></span>CH 2 · 循环</div>
+    <h1 class="s-title">中断和出错，都<span class="hl-r">不靠抛异常</span></h1>
+    <div class="s-sub">Ctrl-C 不是 throw，是把这一轮<b style="color:#e2e8f0">收成一条正常消息</b> —— 半截回复照样能渲染、能落盘。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="e-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#fb7185"/>
+            </marker>
+            <marker id="e-gr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#34d399"/>
+            </marker>
+          </defs>
+
+          <text x="16" y="16" fill="#fb7185" font-size="10" font-weight="600">Ctrl-C 要穿透三层，还要能立刻见效</text>
+
+          <rect x="16" y="26" width="150" height="40" rx="6" fill="rgba(8,51,68,.32)" stroke="#22d3ee" stroke-width="1.2"/>
+          <text x="91" y="43" fill="#22d3ee" font-size="9.5" text-anchor="middle" font-weight="600">按键</text>
+          <text x="91" y="58" fill="#94a3b8" font-size="8" text-anchor="middle">一次 run 一个 controller</text>
+
+          <path d="M 166 46 L 196 46" stroke="#fb7185" stroke-width="1.3" marker-end="url(#e-ar)"/>
+
+          <rect x="202" y="26" width="150" height="40" rx="6" fill="rgba(6,78,59,.28)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="277" y="43" fill="#34d399" font-size="9.5" text-anchor="middle" font-weight="600">循环内 5 处显式检查</text>
+          <text x="277" y="58" fill="#94a3b8" font-size="8" text-anchor="middle">批次之间、每个工具之前</text>
+
+          <path d="M 352 46 L 382 46" stroke="#fb7185" stroke-width="1.3" marker-end="url(#e-ar)"/>
+
+          <rect x="388" y="26" width="140" height="40" rx="6" fill="rgba(120,53,15,.28)" stroke="#fbbf24" stroke-width="1.2"/>
+          <text x="458" y="43" fill="#fbbf24" font-size="9.5" text-anchor="middle" font-weight="600">provider</text>
+          <text x="458" y="58" fill="#94a3b8" font-size="8" text-anchor="middle">signal 传进 fetch</text>
+
+          <rect x="544" y="26" width="140" height="40" rx="6" fill="rgba(120,53,15,.28)" stroke="#fbbf24" stroke-width="1.2"/>
+          <text x="614" y="43" fill="#fbbf24" font-size="9.5" text-anchor="middle" font-weight="600">工具</text>
+          <text x="614" y="58" fill="#94a3b8" font-size="8" text-anchor="middle">signal 传进 execute()</text>
+
+          <rect x="16" y="82" width="668" height="52" rx="6" fill="rgba(136,19,55,.2)" stroke="#fb7185" stroke-width="1.4"/>
+          <text x="30" y="102" fill="#fb7185" font-size="10" font-weight="600">收尾方式：中断 → 一条 stopReason 为 aborted 的<tspan fill="#fff">完整消息</tspan>，含已经生成的那半截文本</text>
+          <text x="30" y="122" fill="#cbd5e1" font-size="8.5">流的 result() <tspan fill="#fff">永不 reject</tspan> —— 整条链上的 try/catch 少了一大半，UI 直接把半截渲染出来，session 也存得下</text>
+
+          <path d="M 16 148 L 684 148" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="168" fill="#94a3b8" font-size="9.5" font-weight="600">四类错，四条路 —— 循环里一次 retry 都没有</text>
+
+          <rect x="16" y="178" width="330" height="46" rx="5" fill="rgba(30,41,59,.45)" stroke="#334155"/>
+          <text x="30" y="196" fill="#e2e8f0" font-size="9">模型侧报错（限流 / 5xx / 断流）</text>
+          <text x="30" y="212" fill="#64748b" font-size="8">变成 error 终态消息，退出循环 —— 重试在循环<tspan fill="#fb7185">外面</tspan></text>
+
+          <rect x="354" y="178" width="330" height="46" rx="5" fill="rgba(30,41,59,.45)" stroke="#334155"/>
+          <text x="368" y="196" fill="#e2e8f0" font-size="9">工具抛异常</text>
+          <text x="368" y="212" fill="#64748b" font-size="8">100% 被接住，转成一条错误结果喂回模型，会话不死</text>
+
+          <rect x="16" y="230" width="330" height="46" rx="5" fill="rgba(30,41,59,.45)" stroke="#334155"/>
+          <text x="30" y="248" fill="#e2e8f0" font-size="9">参数不合法 / 工具不存在</text>
+          <text x="30" y="264" fill="#64748b" font-size="8">立即结果，不进执行阶段</text>
+
+          <rect x="354" y="230" width="330" height="46" rx="5" fill="rgba(30,41,59,.45)" stroke="#334155"/>
+          <text x="368" y="248" fill="#e2e8f0" font-size="9">输出被截断</text>
+          <text x="368" y="264" fill="#64748b" font-size="8">整批工具不执行，让模型自己重发</text>
+
+          <rect x="16" y="288" width="668" height="76" rx="6" fill="rgba(6,78,59,.16)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="30" y="308" fill="#34d399" font-size="10" font-weight="600">重试为什么放在循环外：跑完一整轮，再决定要不要「接着跑」</text>
+          <text x="30" y="326" fill="#cbd5e1" font-size="8.5">默认 <tspan fill="#fff">3 次</tspan>，退避 <tspan fill="#fff">2s / 4s / 8s</tspan>（纯指数，没有抖动），等待期间可被 Ctrl-C 打断</text>
+          <text x="30" y="342" fill="#cbd5e1" font-size="8.5">重试前<tspan fill="#fff">把那条错误消息从喂给模型的上下文里摘掉</tspan>，但仍然留在 session 文件里 —— 模型看不见，你复盘看得见</text>
+          <text x="30" y="358" fill="#cbd5e1" font-size="8.5">计数器在<tspan fill="#fff">每条成功的回复</tspan>上归零，不是每次 run 归零；上下文溢出<tspan fill="#fb7185">不算可重试</tspan>，那是压缩该管的事</text>
+
+          <path d="M 16 378 L 684 378" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="396" fill="#cbd5e1" font-size="9">主循环里<tspan fill="#fff">一个 timer 都没有</tspan>：HTTP 空闲超时 5 分钟在传输层，工具超时由工具自己打，bash <tspan fill="#fbbf24">默认根本不超时</tspan>。</text>
+          <text x="16" y="414" fill="#64748b" font-size="8">agent-loop.ts:196/697 · agent.ts:496-512 兜底伪造消息 · agent-session.ts:1064/2631 重试　583f153</text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>回调的硬约束：不许抛</h3></div>
+          <ul>
+            <li>几乎每个扩展点的注释都写着同一句 <em>must not throw or reject</em>；真抛了，上层<strong>伪造一条空的 assistant 消息</strong>把事件序列补齐，免得 UI 卡在半路</li>
+          </ul>
+        </div>
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>工具要抛，不要自己编错误</h3></div>
+          <ul>
+            <li>工具接口文档反过来<strong>要求</strong>你抛异常，而不是在返回内容里写「失败了」—— 统一由内核转成模型能读懂的错误结果</li>
+          </ul>
+        </div>
+        <div class="card cyan">
+          <div class="card-head"><span class="card-dot cyan"></span><h3>迟到的进度回调会被丢弃</h3></div>
+          <ul>
+            <li>长跑工具边跑边刷日志；一旦这次执行结算完，<strong>后到的进度更新直接忽略</strong> —— 一个很容易漏掉的竞态</li>
+          </ul>
+        </div>
+        <div class="card violet">
+          <div class="card-head"><span class="card-dot violet"></span><h3>可以抄的一条</h3></div>
+          <ul>
+            <li><strong>把「取消」当成一种正常结局，而不是异常。</strong> 你的 UI、你的落盘、你的复盘全都会变简单</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">本地实测 · <b>583f153</b> · 研究笔记 P02 §4–§5</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

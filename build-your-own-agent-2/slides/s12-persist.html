@@ -1,0 +1,93 @@
+<section class="slide" data-ch="CH3 会话" data-title="落盘：同步写 JSONL，且第一条回复之前不建文件">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot amber"></span>CH 3 · 会话</div>
+    <h1 class="s-title">全同步写 JSONL —— 这是<span class="hl">故意的</span></h1>
+    <div class="s-sub">用「慢一点」换一个强不变式：<b style="color:#e2e8f0">函数返回时，这一行已经在磁盘上了</b>。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="16" fill="#94a3b8" font-size="9.5" font-weight="600">产品路径：同步文件 API 40 处，await 只有 10 处（且全在列目录）</text>
+
+          <rect x="16" y="26" width="668" height="62" rx="6" fill="rgba(2,6,23,.7)" stroke="#334155"/>
+          <text x="32" y="46" fill="#cbd5e1" font-size="9">追加一条 ＝ 推进内存数组 → 更新索引 → <tspan fill="#fbbf24">叶子指针前移</tspan> → 同步写盘</text>
+          <text x="32" y="64" fill="#94a3b8" font-size="8.5">写路径是被 agent 的事件回调直接调用的同步函数 —— 一旦异步化，「消息落盘」和「界面渲染」之间就出现窗口</text>
+          <text x="32" y="80" fill="#fb7185" font-size="8.5">崩溃时会丢尾巴。所以它用同步换确定性。</text>
+
+          <text x="16" y="110" fill="#94a3b8" font-size="9.5" font-weight="600">一个很有产品味道的细节：第一条 assistant 回复之前，磁盘上没有文件</text>
+
+          <rect x="16" y="120" width="216" height="72" rx="6" fill="rgba(30,41,59,.45)" stroke="#334155"/>
+          <text x="30" y="140" fill="#e2e8f0" font-size="9">起来敲了半句就退出</text>
+          <text x="30" y="158" fill="#34d399" font-size="8.5">磁盘上<tspan fill="#fff">不留空 session 文件</tspan></text>
+          <text x="30" y="176" fill="#64748b" font-size="8">条目先攒在内存里</text>
+
+          <rect x="244" y="120" width="216" height="72" rx="6" fill="rgba(6,78,59,.24)" stroke="#34d399"/>
+          <text x="258" y="140" fill="#e2e8f0" font-size="9">第一条回复到达</text>
+          <text x="258" y="158" fill="#34d399" font-size="8.5">一次性把攒的全部刷成文件</text>
+          <text x="258" y="176" fill="#64748b" font-size="8">建文件用「已存在就报错」的模式，不覆盖</text>
+
+          <rect x="472" y="120" width="212" height="72" rx="6" fill="rgba(120,53,15,.24)" stroke="#fbbf24"/>
+          <text x="486" y="140" fill="#e2e8f0" font-size="9">之后</text>
+          <text x="486" y="158" fill="#fbbf24" font-size="8.5">一条一行，纯追加</text>
+          <text x="486" y="176" fill="#64748b" font-size="8">人能直接读，能 diff，能回放</text>
+
+          <path d="M 16 206 L 684 206" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="226" fill="#94a3b8" font-size="9.5" font-weight="600">三个后端并存，接口只有六个方法</text>
+
+          <rect x="16" y="236" width="216" height="58" rx="5" fill="rgba(30,41,59,.45)" stroke="#334155"/>
+          <text x="30" y="254" fill="#e2e8f0" font-size="9" font-weight="600">内存</text>
+          <text x="30" y="270" fill="#94a3b8" font-size="8">130 行，测试与嵌入用</text>
+
+          <rect x="244" y="236" width="216" height="58" rx="5" fill="rgba(6,78,59,.2)" stroke="#34d399"/>
+          <text x="258" y="254" fill="#34d399" font-size="9" font-weight="600">JSONL</text>
+          <text x="258" y="270" fill="#94a3b8" font-size="8">438 行 · 异步版（SDK 路径用）</text>
+          <text x="258" y="285" fill="#64748b" font-size="8">与产品路径共用同一套文件名编码</text>
+
+          <rect x="472" y="236" width="212" height="58" rx="5" fill="rgba(76,29,149,.2)" stroke="#a78bfa"/>
+          <text x="486" y="254" fill="#a78bfa" font-size="9" font-weight="600">SQLite</text>
+          <text x="486" y="270" fill="#94a3b8" font-size="8">7 张表 10 个索引，一条一事务</text>
+          <text x="486" y="285" fill="#fb7185" font-size="8">写完了，但本 commit 零生产使用者</text>
+
+          <rect x="16" y="306" width="668" height="60" rx="6" fill="rgba(120,53,15,.16)" stroke="#fbbf24" stroke-width="1.1"/>
+          <text x="30" y="325" fill="#fbbf24" font-size="9.5" font-weight="600">「树」是后加的：v1 是一条线，v2 才补上父指针</text>
+          <text x="30" y="343" fill="#cbd5e1" font-size="8.5">迁移逻辑就是给老日志<tspan fill="#fff">逐条补 id，把父指针指向前一条</tspan> —— 把线当成退化的树重新贴一遍</text>
+          <text x="30" y="359" fill="#94a3b8" font-size="8.5">这也是全代码库<tspan fill="#fff">唯一一处</tspan>会重写整个 session 文件的地方；正常路径永远只追加</text>
+
+          <rect x="16" y="376" width="668" height="42" rx="6" fill="rgba(6,78,59,.16)" stroke="#34d399" stroke-width="1.1"/>
+          <text x="30" y="394" fill="#34d399" font-size="9.5" font-weight="600">同一天的三个提交，讲同一个故事：规模上来之后，读路径要挨个线性化</text>
+          <text x="30" y="410" fill="#cbd5e1" font-size="8.5">打开会话不再数条目 · 取路径从平方降到线性 · 加一张分支末梢表，让线性追加从「重算整条根路径」降到<tspan fill="#fff">写一行</tspan></text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>为什么 JSONL 值得抄</h3></div>
+          <ul>
+            <li>人能读、能 grep、能 diff、能手改；出事故时<strong>不需要专用工具就能验尸</strong>。数据库是后来才需要的</li>
+          </ul>
+        </div>
+        <div class="card cyan">
+          <div class="card-head"><span class="card-dot cyan"></span><h3>条目 id 只有 8 位十六进制</h3></div>
+          <ul>
+            <li>为了在树选择器和日志里<strong>肉眼可读</strong>；碰撞就现场重摇，最多 100 次 —— 可读性优先于理论上的唯一性</li>
+          </ul>
+        </div>
+        <div class="card violet">
+          <div class="card-head"><span class="card-dot violet"></span><h3>抄走这两条</h3></div>
+          <ul>
+            <li><strong>先落盘再渲染</strong>，别反过来</li>
+            <li><strong>空会话不建文件</strong> —— 一个小到不值一提、但用起来天天有感的产品细节</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src"><b>core/session-manager.ts</b> · storage/sqlite-node · 583f153 · 研究笔记 P04</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
