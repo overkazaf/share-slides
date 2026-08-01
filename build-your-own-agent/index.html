@@ -1270,10 +1270,10 @@ table.t.micro .note { display: block; margin-top: 0; font-size: 8.6px; color: #7
     </div>
 
     <div class="takeaway" style="line-height:1.65">
-      <b>两个方向的证据 →</b>
-      <b style="color:#34d399">①</b> 16 模型 × 180 修 bug 任务，<b>只换编辑工具格式</b>：Grok Code Fast 1 <b style="color:#fb7185">6.7%</b> → <b style="color:#34d399">68.3%</b>，平均 +15pp —— 但<b>越弱的模型收益越大</b>。
-      <b style="color:#22d3ee">②</b> Terminal-Bench 榜 <b>22 个模型</b>换 harness：<b>中位数 5.39 分</b>，7 个 ≥10 分，<b style="color:#fbbf24">最大 20.90 分</b>。<br>
-      <span style="color:#94a3b8">结论：<b style="color:#e2e8f0">模型是主项，harness 是次项</b>（约 1/4 量级）。<b style="color:#fbbf24">但主项买不到差异化，次项才是你能攥住的部分。</b></span>
+      <b>同一个模型，只换外面这层壳，成绩差多少？两组实测 →</b><br>
+      <b style="color:#34d399">①</b> 16 个模型 × 180 个真实修 bug 任务，<b>唯一变量是「改代码的工具怎么写」</b>：最弱那个模型从 <b style="color:#fb7185">6.7%</b> 做到 <b style="color:#34d399">68.3%</b>，全体平均 +15 分 —— <b>但越弱的模型收益越大，别当普适倍数</b>。<br>
+      <b style="color:#22d3ee">②</b> 官方榜上 22 个模型各换一次 harness：<b>一半的模型只差 5.39 分</b>，7 个差 10 分以上，<b style="color:#fbbf24">最多的差 20.90 分</b>。<br>
+      <span style="color:#94a3b8">所以：<b style="color:#e2e8f0">模型决定你最高能到哪，这层壳决定你实际到了哪。</b><b style="color:#fbbf24">而模型大家都买得到，壳只能自己写 —— 差异化只可能长在这里。</b></span>
     </div>
   </div>
 
@@ -1288,7 +1288,7 @@ table.t.micro .note { display: block; margin-top: 0; font-size: 8.6px; color: #7
   <div class="s-head">
     <div class="s-kicker"><span class="dot violet"></span>CH 3 · 原理 · L2–L6</div>
     <h1 class="s-title">Harness：<span class="hl-v">包在模型外面的那台机器</span></h1>
-    <div class="s-sub"><b style="color:#e2e8f0">模型权重之外、让模型干活的全部工程</b>。pi 真有个类就叫 <code>AgentHarness</code>。</div>
+    <div class="s-sub">模型只会"下一个词说什么"。<b style="color:#e2e8f0">让它真能干活的那一整套工程，就叫 harness</b> —— pi 里真有个类就叫 <code>AgentHarness</code>。</div>
   </div>
 
   <div class="s-body">
@@ -1349,40 +1349,40 @@ table.t.micro .note { display: block; margin-top: 0; font-size: 8.6px; color: #7
 
       <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:11px">
         <div class="card violet">
-          <div class="card-head"><span class="card-dot violet"></span><h3>快照：冻结配置</h3></div>
+          <div class="card-head"><span class="card-dot violet"></span><h3>开跑前先拍张快照</h3></div>
           <ul>
-            <li>冻结 <em>messages / tools / model / systemPrompt</em>；中途改设置下一轮生效</li>
+            <li>这一轮用哪个模型、给哪些工具、什么 system prompt，<strong>开跑就锁死</strong>；你中途改设置，<strong>下一轮才生效</strong> —— 免得跑到一半规则变了</li>
           </ul>
         </div>
         <div class="card orange">
-          <div class="card-head"><span class="card-dot orange"></span><h3>Hook：10 个能改流程的切点</h3></div>
+          <div class="card-head"><span class="card-dot orange"></span><h3>留了 10 个口子让你插手</h3></div>
           <ul>
-            <li>注入消息 / <strong>覆写 system prompt</strong> / <strong>改写上下文</strong> / <strong>拦截工具</strong>，最狠的是<strong>接管压缩</strong></li>
+            <li>往对话里<strong>塞一句话</strong> / <strong>换掉 system prompt</strong> / <strong>改写上下文</strong> / <strong>拦下这次工具调用</strong>；最狠的一个：连<strong>"历史怎么压缩"都能你自己接管</strong></li>
           </ul>
         </div>
         <div class="card emerald">
-          <div class="card-head"><span class="card-dot emerald"></span><h3>持久化时序</h3></div>
+          <div class="card-head"><span class="card-dot emerald"></span><h3>什么时候写盘，定死了</h3></div>
           <ul>
-            <li>消息结束即落盘，每轮 flush 发<strong>存档点</strong>；扩展忙时的写排队等它，可重放</li>
+            <li>一条消息说完就落盘，每轮结束再<strong>统一存一个档</strong>；扩展正在忙就<strong>排队等它写完</strong> —— 这样这份记录任何时候都能照着重放一遍</li>
           </ul>
         </div>
         <div class="card rose">
-          <div class="card-head"><span class="card-dot rose"></span><h3>相位状态机挡并发</h3></div>
+          <div class="card-head"><span class="card-dot rose"></span><h3>同一时刻只准干一件事</h3></div>
           <ul>
-            <li><code style="color:#fb7185">idle · turn · compaction · branch_summary · retry</code></li>
-            <li>不在 idle 就抛 <strong>busy</strong>，不是布尔标志位</li>
+            <li>五种状态：<code style="color:#fb7185">发呆 · 干活 · 压缩 · 总结分支 · 重试</code></li>
+            <li>不在"发呆"就<strong>直接拒掉</strong>新请求。它不用一个 true/false 硬扛 —— <strong>出事时你能一眼看出卡在哪一步</strong></li>
           </ul>
         </div>
       </div>
     </div>
 
     <div class="takeaway">
-      <b>可借鉴 →</b> <b>内核做成无状态纯函数；存盘、压缩、权限、回溯全靠外层编排 + 钩子挂上去。</b>分界线画在哪，是造 agent 第一道题。
+      <b>一句话 →</b> <b>内核只管转圈：不存盘、不压缩、不管权限。</b>这些全挂在外面那层。<b style="color:#e2e8f0">这条线画在哪，是造 agent 要做的第一个决定。</b>
     </div>
   </div>
 
   <div class="s-foot">
-    <span class="src">证据 · <b>pi-mono …/harness/agent-harness.ts</b> · types.ts（21 事件 / 10 可改 / 5 相位）</span>
+    <span class="src">证据 · <b>pi-mono …/harness/agent-harness.ts</b> · types.ts（21 事件 / 10 可改 / 5 相位）—— 这是 SDK 路径的编排层</span>
     <span class="spacer"></span>
     <span class="pg"></span>
   </div>
