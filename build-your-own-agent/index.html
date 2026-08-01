@@ -761,7 +761,7 @@ table.t.micro .note { display: block; margin-top: 0; font-size: 8.6px; color: #7
   </div>
 
   <div class="s-foot">
-    <span class="src">循环骨架对照实现 · <b>pi-mono / packages/agent</b> · 定义边界见 Anthropic《Building Effective Agents》</span>
+    <span class="src">循环骨架对照实现 · <b>pi-mono / packages/agent</b> · 定义边界见 Anthropic《Building Effective AI Agents》</span>
     <span class="spacer"></span>
     <span class="pg"></span>
   </div>
@@ -825,8 +825,8 @@ table.t.micro .note { display: block; margin-top: 0; font-size: 8.6px; color: #7
         <text x="488" y="103" fill="#94a3b8" font-size="9">Workflow</text>
         <text x="488" y="128" fill="#cbd5e1" font-size="9.5">代码定路径</text>
         <text x="488" y="144" fill="#cbd5e1" font-size="9.5">模型定内容</text>
-        <text x="488" y="168" fill="#475569" font-size="8.5">路由 / 并行 / 编排者-执行者</text>
-        <text x="488" y="181" fill="#475569" font-size="8.5">/ 评估-优化 四类经典模式</text>
+        <text x="488" y="168" fill="#475569" font-size="8.5">提示链 / 路由 / 并行 / 编排者-</text>
+        <text x="488" y="181" fill="#475569" font-size="8.5">执行者 / 评估-优化，共五类</text>
 
         <!-- ④ Agent -->
         <rect x="696" y="40" width="208" height="150" rx="8" fill="#0f172a"/>
@@ -877,7 +877,7 @@ table.t.micro .note { display: block; margin-top: 0; font-size: 8.6px; color: #7
   </div>
 
   <div class="s-foot">
-    <span class="src">分类依据 · Anthropic《Building Effective Agents》(2024-12) —— 五种 workflow 模式的准确定义见 CH3</span>
+    <span class="src">分类依据 · Anthropic《Building Effective AI Agents》(2024-12) —— 五种 workflow 模式的准确定义见 CH3</span>
     <span class="spacer"></span>
     <span class="pg"></span>
   </div>
@@ -1219,7 +1219,7 @@ table.t.micro .note { display: block; margin-top: 0; font-size: 8.6px; color: #7
         <text x="488" y="58" fill="#fff" font-size="12" font-weight="700">Toran B. Richards</text>
         <text x="488" y="74" fill="#64748b" font-size="9">Significant Gravitas</text>
         <text x="488" y="98" fill="#fb7185" font-size="10" font-weight="600">AutoGPT</text>
-        <text x="488" y="113" fill="#94a3b8" font-size="8.5">2023-03-30</text>
+        <text x="488" y="113" fill="#94a3b8" font-size="8.5">2023-03-30 演示推文 / 首提交 03-16</text>
         <text x="488" y="138" fill="#cbd5e1" font-size="8.5">证明了"全自主循环"能跑，</text>
         <text x="488" y="152" fill="#cbd5e1" font-size="8.5">也证明了它会原地打转、</text>
         <text x="488" y="166" fill="#cbd5e1" font-size="8.5">会烧钱、会跑飞</text>
@@ -1256,7 +1256,7 @@ table.t.micro .note { display: block; margin-top: 0; font-size: 8.6px; color: #7
         <rect x="20" y="262" width="212" height="184" rx="8" fill="rgba(6,78,59,.32)" stroke="#34d399" stroke-width="1.3"/>
         <text x="36" y="284" fill="#fff" font-size="12" font-weight="700">Anthropic 工程团队</text>
         <text x="36" y="300" fill="#64748b" font-size="9">Erik S. · Barry Zhang 等</text>
-        <text x="36" y="324" fill="#34d399" font-size="10" font-weight="600">Building Effective Agents</text>
+        <text x="36" y="324" fill="#34d399" font-size="10" font-weight="600">Building Effective AI Agents</text>
         <text x="36" y="339" fill="#94a3b8" font-size="8.5">2024-12-19</text>
         <text x="36" y="364" fill="#cbd5e1" font-size="8.5">给整个行业提供了一套</text>
         <text x="36" y="378" fill="#cbd5e1" font-size="8.5">共同词汇，并第一次说</text>
@@ -1334,7 +1334,7 @@ table.t.micro .note { display: block; margin-top: 0; font-size: 8.6px; color: #7
       <div class="ch-no">03</div>
       <h1>原理</h1>
       <div class="ch-q"><b>拆开看，到底有哪些技术点？</b></div>
-      <div class="ch-sub">本场最长的一章，12 页。每页一个技术点，讲清<b>它解决什么问题、原理是什么、代价在哪</b>。所有实现细节都对着 pi 与 oh-my-pi 的源码取证。</div>
+      <div class="ch-sub">本场最长的一章，12 页正文。每页一个技术点，讲清<b>它解决什么问题、原理是什么、代价在哪</b>。所有实现细节都对着 pi 与 oh-my-pi 的源码取证。</div>
       <div class="ch-prog"><span class="done"></span><span class="done"></span><span class="on"></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span></div>
     </div>
     <div>
@@ -2821,7 +2821,7 @@ table.t.micro .note { display: block; margin-top: 0; font-size: 8.6px; color: #7
   </div>
 
   <div class="s-foot">
-    <span class="src">证据 · oh-my-pi <b>mnemopi</b>（双层记忆）/ <b>TTSR</b>（流式回滚）/ <b>advisor · watchdog</b>（增量评审）· Anthropic harness 系列（规划 / 生成 / 评判 分离）</span>
+    <span class="src">证据 · oh-my-pi <b>mnemopi</b> 包（Mnemosyne 引擎，双层记忆）/ <b>TTSR</b>（流式回滚）/ <b>advisor · watchdog</b>（增量评审）· Anthropic harness 系列（规划 / 生成 / 评判 分离）</span>
     <span class="spacer"></span>
     <span class="pg"></span>
   </div>
@@ -3259,7 +3259,7 @@ table.t.micro .note { display: block; margin-top: 0; font-size: 8.6px; color: #7
           <rect x="244" y="98" width="216" height="60" rx="6" fill="rgba(6,78,59,.28)" stroke="#34d399" stroke-width="1.2"/>
           <text x="258" y="118" fill="#34d399" font-size="10" font-weight="600">hashline</text>
           <text x="258" y="134" fill="#cbd5e1" font-size="8.5">带内容指纹的行锚定补丁语言，</text>
-          <text x="258" y="147" fill="#fbbf24" font-size="8.5">就是 P8 那场实验里的胜出格式</text>
+          <text x="258" y="147" fill="#fbbf24" font-size="8.5">就是第 13 页那场实验的胜出格式</text>
 
           <rect x="472" y="98" width="216" height="60" rx="6" fill="rgba(76,29,149,.28)" stroke="#a78bfa" stroke-width="1.2"/>
           <text x="486" y="118" fill="#a78bfa" font-size="10" font-weight="600">catalog</text>
@@ -3762,7 +3762,7 @@ table.t.micro .note { display: block; margin-top: 0; font-size: 8.6px; color: #7
 
       <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
         <div class="card emerald">
-          <div class="card-head"><span class="card-dot emerald"></span><h3>七道坎 → 七个设计决定</h3></div>
+          <div class="card-head"><span class="card-dot emerald"></span><h3>七道坎 → 五个关键设计决定</h3></div>
           <ul>
             <li><strong>①</strong> 进制换算、字符串抽取、符号提取<strong>全部外包给确定性程序</strong>，不让模型自己算</li>
             <li><strong>③</strong> 工具集<strong>刻意小</strong>，结果先裁剪再回灌</li>
