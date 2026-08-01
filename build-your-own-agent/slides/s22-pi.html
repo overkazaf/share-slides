@@ -1,0 +1,94 @@
+<section class="slide" data-ch="CH6 样本" data-title="为什么极客圈喜欢 pi：一份"刻意不做"的清单">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot violet"></span>CH 6 · 样本</div>
+    <h1 class="s-title">pi 的卖点，是一份<span class="hl-r">"刻意不做"</span>的清单</h1>
+    <div class="s-sub">别人的 README 写"我们支持什么"。pi 的 README 有一节 Philosophy，逐条写<b style="color:#e2e8f0">"我们不做什么，以及你该怎么自己做"</b>。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 723 428" xmlns="http://www.w3.org/2000/svg">
+          <g transform="translate(22,0)">
+          <text x="16" y="20" fill="#fb7185" font-size="10" font-weight="600">不做</text>
+          <text x="222" y="20" fill="#34d399" font-size="10" font-weight="600">官方给的替代方案（原文意译）</text>
+          <path d="M 16 28 L 664 28" stroke="#1e293b" stroke-width="1"/>
+
+          <rect x="16" y="40" width="192" height="42" rx="6" fill="rgba(136,19,55,.35)" stroke="#fb7185" stroke-width="1.3"/>
+          <text x="32" y="66" fill="#fff" font-size="12" font-weight="600">No MCP</text>
+          <text x="222" y="58" fill="#cbd5e1" font-size="9.5">写带 README 的 CLI 工具就够了；</text>
+          <text x="222" y="74" fill="#94a3b8" font-size="9.5">真要 MCP，自己写个扩展加上去</text>
+
+          <rect x="16" y="94" width="192" height="42" rx="6" fill="rgba(136,19,55,.35)" stroke="#fb7185" stroke-width="1.3"/>
+          <text x="32" y="120" fill="#fff" font-size="12" font-weight="600">No sub-agents</text>
+          <text x="222" y="112" fill="#cbd5e1" font-size="9.5">用 tmux 多开几个 pi，或者自己写扩展</text>
+          <text x="222" y="128" fill="#475569" font-size="9">作者原话：子代理是"黑箱里的黑箱"，你对它在干什么零可见度</text>
+
+          <rect x="16" y="148" width="192" height="42" rx="6" fill="rgba(136,19,55,.35)" stroke="#fb7185" stroke-width="1.3"/>
+          <text x="32" y="174" fill="#fff" font-size="12" font-weight="600">No permission popups</text>
+          <text x="222" y="166" fill="#cbd5e1" font-size="9.5">跑在容器里，或者自己写确认流程</text>
+          <text x="222" y="182" fill="#475569" font-size="9">→ 把安全边界交给操作系统，而不是假装在应用层解决</text>
+
+          <rect x="16" y="202" width="192" height="42" rx="6" fill="rgba(136,19,55,.35)" stroke="#fb7185" stroke-width="1.3"/>
+          <text x="32" y="228" fill="#fff" font-size="12" font-weight="600">No plan mode</text>
+          <text x="222" y="220" fill="#cbd5e1" font-size="9.5">把计划写进文件；想要就自己做一个</text>
+
+          <rect x="16" y="256" width="192" height="42" rx="6" fill="rgba(136,19,55,.35)" stroke="#fb7185" stroke-width="1.3"/>
+          <text x="32" y="282" fill="#fff" font-size="12" font-weight="600">No built-in to-dos</text>
+          <text x="222" y="274" fill="#cbd5e1" font-size="9.5">用一个 TODO.md 就行</text>
+          <text x="222" y="290" fill="#fbbf24" font-size="9">原文理由："它们让模型更糊涂" —— 多出来的状态模型还得自己维护</text>
+
+          <rect x="16" y="310" width="192" height="42" rx="6" fill="rgba(136,19,55,.35)" stroke="#fb7185" stroke-width="1.3"/>
+          <text x="32" y="336" fill="#fff" font-size="12" font-weight="600">No background bash</text>
+          <text x="222" y="328" fill="#cbd5e1" font-size="9.5">用 tmux：全程可观测，还能直接手动介入</text>
+
+          <path d="M 16 366 L 664 366" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="388" fill="#a78bfa" font-size="10" font-weight="600">贯穿始终的一句话</text>
+          <text x="16" y="404" fill="#cbd5e1" font-size="10.5">"Pi is <tspan fill="#fff" font-weight="600">aggressively extensible</tspan> so it doesn't have to dictate your workflow."</text>
+          <text x="16" y="422" fill="#94a3b8" font-size="10">官网另一句同样精准：<tspan fill="#fbbf24" font-weight="600">"primitives, not features"</tspan> —— 给你零件，不给你成品</text>
+        
+          </g>
+        
+          </g>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
+        <div class="card violet">
+          <div class="card-head"><span class="card-dot violet"></span><h3>"自扩展"是个真闭环</h3></div>
+          <ul>
+            <li>扩展文档<strong>随 npm 包一起发布</strong>，system prompt 里直接<strong>写死"你自己的文档在哪"</strong></li>
+            <li>每份扩展文档的第一行就是"<em>让 pi 自己写</em>"</li>
+            <li>写完<strong>热加载</strong>，agent 还能自己触发重载 —— "想要个功能就让它自己长出来"真的成立</li>
+          </ul>
+        </div>
+        <div class="card cyan">
+          <div class="card-head"><span class="card-dot cyan"></span><h3>可读、可改、可拥有</h3></div>
+          <ul>
+            <li>会话是<strong>人能读的 JSONL 树</strong>：fork / resume / 回到任意一步换条路</li>
+            <li>MIT、依赖极少、版本锁死、<strong>配置上拒绝当天新发布的依赖</strong></li>
+            <li>作者还把自己的<strong>真实工作会话公开成了数据集</strong></li>
+          </ul>
+        </div>
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>不只是小圈子自嗨</h3></div>
+          <ul>
+            <li><strong>OpenClaw 的底层就是 pi</strong>（官方口径："Pi is the minimal agent within OpenClaw"）</li>
+            <li>OpenAI 的开源社区文档里<strong>直接点名 pi</strong>，与 Codex / OpenCode / Cline 并列</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="takeaway">
+      <b>pi.dev 首页的 slogan，也是本场的题眼 →</b> <b style="font-size:14px">"There are many agent harnesses <span style="color:#22d3ee">but this one is yours</span>"</b><br>
+      <span style="color:#94a3b8">极客喜欢它，不是因为它功能多，而是因为它<b style="color:#e2e8f0">留了足够的空位给你自己填</b>，并且它相信你填得比它好。</span>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">证据 · <b>pi-mono/packages/coding-agent/README.md</b> Philosophy 节 · <b>docs/usage.md</b> Design Principles · pi.dev（抓取于 2026-08-01）· 作者博客 2025-11-30</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

@@ -1,0 +1,115 @@
+<section class="slide" data-ch="CH5 全景" data-title="主流 Coding Agent 全景：内核大小 × 开源程度">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot"></span>CH 5 · 全景</div>
+    <h1 class="s-title">2026 年的分水岭：<span class="hl">harness 和模型能不能解耦</span></h1>
+    <div class="s-sub">不再是"有没有 AI"，而是"这层壳是不是你的"。把主流产品放进两个坐标轴，<b style="color:#e2e8f0">空着的那一格本身就是个论点</b>。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 505" xmlns="http://www.w3.org/2000/svg">
+          <g transform="translate(-53.6,-23.5) scale(1.0851)">
+          <g transform="translate(0,32)">
+          <!-- 象限底色 -->
+          <rect x="60" y="36" width="300" height="176" fill="rgba(8,51,68,.18)"/>
+          <rect x="360" y="36" width="300" height="176" fill="rgba(6,78,59,.14)"/>
+          <rect x="360" y="212" width="300" height="176" fill="rgba(120,53,15,.14)"/>
+          <rect x="60" y="212" width="300" height="176" fill="rgba(30,41,59,.25)"/>
+
+          <!-- 轴 -->
+          <path d="M 360 30 L 360 396" stroke="#334155" stroke-width="1.2"/>
+          <path d="M 54 212 L 668 212" stroke="#334155" stroke-width="1.2"/>
+          <rect x="60" y="36" width="600" height="352" fill="none" stroke="#1e293b" stroke-width="1"/>
+
+          <text x="60"  y="24" fill="#22d3ee" font-size="9" font-weight="600">宽松开源 · MIT / Apache</text>
+          <text x="60"  y="410" fill="#fbbf24" font-size="9" font-weight="600">闭源专有</text>
+          <text x="60"  y="428" fill="#64748b" font-size="8.5">← 内核最小（一切靠你自己长）</text>
+          <text x="660" y="428" fill="#64748b" font-size="8.5" text-anchor="end">电池全包（开箱即用）→</text>
+
+          <!-- 左上：极简 + 开源 -->
+          <circle cx="150" cy="92" r="13" fill="rgba(34,211,238,.4)" stroke="#22d3ee" stroke-width="2.2"/>
+          <circle cx="150" cy="92" r="4" fill="#22d3ee"/>
+          <text x="172" y="88" fill="#fff" font-size="13" font-weight="700">pi</text>
+          <text x="172" y="103" fill="#22d3ee" font-size="8.5">81.5k ★ · 本场主角</text>
+          <circle cx="256" cy="148" r="6" fill="rgba(34,211,238,.3)" stroke="#22d3ee" stroke-width="1.4"/>
+          <text x="270" y="152" fill="#cbd5e1" font-size="10">Aider</text>
+          <circle cx="196" cy="176" r="6" fill="rgba(34,211,238,.3)" stroke="#22d3ee" stroke-width="1.4"/>
+          <text x="210" y="180" fill="#cbd5e1" font-size="10">Goose</text>
+          <text x="212" y="192" fill="#475569" font-size="8">能力全走 MCP</text>
+
+          <!-- 右上：大而全 + 开源 -->
+          <circle cx="506" cy="80" r="9" fill="rgba(52,211,153,.35)" stroke="#34d399" stroke-width="1.6"/>
+          <text x="522" y="78" fill="#fff" font-size="11" font-weight="600">opencode</text>
+          <text x="522" y="92" fill="#34d399" font-size="8.5">191.7k ★ · 热度天花板</text>
+          <circle cx="592" cy="132" r="7" fill="rgba(52,211,153,.3)" stroke="#34d399" stroke-width="1.4"/>
+          <text x="606" y="136" fill="#cbd5e1" font-size="10">Cline</text>
+          <circle cx="446" cy="150" r="7" fill="rgba(52,211,153,.3)" stroke="#34d399" stroke-width="1.4"/>
+          <text x="460" y="154" fill="#cbd5e1" font-size="10">OpenHands</text>
+          <circle cx="574" cy="184" r="6" fill="rgba(52,211,153,.3)" stroke="#34d399" stroke-width="1.4"/>
+          <text x="588" y="188" fill="#cbd5e1" font-size="10">Qwen Code</text>
+
+          <!-- 右下：大而全 + 闭源 -->
+          <circle cx="554" cy="256" r="10" fill="rgba(251,191,36,.35)" stroke="#fbbf24" stroke-width="1.8"/>
+          <text x="572" y="254" fill="#fff" font-size="11" font-weight="600">Claude Code</text>
+          <text x="572" y="267" fill="#fbbf24" font-size="8">Skills · Subagent</text>
+          <text x="572" y="278" fill="#fbbf24" font-size="8">Plugin · Hook · MCP</text>
+          <circle cx="430" cy="290" r="7" fill="rgba(251,191,36,.3)" stroke="#fbbf24" stroke-width="1.4"/>
+          <text x="444" y="294" fill="#cbd5e1" font-size="10">Amp</text>
+          <circle cx="512" cy="316" r="7" fill="rgba(251,191,36,.3)" stroke="#fbbf24" stroke-width="1.4"/>
+          <text x="526" y="320" fill="#cbd5e1" font-size="10">Codex</text>
+          <circle cx="616" cy="300" r="7" fill="rgba(251,191,36,.3)" stroke="#fbbf24" stroke-width="1.4"/>
+          <text x="602" y="318" fill="#cbd5e1" font-size="10" text-anchor="end">Cursor</text>
+          <circle cx="466" cy="348" r="7" fill="rgba(251,191,36,.3)" stroke="#fbbf24" stroke-width="1.4"/>
+          <text x="480" y="352" fill="#cbd5e1" font-size="10">Devin</text>
+          <circle cx="586" cy="362" r="7" fill="rgba(251,191,36,.3)" stroke="#fbbf24" stroke-width="1.4"/>
+          <text x="600" y="366" fill="#cbd5e1" font-size="10">Copilot / Jules</text>
+
+          <!-- 左下：空 -->
+          <text x="210" y="286" fill="#fb7185" font-size="11" font-weight="600" text-anchor="middle">这一格是空的</text>
+          <text x="210" y="306" fill="#94a3b8" font-size="9" text-anchor="middle">没有"极简 + 闭源"的产品</text>
+          <text x="210" y="322" fill="#64748b" font-size="8.5" text-anchor="middle">因为闭源产品没有做极简的</text>
+          <text x="210" y="336" fill="#64748b" font-size="8.5" text-anchor="middle">商业动机 —— 功能就是卖点</text>
+          <rect x="112" y="262" width="196" height="86" rx="8" fill="none" stroke="#fb7185" stroke-width="1.2" stroke-dasharray="5,4"/>
+        
+          </g>
+        
+          </g>
+        
+          </g>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
+        <div class="card cyan">
+          <div class="card-head"><span class="card-dot cyan"></span><h3>另一个切法：交互面</h3></div>
+          <ul>
+            <li><strong>终端优先</strong> — 心智模型是"<em>结对</em>"：人在场，随时打断<span class="note">Claude Code · Codex CLI · pi · opencode · Aider</span></li>
+            <li><strong>编辑器优先</strong> — "<em>陪审</em>"：看 diff、逐个批准<span class="note">Cursor · Zed agent · Cline · Copilot agent mode</span></li>
+            <li><strong>云端异步</strong> — "<em>外包</em>"：人不在场，回来收 PR<span class="note">Jules · Copilot coding agent · Codex Cloud</span></li>
+          </ul>
+        </div>
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>2026 年最重要的架构趋势</h3></div>
+          <ul>
+            <li><strong>agent 与前端正在解耦</strong>：编辑器侧出现了通用协议，仓库侧出现了统一的 agent 调度台</li>
+            <li>换句话说，<strong>"用哪个 agent"和"在哪用"正在变成两个独立选择</strong> —— 这正是自己造 harness 变得可行的前提</li>
+          </ul>
+        </div>
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>选型提醒（血泪）</h3></div>
+          <ul>
+            <li>这个赛道<strong>死亡率很高</strong>：本次核实中就发现有产品已停运、有免费档已停服、有产品已改名换东家</li>
+            <li>所以：<strong>把赌注押在"你能改的那部分"上</strong>，别押在别人的路线图上</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">数据 · GitHub API star 数采集于 2026-08-01（快照，非实时）· 象限归属为本文归纳，非官方分类</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

@@ -1,0 +1,163 @@
+<section class="slide" data-ch="CH6 样本" data-title="oh my pi 是什么：一次重写级深度 fork，以及它最该被抄的那一页">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot rose"></span>CH 6 · 样本</div>
+    <h1 class="s-title">oh my pi：把 pi fork 成一个<span class="hl-r">怪物</span>，顺便留下一套<span class="hl-e">fork 方法论</span></h1>
+    <div class="s-sub">作者是写 VMProtect 去虚拟化器的逆向工程师。他没有"用" pi，他<b style="color:#e2e8f0">重写</b>了 pi —— 63 万行 TS + 7 万行自研 Rust。但真正值钱的，是他为此发明的那套<b style="color:#e2e8f0">成本模型</b>。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 505" xmlns="http://www.w3.org/2000/svg">
+          <g transform="translate(-11.4,-8.2) scale(1.0268)">
+          <g transform="translate(0,31)">
+          <!-- 规模条 -->
+          <rect x="16" y="14" width="160" height="52" rx="6" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="96" y="38" fill="#fff" font-size="16" font-weight="700" text-anchor="middle">630,753</text>
+          <text x="96" y="55" fill="#64748b" font-size="8.5" text-anchor="middle">行 TypeScript 源码</text>
+          <rect x="188" y="14" width="150" height="52" rx="6" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="263" y="38" fill="#fff" font-size="16" font-weight="700" text-anchor="middle">69,901</text>
+          <text x="263" y="55" fill="#64748b" font-size="8.5" text-anchor="middle">行自研 Rust · 7 个 crate</text>
+          <rect x="350" y="14" width="150" height="52" rx="6" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="425" y="38" fill="#fff" font-size="16" font-weight="700" text-anchor="middle">121</text>
+          <text x="425" y="55" fill="#64748b" font-size="8.5" text-anchor="middle">篇设计文档</text>
+          <rect x="512" y="14" width="172" height="52" rx="6" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="598" y="38" fill="#fff" font-size="16" font-weight="700" text-anchor="middle">388,486</text>
+          <text x="598" y="55" fill="#64748b" font-size="8.5" text-anchor="middle">行测试 · 1,568 个测试文件</text>
+
+          <text x="16" y="88" fill="#94a3b8" font-size="9.5" font-weight="600">相对 pi 的十二项增量（每一项都在解一个具体的工程问题）</text>
+
+          <!-- 12 chips -->
+          <rect x="16" y="98" width="216" height="60" rx="6" fill="rgba(120,53,15,.28)" stroke="#fbbf24" stroke-width="1.2"/>
+          <text x="30" y="118" fill="#fbbf24" font-size="10" font-weight="600">snapcompact</text>
+          <text x="30" y="134" fill="#cbd5e1" font-size="8.5">把要丢的历史画成点阵图，</text>
+          <text x="30" y="147" fill="#cbd5e1" font-size="8.5">让视觉模型"读图"回忆</text>
+
+          <rect x="244" y="98" width="216" height="60" rx="6" fill="rgba(6,78,59,.28)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="258" y="118" fill="#34d399" font-size="10" font-weight="600">hashline</text>
+          <text x="258" y="134" fill="#cbd5e1" font-size="8.5">带内容指纹的行锚定补丁语言，</text>
+          <text x="258" y="147" fill="#fbbf24" font-size="8.5">就是 P8 那场实验里的胜出格式</text>
+
+          <rect x="472" y="98" width="216" height="60" rx="6" fill="rgba(76,29,149,.28)" stroke="#a78bfa" stroke-width="1.2"/>
+          <text x="486" y="118" fill="#a78bfa" font-size="10" font-weight="600">catalog</text>
+          <text x="486" y="134" fill="#cbd5e1" font-size="8.5">把"模型知识"独立成包：</text>
+          <text x="486" y="147" fill="#cbd5e1" font-size="8.5">同一个模型有 20 个名字的现实</text>
+
+          <rect x="16" y="170" width="216" height="60" rx="6" fill="rgba(136,19,55,.28)" stroke="#fb7185" stroke-width="1.2"/>
+          <text x="30" y="190" fill="#fb7185" font-size="10" font-weight="600">auth broker</text>
+          <text x="30" y="206" fill="#cbd5e1" font-size="8.5">令牌只有一个写者，</text>
+          <text x="30" y="219" fill="#cbd5e1" font-size="8.5">客户端永远看不到 access token</text>
+
+          <rect x="244" y="170" width="216" height="60" rx="6" fill="rgba(120,53,15,.28)" stroke="#fbbf24" stroke-width="1.2"/>
+          <text x="258" y="190" fill="#fbbf24" font-size="10" font-weight="600">dialect</text>
+          <text x="258" y="206" fill="#cbd5e1" font-size="8.5">11 种"方言"，给原生工具调用</text>
+          <text x="258" y="219" fill="#cbd5e1" font-size="8.5">不靠谱的长尾模型用</text>
+
+          <rect x="472" y="170" width="216" height="60" rx="6" fill="rgba(76,29,149,.28)" stroke="#a78bfa" stroke-width="1.2"/>
+          <text x="486" y="190" fill="#a78bfa" font-size="10" font-weight="600">mnemosyne</text>
+          <text x="486" y="206" fill="#cbd5e1" font-size="8.5">本地双层记忆：工作记忆 →</text>
+          <text x="486" y="219" fill="#cbd5e1" font-size="8.5">情节记忆，全本地无云</text>
+
+          <rect x="16" y="242" width="216" height="60" rx="6" fill="rgba(136,19,55,.28)" stroke="#fb7185" stroke-width="1.2"/>
+          <text x="30" y="262" fill="#fb7185" font-size="10" font-weight="600">TTSR</text>
+          <text x="30" y="278" fill="#cbd5e1" font-size="8.5">违规的那一刻打断并回滚重跑，</text>
+          <text x="30" y="291" fill="#cbd5e1" font-size="8.5">而不是事后骂一顿</text>
+
+          <rect x="244" y="242" width="216" height="60" rx="6" fill="rgba(6,78,59,.28)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="258" y="262" fill="#34d399" font-size="10" font-weight="600">工具两级加载</text>
+          <text x="258" y="278" fill="#cbd5e1" font-size="8.5">必要工具常驻，</text>
+          <text x="258" y="291" fill="#cbd5e1" font-size="8.5">其余靠 BM25 搜出来</text>
+
+          <rect x="472" y="242" width="216" height="60" rx="6" fill="rgba(251,146,60,.28)" stroke="#fb923c" stroke-width="1.2"/>
+          <text x="486" y="262" fill="#fb923c" font-size="10" font-weight="600">Rust 热路径</text>
+          <text x="486" y="278" fill="#cbd5e1" font-size="8.5">grep / glob / PTY / shell 不是</text>
+          <text x="486" y="291" fill="#cbd5e1" font-size="8.5">"加速"，是唯一实现</text>
+
+          <rect x="16" y="314" width="216" height="60" rx="6" fill="rgba(6,78,59,.28)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="30" y="334" fill="#34d399" font-size="10" font-weight="600">swarm</text>
+          <text x="30" y="350" fill="#cbd5e1" font-size="8.5">YAML 声明 DAG，</text>
+          <text x="30" y="363" fill="#cbd5e1" font-size="8.5">跑多 agent 流水线</text>
+
+          <rect x="244" y="314" width="216" height="60" rx="6" fill="rgba(8,51,68,.32)" stroke="#22d3ee" stroke-width="1.2"/>
+          <text x="258" y="334" fill="#22d3ee" font-size="10" font-weight="600">collab</text>
+          <text x="258" y="350" fill="#cbd5e1" font-size="8.5">会话变成端到端加密的</text>
+          <text x="258" y="363" fill="#cbd5e1" font-size="8.5">多人协作对象</text>
+
+          <rect x="472" y="314" width="216" height="60" rx="6" fill="rgba(136,19,55,.28)" stroke="#fb7185" stroke-width="1.2"/>
+          <text x="486" y="334" fill="#fb7185" font-size="10" font-weight="600">advisor / watchdog</text>
+          <text x="486" y="350" fill="#cbd5e1" font-size="8.5">主 agent 会自我说服 → 挂第二个</text>
+          <text x="486" y="363" fill="#cbd5e1" font-size="8.5">模型只看增量做同行评审</text>
+
+          <path d="M 16 390 L 688 390" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="410" fill="#94a3b8" font-size="9">许可证署名两行：<tspan fill="#22d3ee">Mario Zechner (2025)</tspan> + <tspan fill="#fb7185">Can Bölük (2025-2026)</tspan> —— fork 的礼节写进了 LICENSE。</text>
+          <text x="16" y="430" fill="#475569" font-size="8.5">但请注意：以上大部分是<tspan fill="#fbbf24">"你可能不需要"</tspan>的工程。它们的价值在于示范"能做到什么程度"，不在于照抄。</text>
+        
+          </g>
+        
+          </g>
+        
+          </g>
+        </svg>
+      </div>
+
+      <div class="figure">
+        <svg viewBox="0 0 440 495" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="ar-tr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#34d399"/>
+            </marker>
+          </defs>
+          <g transform="translate(-11.9,-11.9) scale(1.0539)">
+          <g transform="translate(0,26)">
+          <text x="16" y="20" fill="#34d399" font-size="10.5" font-weight="600">最该抄的一页：FORK.md</text>
+          <text x="16" y="38" fill="#94a3b8" font-size="9">把"维护一个高速上游的深度 fork"</text>
+          <text x="16" y="53" fill="#94a3b8" font-size="9">从英雄主义问题，变成<tspan fill="#fff">可度量的成本函数</tspan></text>
+
+          <rect x="16" y="66" width="408" height="34" rx="6" fill="rgba(2,6,23,.7)" stroke="#334155" stroke-width="1"/>
+          <text x="220" y="88" fill="#fbbf24" font-size="10.5" text-anchor="middle" font-weight="600">"pick the lowest tier that works"</text>
+
+          <!-- Tier 2 -->
+          <rect x="128" y="116" width="184" height="64" rx="6" fill="#0f172a"/>
+          <rect x="128" y="116" width="184" height="64" rx="6" fill="rgba(136,19,55,.4)" stroke="#fb7185" stroke-width="1.5"/>
+          <text x="220" y="137" fill="#fb7185" font-size="11" font-weight="700" text-anchor="middle">Tier 2 · 真冲突</text>
+          <text x="220" y="153" fill="#cbd5e1" font-size="8.5" text-anchor="middle">深改核心 / Rust 补丁</text>
+          <text x="220" y="169" fill="#94a3b8" font-size="8" text-anchor="middle">要缝隙标记 + 台账 + 漂移测试</text>
+
+          <!-- Tier 1 -->
+          <rect x="82" y="196" width="276" height="64" rx="6" fill="#0f172a"/>
+          <rect x="82" y="196" width="276" height="64" rx="6" fill="rgba(120,53,15,.35)" stroke="#fbbf24" stroke-width="1.5"/>
+          <text x="220" y="217" fill="#fbbf24" font-size="11" font-weight="700" text-anchor="middle">Tier 1 · 冲突极轻微</text>
+          <text x="220" y="233" fill="#cbd5e1" font-size="8.5" text-anchor="middle">只在核心的列表 / 联合类型里加一行</text>
+          <text x="220" y="249" fill="#94a3b8" font-size="8" text-anchor="middle">全仓只允许 4 个这样的坐标</text>
+
+          <!-- Tier 0 -->
+          <rect x="16" y="276" width="408" height="76" rx="6" fill="#0f172a"/>
+          <rect x="16" y="276" width="408" height="76" rx="6" fill="rgba(6,78,59,.4)" stroke="#34d399" stroke-width="2"/>
+          <text x="220" y="298" fill="#34d399" font-size="11.5" font-weight="700" text-anchor="middle">Tier 0 · 零冲突，优先用它做一切</text>
+          <text x="220" y="316" fill="#cbd5e1" font-size="8.5" text-anchor="middle">不碰上游任何文件 —— 上游同步在物理上无法与之冲突</text>
+          <text x="220" y="334" fill="#94a3b8" font-size="8" text-anchor="middle">hooks · extensions · 能力提供者 · skills · rules · 磁盘上的工具与命令</text>
+
+          <path d="M 400 180 L 412 180 L 412 268 L 400 268" fill="none" stroke="#34d399" stroke-width="1.4" stroke-dasharray="4,3" marker-end="url(#ar-tr)"/>
+
+          <rect x="16" y="366" width="408" height="62" rx="6" fill="rgba(6,78,59,.14)" stroke="#34d399" stroke-width="1"/>
+          <text x="30" y="386" fill="#34d399" font-size="9.5" font-weight="600">最漂亮的一招：Tier 2 → Tier 1 → 0</text>
+          <text x="30" y="403" fill="#cbd5e1" font-size="8.5">在核心加<tspan fill="#fff">一行缝隙</tspan>（一个 hook 调用），真逻辑放到缝隙后面的</text>
+          <text x="30" y="416" fill="#cbd5e1" font-size="8.5">扩展里，然后<tspan fill="#fff">把这行缝隙提 PR 给上游</tspan>。合了，你的核心补丁</text>
+          <text x="30" y="429" fill="#cbd5e1" font-size="8.5">就<tspan fill="#fbbf24">永远消失</tspan>了 ——「最便宜的分歧，是被消除掉的分歧」</text>
+        
+          </g>
+        
+          </g>
+        
+          </g>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">证据 · <b>oh-my-pi/FORK.md</b>（tier 定义与降级路径逐条引用）· 行数为本地 v16.3.12 实测点算 · LICENSE 双署名</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

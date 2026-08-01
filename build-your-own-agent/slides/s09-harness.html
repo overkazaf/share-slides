@@ -1,0 +1,108 @@
+<section class="slide" data-ch="CH3 原理" data-title="Harness：模型之外的一切">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot violet"></span>CH 3 · 原理 · L2–L6</div>
+    <h1 class="s-title">Harness：<span class="hl-v">包在模型外面的那台机器</span></h1>
+    <div class="s-sub">"harness"（马具 / 试验台）指的是：<b style="color:#e2e8f0">除了模型权重之外，让模型能真正干活的全部工程</b>。pi 干脆把这个词写进了项目定位 ——"Pi Agent Harness"，并且真有一个类就叫 <code>AgentHarness</code>。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c46">
+      <div class="figure">
+        <svg viewBox="0 0 520 482" xmlns="http://www.w3.org/2000/svg">
+          <g transform="translate(-5.2,-13.5) scale(1.0200)">
+          <g transform="translate(0,20)">
+          <!-- 产品层 -->
+          <rect x="10" y="25" width="500" height="392" rx="12" fill="none" stroke="#22d3ee" stroke-width="1.5" stroke-dasharray="7,4"/>
+          <text x="26" y="46" fill="#22d3ee" font-size="10" font-weight="600">pi-coding-agent · 产品层</text>
+          <text x="26" y="62" fill="#64748b" font-size="8.5">7 个内置工具 · TUI · 扩展 · CLI · session 命令</text>
+
+          <!-- 编排层 -->
+          <rect x="42" y="78" width="436" height="322" rx="10" fill="rgba(76,29,149,.22)" stroke="#a78bfa" stroke-width="1.5"/>
+          <text x="58" y="99" fill="#a78bfa" font-size="10.5" font-weight="600">AgentHarness · 编排层</text>
+          <text x="418" y="99" fill="#475569" font-size="8" text-anchor="end">1185 行</text>
+
+          <!-- strip A -->
+          <rect x="60" y="112" width="400" height="46" rx="6" fill="#0f172a"/>
+          <rect x="60" y="112" width="400" height="46" rx="6" fill="rgba(76,29,149,.4)" stroke="#a78bfa" stroke-width="1.2"/>
+          <text x="76" y="132" fill="#fff" font-size="10.5" font-weight="600">Session 树持久化</text>
+          <text x="76" y="149" fill="#94a3b8" font-size="8.5">JSONL v3 · 11 种条目 · 只追加，从不原地改写</text>
+
+          <!-- 内核 -->
+          <rect x="60" y="172" width="400" height="98" rx="6" fill="#0f172a"/>
+          <rect x="60" y="172" width="400" height="98" rx="6" fill="rgba(6,78,59,.4)" stroke="#34d399" stroke-width="2"/>
+          <text x="260" y="197" fill="#34d399" font-size="9" text-anchor="middle" font-weight="600">内核 · agent-loop.ts</text>
+          <text x="260" y="219" fill="#fff" font-size="13" font-weight="700" text-anchor="middle">runAgentLoop()</text>
+          <text x="260" y="239" fill="#94a3b8" font-size="9" text-anchor="middle">无状态纯函数 · 事件驱动 · 双层 while</text>
+          <text x="260" y="256" fill="#64748b" font-size="8.5" text-anchor="middle">它只管"转圈"，不管存盘、不管压缩、不管权限</text>
+
+          <!-- strip B -->
+          <rect x="60" y="284" width="196" height="46" rx="6" fill="#0f172a"/>
+          <rect x="60" y="284" width="196" height="46" rx="6" fill="rgba(76,29,149,.4)" stroke="#a78bfa" stroke-width="1.2"/>
+          <text x="76" y="304" fill="#fff" font-size="10.5" font-weight="600">Compaction</text>
+          <text x="76" y="321" fill="#94a3b8" font-size="8.5">上下文满了自动瘦身</text>
+
+          <rect x="264" y="284" width="196" height="46" rx="6" fill="#0f172a"/>
+          <rect x="264" y="284" width="196" height="46" rx="6" fill="rgba(76,29,149,.4)" stroke="#a78bfa" stroke-width="1.2"/>
+          <text x="280" y="304" fill="#fff" font-size="10.5" font-weight="600">Turn Snapshot</text>
+          <text x="280" y="321" fill="#94a3b8" font-size="8.5">每轮冻结配置 · save point</text>
+
+          <!-- strip C -->
+          <rect x="60" y="344" width="400" height="46" rx="6" fill="#0f172a"/>
+          <rect x="60" y="344" width="400" height="46" rx="6" fill="rgba(251,146,60,.3)" stroke="#fb923c" stroke-width="1.2"/>
+          <text x="76" y="364" fill="#fff" font-size="10.5" font-weight="600">Hook 总线</text>
+          <text x="76" y="381" fill="#94a3b8" font-size="8.5">21 种事件，其中 10 种的返回值能直接改变流程</text>
+
+          <text x="26" y="432" fill="#475569" font-size="8.5">内核越纯粹，外面能挂的东西越多 —— 这就是"harness"的意义</text>
+        
+          </g>
+        
+          </g>
+        
+          </g>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:11px">
+        <div class="card violet">
+          <div class="card-head"><span class="card-dot violet"></span><h3>快照：每轮冻结配置</h3></div>
+          <ul>
+            <li>每轮开始冻结 <em>messages / tools / model / systemPrompt</em>；跑到一半改设置<strong>不影响本轮</strong>，下一轮才生效</li>
+          </ul>
+        </div>
+        <div class="card orange">
+          <div class="card-head"><span class="card-dot orange"></span><h3>Hook：10 个能改流程的切点</h3></div>
+          <ul>
+            <li>开跑前注入消息 / <strong>覆写 system prompt</strong></li>
+            <li>发给 LLM 前<strong>改写整段上下文</strong></li>
+            <li>工具调用<strong>拦截</strong>、结果<strong>改写</strong></li>
+            <li>甚至<strong>完全接管压缩</strong>，不用它自带的</li>
+          </ul>
+        </div>
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>持久化时序</h3></div>
+          <ul>
+            <li>消息一结束就落盘；每轮结束 flush 并发出<strong>存档点</strong></li>
+            <li>扩展在忙时发起的写要排队等存档点 —— 记录可重放</li>
+          </ul>
+        </div>
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>相位状态机挡并发</h3></div>
+          <ul>
+            <li><code style="color:#fb7185">idle · turn · compaction · branch_summary · retry</code></li>
+            <li>不在 idle 就拒收并抛 <strong>busy</strong> —— 不是布尔标志位</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="takeaway">
+      <b>可借鉴的模式 →</b> <b>内核做成无状态纯函数，一切有状态的事（存盘、压缩、权限、回溯）都靠外层编排 + 事件钩子挂上去。</b>你自己造 agent 时，最值得先想清楚的就是这条分界线画在哪。
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">证据 · <b>pi-mono/packages/agent/src/harness/agent-harness.ts</b> · harness/types.ts（21 事件 / 10 可改流程 / 5 相位）</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

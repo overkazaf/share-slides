@@ -1,0 +1,110 @@
+<section class="slide" data-ch="CH3 原理" data-title="Context Engineering I：上下文是预算，不是仓库">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot violet"></span>CH 3 · 原理 · L4</div>
+    <h1 class="s-title">Context Engineering：上下文是<span class="hl-v">预算</span>，不是<span class="hl-r">仓库</span></h1>
+    <div class="s-sub">Prompt engineering 关心"这一句怎么写"；context engineering 关心"<b style="color:#e2e8f0">在有限的窗口里，每一轮到底该放哪些东西进去</b>"。后者才是 agent 的主战场 —— 因为 agent 会自己往窗口里疯狂塞东西。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="figure plain">
+      <svg viewBox="0 0 1160 358" xmlns="http://www.w3.org/2000/svg">
+          <g transform="translate(-37.6,-19.6) scale(1.0648)">
+          <g transform="translate(0,49)">
+        <text x="40" y="30" fill="#94a3b8" font-size="10.5" font-weight="600">一次请求的上下文窗口 · 谁占了多少</text>
+        <text x="1120" y="30" fill="#475569" font-size="9" text-anchor="end">比例为示意，随任务差异极大</text>
+
+        <!-- 预算条 -->
+        <rect x="40" y="48" width="1080" height="52" rx="6" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+        <rect x="40"  y="48" width="86"  height="52" fill="rgba(120,53,15,.55)"/>
+        <rect x="126" y="48" width="108" height="52" fill="rgba(6,78,59,.55)"/>
+        <rect x="234" y="48" width="76"  height="52" fill="rgba(76,29,149,.55)"/>
+        <rect x="310" y="48" width="32"  height="52" fill="rgba(167,139,250,.75)"/>
+        <rect x="342" y="48" width="292" height="52" fill="rgba(8,51,68,.65)"/>
+        <rect x="634" y="48" width="324" height="52" fill="rgba(251,146,60,.42)"/>
+        <rect x="958" y="48" width="162" height="52" fill="rgba(30,41,59,.7)"/>
+        <rect x="40"  y="48" width="1080" height="52" rx="6" fill="none" stroke="#334155" stroke-width="1.2"/>
+        <path d="M 126 48 L 126 100 M 234 48 L 234 100 M 310 48 L 310 100 M 342 48 L 342 100 M 634 48 L 634 100 M 958 48 L 958 100" stroke="#334155" stroke-width="1"/>
+
+        <text x="488" y="79" fill="#e2e8f0" font-size="10.5" text-anchor="middle" font-weight="600">对话历史</text>
+        <text x="796" y="73" fill="#fb923c" font-size="10.5" text-anchor="middle" font-weight="600">工具结果</text>
+        <text x="796" y="88" fill="#fed7aa" font-size="8.5" text-anchor="middle">一次 grep 就能吃掉几万 token</text>
+        <text x="1039" y="79" fill="#94a3b8" font-size="10" text-anchor="middle">预留输出</text>
+
+        <!-- 图例 -->
+        <rect x="40" y="126" width="16" height="10" rx="2" fill="rgba(120,53,15,.7)" stroke="#fbbf24" stroke-width="1"/>
+        <text x="66" y="135" fill="#cbd5e1" font-size="9.5">System prompt</text>
+        <text x="200" y="135" fill="#64748b" font-size="9">角色、规则、环境信息 —— 常驻，每轮都付一遍钱</text>
+
+        <rect x="40" y="152" width="16" height="10" rx="2" fill="rgba(6,78,59,.7)" stroke="#34d399" stroke-width="1"/>
+        <text x="66" y="161" fill="#cbd5e1" font-size="9.5">工具定义</text>
+        <text x="200" y="161" fill="#64748b" font-size="9">每个工具的 JSON schema 都要常驻 —— 工具越多，开局越贵</text>
+
+        <rect x="40" y="178" width="16" height="10" rx="2" fill="rgba(76,29,149,.7)" stroke="#a78bfa" stroke-width="1"/>
+        <text x="66" y="187" fill="#cbd5e1" font-size="9.5">项目上下文</text>
+        <text x="200" y="187" fill="#64748b" font-size="9">AGENTS.md / CLAUDE.md 之类的长期约定</text>
+
+        <rect x="40" y="204" width="16" height="10" rx="2" fill="rgba(167,139,250,.85)" stroke="#a78bfa" stroke-width="1"/>
+        <text x="66" y="213" fill="#cbd5e1" font-size="9.5">SKILL 索引</text>
+        <text x="200" y="213" fill="#a78bfa" font-size="9">只放名字 + 一句描述（几十 token），正文用到才展开 ← 关键技巧</text>
+
+        <rect x="620" y="126" width="16" height="10" rx="2" fill="rgba(8,51,68,.8)" stroke="#22d3ee" stroke-width="1"/>
+        <text x="646" y="135" fill="#cbd5e1" font-size="9.5">对话历史</text>
+        <text x="760" y="135" fill="#64748b" font-size="9">随轮次线性增长，且不可逆</text>
+
+        <rect x="620" y="152" width="16" height="10" rx="2" fill="rgba(251,146,60,.6)" stroke="#fb923c" stroke-width="1"/>
+        <text x="646" y="161" fill="#fb923c" font-size="9.5">工具结果</text>
+        <text x="760" y="161" fill="#64748b" font-size="9">最会爆炸的一块 —— 所以必须裁剪、分页、落盘再引用</text>
+
+        <rect x="620" y="178" width="16" height="10" rx="2" fill="rgba(30,41,59,.9)" stroke="#94a3b8" stroke-width="1"/>
+        <text x="646" y="187" fill="#cbd5e1" font-size="9.5">预留输出</text>
+        <text x="760" y="187" fill="#64748b" font-size="9">不留够，模型话说一半被截断 —— 截断的工具参数尤其危险</text>
+
+        <path d="M 620 204 L 1120 204" stroke="#1e293b" stroke-width="1"/>
+        <text x="620" y="222" fill="#fb7185" font-size="9.5" font-weight="600">窗口大 ≠ 能用好</text>
+        <text x="760" y="222" fill="#94a3b8" font-size="9">厂商自己的数据就承认这一点 —— 见下方</text>
+        <path d="M 40 234 L 1120 234" stroke="#1e293b" stroke-width="1"/>
+        <rect x="40" y="292" width="1080" height="46" rx="6" fill="rgba(136,19,55,.22)" stroke="#fb7185" stroke-width="1.2"/>
+        <text x="56" y="312" fill="#fb7185" font-size="10" font-weight="600">最直接的证据来自厂商自己：</text>
+        <text x="240" y="312" fill="#cbd5e1" font-size="10">同一个 Gemini 3.6 Flash，长上下文召回测试在 <tspan fill="#34d399" font-weight="700">128k 窗口下拿 91.8%</tspan>，</text>
+        <text x="240" y="330" fill="#cbd5e1" font-size="10">把上下文拉到 <tspan fill="#fbbf24">1M</tspan> 就掉到 <tspan fill="#fb7185" font-weight="700">54.0%</tspan> —— <tspan fill="#fff">窗口"能装下"，不等于模型"找得到"。</tspan></text>
+        <text x="40" y="252" fill="#64748b" font-size="8.5">机制（Anthropic 官方表述）：transformer 里每个 token 都要与其余所有 token 建立关系 —— n 个 token 就是 <tspan fill="#94a3b8">n² 对关系</tspan>。模型有一份有限的<tspan fill="#fbbf24">"注意力预算"</tspan>，是"边际收益递减的有限资源"。</text>
+      
+          </g>
+        
+          </g>
+        
+          </g>
+        </svg>
+    </div>
+
+    <div class="cards c3">
+      <div class="card violet">
+        <div class="card-head"><span class="card-dot violet"></span><h3>①&nbsp; 按需加载</h3></div>
+        <ul>
+          <li>能力清单只放<strong>索引</strong>，正文用到再展开 —— 这就是 SKILL 的渐进式披露</li>
+          <li>工具也可以分级：先给一个"找工具"的工具</li>
+        </ul>
+      </div>
+      <div class="card emerald">
+        <div class="card-head"><span class="card-dot emerald"></span><h3>②&nbsp; 卸载到外部</h3></div>
+        <ul>
+          <li>大结果<strong>写进文件</strong>，上下文里只留路径和摘要</li>
+          <li>把文件系统当外部记忆，把窗口当工作台</li>
+        </ul>
+      </div>
+      <div class="card orange">
+        <div class="card-head"><span class="card-dot orange"></span><h3>③&nbsp; 压缩</h3></div>
+        <ul>
+          <li>快满了就把旧历史<strong>换成摘要</strong>，保留最近的原文</li>
+          <li>怎么压才不丢关键信息？—— 下一页</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">概念出处 · Anthropic《Effective context engineering for AI agents》· 召回数据 · Google DeepMind 官方模型页 GDM-MRCR v2（128k 91.8% / 1M 54.0%）</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

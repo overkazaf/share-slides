@@ -1,0 +1,133 @@
+<section class="slide" data-ch="CH2 演进" data-title="演进 II（2024 末 – 2026）：范式转移，harness 成为一等公民">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot amber"></span>CH 2 · 演进 · 第二幕 → 第五幕</div>
+    <h1 class="s-title">范式转移：从<span class="hl-r">"怎么跟模型说话"</span>到<span class="hl-a">"怎么给模型搭工位"</span></h1>
+    <div class="s-sub">下面每个日期都可核查（官方博客 / npm 与 GitHub API 时间戳）。真正的转折点不是某个模型发布，而是 <b style="color:#e2e8f0">2025-09-29 那一天</b>。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="figure plain">
+      <svg viewBox="0 0 1167 424" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="ar-tm" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#475569"/>
+          </marker>
+        </defs>
+          <g transform="translate(-15.6,-17.4) scale(1.0294)">
+        <path d="M 288 160 L 304 160" stroke="#475569" stroke-width="1.2" marker-end="url(#ar-tm)"/>
+        <path d="M 574 160 L 590 160" stroke="#475569" stroke-width="1.2" marker-end="url(#ar-tm)"/>
+        <path d="M 860 160 L 876 160" stroke="#475569" stroke-width="1.2" marker-end="url(#ar-tm)"/>
+
+        <!-- 第二幕 -->
+        <rect x="20" y="30" width="266" height="260" rx="9" fill="#0f172a"/>
+        <rect x="20" y="30" width="266" height="260" rx="9" fill="rgba(30,41,59,.5)" stroke="#94a3b8" stroke-width="1.4"/>
+        <text x="36" y="50" fill="#64748b" font-size="8.5">第二幕 · 2024 年末</text>
+        <text x="36" y="72" fill="#fff" font-size="12.5" font-weight="700">承认 agent 不是万能锤</text>
+        <circle cx="41" cy="98" r="3.5" fill="#94a3b8"/>
+        <text x="52" y="101" fill="#cbd5e1" font-size="9.5">2024-12-19</text>
+        <text x="52" y="116" fill="#e2e8f0" font-size="9.5">《Building Effective AI Agents》</text>
+        <text x="36" y="142" fill="#94a3b8" font-size="9">把 workflow（预定义代码路径）</text>
+        <text x="36" y="157" fill="#94a3b8" font-size="9">和 agent（模型自主决定流程）</text>
+        <text x="36" y="172" fill="#94a3b8" font-size="9">明确分开，并给五种模式命名</text>
+        <path d="M 36 190 L 270 190" stroke="#1e293b" stroke-width="1"/>
+        <text x="36" y="210" fill="#22d3ee" font-size="9.5">行业第一次公开说：</text>
+        <text x="36" y="226" fill="#fff" font-size="10.5" font-weight="600">"大多数场景你不需要 agent"</text>
+        <text x="36" y="252" fill="#64748b" font-size="9">从追求<tspan fill="#fb7185">自主性</tspan></text>
+        <text x="36" y="268" fill="#64748b" font-size="9">转向追求<tspan fill="#34d399">可控性</tspan></text>
+
+        <!-- 第三幕 -->
+        <rect x="306" y="30" width="266" height="260" rx="9" fill="#0f172a"/>
+        <rect x="306" y="30" width="266" height="260" rx="9" fill="rgba(251,146,60,.22)" stroke="#fb923c" stroke-width="1.4"/>
+        <text x="322" y="50" fill="#64748b" font-size="8.5">第三幕 · 2024-11 → 2025 上</text>
+        <text x="322" y="72" fill="#fff" font-size="12.5" font-weight="700">接工具变成协议问题</text>
+        <circle cx="327" cy="98" r="3.5" fill="#fb923c"/>
+        <text x="338" y="101" fill="#cbd5e1" font-size="9.5">2024-11-25 · MCP 开源</text>
+        <circle cx="327" cy="120" r="3.5" fill="#fb923c"/>
+        <text x="338" y="123" fill="#cbd5e1" font-size="9.5">2025-03-26 · OpenAI 采纳</text>
+        <circle cx="327" cy="142" r="3.5" fill="#fb923c"/>
+        <text x="338" y="145" fill="#cbd5e1" font-size="9.5">2025-04-09 · Google 采纳</text>
+        <text x="322" y="172" fill="#94a3b8" font-size="9">N×M 的定制集成 → 1×N 的协议</text>
+        <path d="M 322 190 L 556 190" stroke="#1e293b" stroke-width="1"/>
+        <text x="322" y="210" fill="#fb923c" font-size="9.5">能力边界的定义变了：</text>
+        <text x="322" y="228" fill="#fff" font-size="10" font-weight="600">从"模型知道什么"</text>
+        <text x="322" y="244" fill="#fff" font-size="10" font-weight="600">变成"模型能连上什么"</text>
+        <text x="322" y="268" fill="#64748b" font-size="9">基础设施开始与模型解耦</text>
+
+        <!-- 第四幕 · 转折点 -->
+        <rect x="592" y="30" width="266" height="260" rx="9" fill="#0f172a"/>
+        <rect x="592" y="30" width="266" height="260" rx="9" fill="rgba(120,53,15,.34)" stroke="#fbbf24" stroke-width="2.4"/>
+        <text x="608" y="50" fill="#fbbf24" font-size="8.5">第四幕 · 2025 下半年 · ★ 转折点</text>
+        <text x="608" y="72" fill="#fff" font-size="12.5" font-weight="700">harness 成为一等公民</text>
+        <text x="608" y="96" fill="#fcd34d" font-size="9.5" font-weight="600">2025-09-29 · 同一天做了三件事</text>
+        <text x="608" y="114" fill="#cbd5e1" font-size="9">① 发《Effective context engineering》</text>
+        <text x="608" y="130" fill="#cbd5e1" font-size="9">② Claude Code SDK → <tspan fill="#fff">Claude Agent SDK</tspan></text>
+        <text x="608" y="146" fill="#cbd5e1" font-size="9">③ Claude Code 2.0（检查点 / 回退）</text>
+        <circle cx="613" cy="167" r="3.5" fill="#fbbf24"/>
+        <text x="624" y="170" fill="#cbd5e1" font-size="9.5">2025-10-16 · Agent Skills 发布</text>
+        <path d="M 608 186 L 842 186" stroke="#1e293b" stroke-width="1"/>
+        <text x="608" y="206" fill="#fbbf24" font-size="9.5">这三件事合起来是一个宣言：</text>
+        <text x="608" y="226" fill="#fff" font-size="10" font-weight="600">能力上限不再主要由模型决定，</text>
+        <text x="608" y="242" fill="#fff" font-size="10" font-weight="600">而由包裹模型的那层工程决定</text>
+        <text x="608" y="268" fill="#64748b" font-size="9">SDK 原话："给你的 agent 一台电脑"</text>
+
+        <!-- 第五幕 -->
+        <rect x="878" y="30" width="266" height="260" rx="9" fill="#0f172a"/>
+        <rect x="878" y="30" width="266" height="260" rx="9" fill="rgba(76,29,149,.3)" stroke="#a78bfa" stroke-width="1.4"/>
+        <text x="894" y="50" fill="#64748b" font-size="8.5">第五幕 · 2025 末 → 2026</text>
+        <text x="894" y="72" fill="#fff" font-size="12.5" font-weight="700">harness 自己被拆开卖</text>
+        <circle cx="899" cy="98" r="3.5" fill="#a78bfa"/>
+        <text x="910" y="101" fill="#cbd5e1" font-size="9">2025-11-26 长任务 harness 架构化</text>
+        <circle cx="899" cy="120" r="3.5" fill="#a78bfa"/>
+        <text x="910" y="123" fill="#cbd5e1" font-size="9">2026-03-24 规划 / 生成 / 评判 分离</text>
+        <circle cx="899" cy="142" r="3.5" fill="#a78bfa"/>
+        <text x="910" y="145" fill="#cbd5e1" font-size="9">2026-04-08 脑 / 手 / 记忆 三层解耦</text>
+        <circle cx="899" cy="164" r="3.5" fill="#a78bfa"/>
+        <text x="910" y="167" fill="#cbd5e1" font-size="9">2026-05-28 单会话编排数十到数百 agent</text>
+        <path d="M 894 186 L 1128 186" stroke="#1e293b" stroke-width="1"/>
+        <text x="894" y="206" fill="#a78bfa" font-size="9.5">核心洞察：</text>
+        <text x="894" y="224" fill="#fff" font-size="10" font-weight="600">让模型自评会自我吹捧，</text>
+        <text x="894" y="240" fill="#fff" font-size="10" font-weight="600">所以必须结构性分离生成与评判</text>
+        <text x="894" y="268" fill="#64748b" font-size="9">harness 本身变成了云服务</text>
+
+        <!-- 底部：信念替换 -->
+        <text x="20" y="320" fill="#64748b" font-size="9.5" font-weight="600">被替换掉的五个旧信念</text>
+        <path d="M 20 328 L 1140 328" stroke="#1e293b" stroke-width="1"/>
+
+        <text x="20"  y="350" fill="#fb7185" font-size="8.5">窗口越大越好</text>
+        <text x="20"  y="366" fill="#34d399" font-size="8.5">→ 注意力预算 + 压缩 + 即时检索</text>
+        <text x="20"  y="382" fill="#475569" font-size="8">2025-09-29</text>
+
+        <text x="248" y="350" fill="#fb7185" font-size="8.5">知识全写进 system prompt</text>
+        <text x="248" y="366" fill="#34d399" font-size="8.5">→ SKILL + 渐进式披露</text>
+        <text x="248" y="382" fill="#475569" font-size="8">2025-10-16</text>
+
+        <text x="476" y="350" fill="#fb7185" font-size="8.5">工具定义全部前置</text>
+        <text x="476" y="366" fill="#34d399" font-size="8.5">→ 工具搜索 / 代码执行式调用</text>
+        <text x="476" y="382" fill="#475569" font-size="8">2025-11</text>
+
+        <text x="704" y="350" fill="#fb7185" font-size="8.5">一个 agent 从头干到尾</text>
+        <text x="704" y="366" fill="#34d399" font-size="8.5">→ 子代理独立上下文，只回摘要</text>
+        <text x="704" y="382" fill="#475569" font-size="8">2025-07-24 → 2026-05-28</text>
+
+        <text x="932" y="350" fill="#fb7185" font-size="8.5">行为靠 prompt 约束</text>
+        <text x="932" y="366" fill="#34d399" font-size="8.5">→ hooks：确定性代码强制介入</text>
+        <text x="932" y="382" fill="#475569" font-size="8">2025-06-30</text>
+
+        <path d="M 20 396 L 1140 396" stroke="#1e293b" stroke-width="1"/>
+        <text x="20" y="414" fill="#475569" font-size="8.5">日期锚点：npm registry / PyPI / GitHub API 的机器时间戳 + 官方博客交叉验证。凡只见于二手转述的数字，本场一律不用。</text>
+      
+          </g>
+        </svg>
+    </div>
+
+    <div class="takeaway">
+      <b>可能的第六幕 →</b> 2026 年出现了一个反向信号：<b>harness 开始给模型让路</b>。Claude Code 在 2.0.30（2025-10-30）主动<b>弃用了自带的 output styles</b>，把控制权交回用户和模型。这提示脚手架不是越多越好 —— 随着模型变强，harness 应当<b>主动瘦身</b>，只保留模型确实做不好的部分：权限、沙箱、状态持久化、验证回路、并行调度。
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">出处 · anthropic.com/engineering（building-effective-agents / context engineering / harness 系列）· MCP 与 Agent Skills 官方公告 · npm @anthropic-ai/claude-code CHANGELOG</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

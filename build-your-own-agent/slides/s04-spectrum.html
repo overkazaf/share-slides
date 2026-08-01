@@ -1,0 +1,115 @@
+<section class="slide" data-ch="CH1 定义" data-title="决策权谱系：Chatbot → Workflow → Agent → Multi-Agent">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot emerald"></span>CH 1 · 定义</div>
+    <h1 class="s-title">"是不是 Agent"不是二选一，是<span class="hl-e">决策权交出去多少</span></h1>
+    <div class="s-sub">Anthropic 的划分很干脆：<b style="color:#e2e8f0">workflow</b> 是"用预定义的代码路径编排模型与工具"，<b style="color:#e2e8f0">agent</b> 是"模型自己动态决定流程和工具用法"。中间是连续的。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="figure plain">
+      <svg viewBox="0 0 1162 422" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="spec-grad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stop-color="#22d3ee" stop-opacity=".85"/>
+            <stop offset="35%"  stop-color="#34d399" stop-opacity=".85"/>
+            <stop offset="65%"  stop-color="#fbbf24" stop-opacity=".85"/>
+            <stop offset="100%" stop-color="#fb7185" stop-opacity=".85"/>
+          </linearGradient>
+        </defs>
+          <g transform="translate(-20.0,-21.4) scale(1.0435)">
+          <g transform="translate(0,46)">
+
+        <!-- 引出线（先画） -->
+        <path d="M 128 190 L 128 220" stroke="#334155" stroke-width="1"/>
+        <path d="M 352 190 L 352 220" stroke="#334155" stroke-width="1"/>
+        <path d="M 576 190 L 576 220" stroke="#334155" stroke-width="1"/>
+        <path d="M 800 190 L 800 220" stroke="#334155" stroke-width="1"/>
+        <path d="M 1024 190 L 1024 220" stroke="#334155" stroke-width="1"/>
+
+        <!-- ① Chatbot -->
+        <rect x="24" y="40" width="208" height="150" rx="8" fill="#0f172a"/>
+        <rect x="24" y="40" width="208" height="150" rx="8" fill="rgba(8,51,68,.4)" stroke="#22d3ee" stroke-width="1.5"/>
+        <text x="40" y="63" fill="#22d3ee" font-size="9" font-weight="600">01</text>
+        <text x="40" y="86" fill="#fff" font-size="13" font-weight="600">对话式</text>
+        <text x="40" y="103" fill="#94a3b8" font-size="9">Chatbot</text>
+        <text x="40" y="128" fill="#cbd5e1" font-size="9.5">单轮问答</text>
+        <text x="40" y="144" fill="#cbd5e1" font-size="9.5">无工具 · 无状态</text>
+        <text x="40" y="168" fill="#475569" font-size="8.5">模型只输出文字，</text>
+        <text x="40" y="181" fill="#475569" font-size="8.5">动手的永远是人</text>
+
+        <!-- ② Prompt Chain -->
+        <rect x="248" y="40" width="208" height="150" rx="8" fill="#0f172a"/>
+        <rect x="248" y="40" width="208" height="150" rx="8" fill="rgba(6,78,59,.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="264" y="63" fill="#34d399" font-size="9" font-weight="600">02</text>
+        <text x="264" y="86" fill="#fff" font-size="13" font-weight="600">提示链</text>
+        <text x="264" y="103" fill="#94a3b8" font-size="9">Prompt Chaining</text>
+        <text x="264" y="128" fill="#cbd5e1" font-size="9.5">顺序写死的多步</text>
+        <text x="264" y="144" fill="#cbd5e1" font-size="9.5">模型只负责填空</text>
+        <text x="264" y="168" fill="#475569" font-size="8.5">抽取 → 翻译 → 校对，</text>
+        <text x="264" y="181" fill="#475569" font-size="8.5">走几步是代码说了算</text>
+
+        <!-- ③ Workflow -->
+        <rect x="472" y="40" width="208" height="150" rx="8" fill="#0f172a"/>
+        <rect x="472" y="40" width="208" height="150" rx="8" fill="rgba(6,78,59,.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="488" y="63" fill="#34d399" font-size="9" font-weight="600">03</text>
+        <text x="488" y="86" fill="#fff" font-size="13" font-weight="600">工作流</text>
+        <text x="488" y="103" fill="#94a3b8" font-size="9">Workflow</text>
+        <text x="488" y="128" fill="#cbd5e1" font-size="9.5">代码定路径</text>
+        <text x="488" y="144" fill="#cbd5e1" font-size="9.5">模型定内容</text>
+        <text x="488" y="168" fill="#475569" font-size="8.5">路由 / 并行 / 编排者-执行者</text>
+        <text x="488" y="181" fill="#475569" font-size="8.5">/ 评估-优化 四类经典模式</text>
+
+        <!-- ④ Agent -->
+        <rect x="696" y="40" width="208" height="150" rx="8" fill="#0f172a"/>
+        <rect x="696" y="40" width="208" height="150" rx="8" fill="rgba(120,53,15,.3)" stroke="#fbbf24" stroke-width="2"/>
+        <text x="712" y="63" fill="#fbbf24" font-size="9" font-weight="600">04 · 本场主角</text>
+        <text x="712" y="86" fill="#fff" font-size="13" font-weight="600">智能体</text>
+        <text x="712" y="103" fill="#94a3b8" font-size="9">Agent</text>
+        <text x="712" y="128" fill="#fff" font-size="9.5">模型定路径</text>
+        <text x="712" y="144" fill="#fff" font-size="9.5">代码只给护栏</text>
+        <text x="712" y="168" fill="#475569" font-size="8.5">自己选工具、自己决定跑</text>
+        <text x="712" y="181" fill="#475569" font-size="8.5">几轮、自己判断做完没有</text>
+
+        <!-- ⑤ Multi-Agent -->
+        <rect x="920" y="40" width="208" height="150" rx="8" fill="#0f172a"/>
+        <rect x="920" y="40" width="208" height="150" rx="8" fill="rgba(136,19,55,.4)" stroke="#fb7185" stroke-width="1.5"/>
+        <text x="936" y="63" fill="#fb7185" font-size="9" font-weight="600">05</text>
+        <text x="936" y="86" fill="#fff" font-size="13" font-weight="600">多智能体</text>
+        <text x="936" y="103" fill="#94a3b8" font-size="9">Multi-Agent</text>
+        <text x="936" y="128" fill="#cbd5e1" font-size="9.5">Agent 再派生 Agent</text>
+        <text x="936" y="144" fill="#cbd5e1" font-size="9.5">主收益是上下文隔离</text>
+        <text x="936" y="168" fill="#475569" font-size="8.5">不是"人多力量大" ——</text>
+        <text x="936" y="181" fill="#475569" font-size="8.5">代价与争议见 CH3</text>
+
+        <!-- 谱系条 -->
+        <rect x="24" y="220" width="1104" height="26" rx="13" fill="url(#spec-grad)"/>
+        <text x="574" y="238" fill="#020617" font-size="11" font-weight="700" text-anchor="middle">谁 决 定 下 一 步</text>
+        <text x="44" y="238" fill="#020617" font-size="9.5" font-weight="600">人 / 代码</text>
+        <text x="1108" y="238" fill="#020617" font-size="9.5" font-weight="600" text-anchor="end">模型</text>
+
+        <!-- 两端注解 -->
+        <text x="24" y="274" fill="#22d3ee" font-size="10" font-weight="600">← 确定性高</text>
+        <text x="24" y="292" fill="#64748b" font-size="9">可预测 · 可测试 · 可复现 · 便宜 · 出事好定位</text>
+        <text x="24" y="310" fill="#475569" font-size="8.5">代价：遇到没写过的分支就抓瞎</text>
+
+        <text x="1128" y="274" fill="#fb7185" font-size="10" font-weight="600" text-anchor="end">灵活性高 →</text>
+        <text x="1128" y="292" fill="#64748b" font-size="9" text-anchor="end">能吃长尾 · 能自我纠错 · 能处理没预设过的情况</text>
+        <text x="1128" y="310" fill="#475569" font-size="8.5" text-anchor="end">代价：贵 · 慢 · 难复现 · 出事难归因</text>
+      
+          </g>
+        
+          </g>
+        </svg>
+    </div>
+
+    <div class="takeaway">
+      <b>工程准则 →</b> 不要问"我该不该上 agent"，要问"<b>这一段决策，我能不能写死</b>"。能写死的写死（便宜可靠），写不死的才交给模型（灵活但昂贵）。绝大多数生产系统的正解，是 <b>workflow 骨架 + 局部 agent</b>，而不是全盘自主。
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">分类依据 · Anthropic《Building Effective Agents》(2024-12) —— 五种 workflow 模式的准确定义见 CH3</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

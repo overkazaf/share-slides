@@ -1,0 +1,113 @@
+<section class="slide" data-ch="CH3 原理" data-title="可扩展性：六种扩展点，各管一段">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot violet"></span>CH 3 · 原理 · L6</div>
+    <h1 class="s-title">六种扩展点，<span class="hl-v">各管一段</span> —— 选错了会很痛苦</h1>
+    <div class="s-sub">"我想让 agent 会做某件事"有六种做法。它们<b style="color:#e2e8f0">不是同义词</b>：挂的位置不同，触发者不同，代价也不同。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="figure plain" style="flex:none">
+      <svg viewBox="0 0 1160 158" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="ar-ex" markerWidth="7" markerHeight="6" refX="6" refY="3" orient="auto">
+            <polygon points="0 0, 7 3, 0 6" fill="#475569"/>
+          </marker>
+        </defs>
+          <g transform="translate(-15.5,-6.0) scale(1.0268)">
+        <path d="M 190 84 L 208 84" stroke="#475569" stroke-width="1.2" marker-end="url(#ar-ex)"/>
+        <path d="M 380 84 L 398 84" stroke="#475569" stroke-width="1.2" marker-end="url(#ar-ex)"/>
+        <path d="M 570 84 L 588 84" stroke="#475569" stroke-width="1.2" marker-end="url(#ar-ex)"/>
+        <path d="M 760 84 L 778 84" stroke="#475569" stroke-width="1.2" marker-end="url(#ar-ex)"/>
+        <path d="M 950 84 L 968 84" stroke="#475569" stroke-width="1.2" marker-end="url(#ar-ex)"/>
+
+        <rect x="20" y="62" width="170" height="44" rx="6" fill="rgba(8,51,68,.4)" stroke="#22d3ee" stroke-width="1.3"/>
+        <text x="105" y="89" fill="#fff" font-size="10.5" text-anchor="middle" font-weight="600">用户输入</text>
+        <rect x="210" y="62" width="170" height="44" rx="6" fill="rgba(76,29,149,.4)" stroke="#a78bfa" stroke-width="1.3"/>
+        <text x="295" y="89" fill="#fff" font-size="10.5" text-anchor="middle" font-weight="600">提示组装</text>
+        <rect x="400" y="62" width="170" height="44" rx="6" fill="rgba(120,53,15,.35)" stroke="#fbbf24" stroke-width="1.3"/>
+        <text x="485" y="89" fill="#fff" font-size="10.5" text-anchor="middle" font-weight="600">LLM 请求</text>
+        <rect x="590" y="62" width="170" height="44" rx="6" fill="rgba(6,78,59,.4)" stroke="#34d399" stroke-width="1.3"/>
+        <text x="675" y="89" fill="#fff" font-size="10.5" text-anchor="middle" font-weight="600">工具执行</text>
+        <rect x="780" y="62" width="170" height="44" rx="6" fill="rgba(6,78,59,.4)" stroke="#34d399" stroke-width="1.3"/>
+        <text x="865" y="89" fill="#fff" font-size="10.5" text-anchor="middle" font-weight="600">结果回灌</text>
+        <rect x="970" y="62" width="170" height="44" rx="6" fill="rgba(76,29,149,.4)" stroke="#a78bfa" stroke-width="1.3"/>
+        <text x="1055" y="89" fill="#fff" font-size="10.5" text-anchor="middle" font-weight="600">落盘 / 存档点</text>
+
+        <text x="105" y="46" fill="#22d3ee" font-size="8.5" text-anchor="middle">Slash command</text>
+        <text x="295" y="34" fill="#a78bfa" font-size="8.5" text-anchor="middle">Context files · SKILL 索引</text>
+        <text x="295" y="46" fill="#a78bfa" font-size="8.5" text-anchor="middle">自定义 system prompt</text>
+        <text x="485" y="46" fill="#fb923c" font-size="8.5" text-anchor="middle">Hook · 改写送 LLM 的上下文</text>
+        <text x="675" y="34" fill="#34d399" font-size="8.5" text-anchor="middle">内置工具 · MCP · 自定义工具</text>
+        <text x="675" y="46" fill="#fb7185" font-size="8.5" text-anchor="middle">Hook · 拦截 / 权限审批</text>
+        <text x="865" y="46" fill="#fb923c" font-size="8.5" text-anchor="middle">Hook · 改写工具结果</text>
+        <text x="1055" y="46" fill="#fb923c" font-size="8.5" text-anchor="middle">Hook · 埋点 / 归档</text>
+
+        <text x="865" y="126" fill="#a78bfa" font-size="8.5" text-anchor="middle">Subagent · 派生一份独立上下文，只回摘要</text>
+        <text x="105" y="126" fill="#475569" font-size="8.5" text-anchor="middle">↓ 谁能触发它</text>
+        <text x="295" y="126" fill="#475569" font-size="8.5" text-anchor="middle">人写、常驻</text>
+        <text x="485" y="126" fill="#475569" font-size="8.5" text-anchor="middle">代码强制</text>
+        <text x="675" y="126" fill="#475569" font-size="8.5" text-anchor="middle">模型决定</text>
+        <text x="1055" y="126" fill="#475569" font-size="8.5" text-anchor="middle">代码强制</text>
+        <path d="M 20 140 L 1140 140" stroke="#1e293b" stroke-width="1"/>
+      
+          </g>
+        </svg>
+    </div>
+
+    <div class="figure plain" style="align-items:flex-start; padding-top:2px">
+      <table class="t compact">
+        <thead>
+          <tr><th style="width:14%">机制</th><th style="width:15%">你交付的是</th><th style="width:14%">谁触发</th><th style="width:29%">什么时候用它</th><th>代价 / 陷阱</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="k">Context file<span class="note" style="color:#475569">AGENTS.md / CLAUDE.md</span></td>
+            <td>一段文字</td><td><span class="tag violet">常驻</span></td>
+            <td>永远成立的项目约定：目录含义、命名、禁止事项</td>
+            <td>每轮都付一次 token；写太长会稀释注意力，反而没人听</td>
+          </tr>
+          <tr>
+            <td class="k">SKILL</td>
+            <td>一个文件夹（正文 + 脚本 + 资料）</td><td><span class="tag amber">模型判断</span></td>
+            <td>特定任务的操作手册：步骤、检查清单、坑位</td>
+            <td><b style="color:#fbbf24">description 写不好就永远不会被翻开</b> —— 它才是真正的入口</td>
+          </tr>
+          <tr>
+            <td class="k">Slash command</td>
+            <td>一段提示模板</td><td><span class="tag cyan">只有人</span></td>
+            <td>你自己高频重复的那几句话</td>
+            <td>模型不会主动用；本质是给人的快捷键</td>
+          </tr>
+          <tr>
+            <td class="k">Tool / MCP</td>
+            <td>一个可调用接口</td><td><span class="tag amber">模型判断</span></td>
+            <td>模型需要真的"做"一件事：读、写、查、跑</td>
+            <td>定义常驻烧 token；工具一多，<b style="color:#fbbf24">选错的概率显著上升</b></td>
+          </tr>
+          <tr>
+            <td class="k">Hook</td>
+            <td>一段确定性代码</td><td><span class="tag rose">代码强制</span></td>
+            <td><b style="color:#fff">必须发生</b>的事：格式校验、权限审批、埋点、审计</td>
+            <td>唯一能"强制"的机制，也因此<b style="color:#fb7185">写错会直接卡死主流程</b></td>
+          </tr>
+          <tr>
+            <td class="k">Subagent</td>
+            <td>一份独立的上下文</td><td><span class="tag amber">模型派生</span></td>
+            <td>需要大量探索、但主线只要一个结论</td>
+            <td>token 放大明显；<b style="color:#fb7185">让它并行写文件基本等于灾难</b></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="takeaway">
+      <b>一条决策线 →</b> 问自己两个问题就够了：<b>①「这事必须发生，还是模型可以自行判断？」</b>必须发生 → <b style="color:#fb7185">Hook</b>；模型判断 → SKILL / Tool。<b>②「它是知识，还是动作？」</b>知识 → <b style="color:#a78bfa">SKILL</b>（还能渐进式披露）；动作 → <b style="color:#34d399">Tool</b>。剩下两个是给人用的快捷键和给上下文减负的隔离舱。
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">机制对照 · Claude Code（Skills / Hooks / Subagents / Plugins / MCP）· pi（Extensions / Skills / Context files，刻意无 MCP 与 subagent）</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

@@ -1,0 +1,172 @@
+<section class="slide" data-ch="CH3 原理" data-title="Graph Engineering：轨迹是一棵树，编排是一张图">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot emerald"></span>CH 3 · 原理 · L5</div>
+    <h1 class="s-title">Graph Engineering：<span class="hl-e">向后是一棵树</span>，<span class="hl-a">向前是一张图</span></h1>
+    <div class="s-sub">循环解决"怎么往前走"，图解决两件循环解决不了的事：<b style="color:#e2e8f0">走错了怎么退回去</b>（会话树），以及<b style="color:#e2e8f0">多条路怎么同时走</b>（DAG 编排）。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols">
+      <!-- ============ 左：会话树 ============ -->
+      <div class="figure">
+        <svg viewBox="0 0 593 430" xmlns="http://www.w3.org/2000/svg">
+          <g transform="translate(16,0)">
+          <text x="16" y="20" fill="#a78bfa" font-size="10.5" font-weight="600">向后 · 会话树 Session Tree</text>
+          <text x="16" y="35" fill="#64748b" font-size="8.5">append-only JSONL · 每条都带 parentId · 从不原地改写</text>
+
+          <!-- 边（先画） -->
+          <path d="M 110 62 L 110 82"   stroke="#334155" stroke-width="1.4"/>
+          <path d="M 110 102 L 110 122" stroke="#334155" stroke-width="1.4"/>
+          <path d="M 110 142 L 110 162" stroke="#334155" stroke-width="1.4"/>
+          <path d="M 110 182 L 110 202" stroke="#334155" stroke-width="1.4"/>
+          <path d="M 110 222 L 110 242" stroke="#334155" stroke-width="1.4"/>
+          <path d="M 110 262 L 110 276 L 62 276 L 62 292"  fill="none" stroke="#334155" stroke-width="1.4"/>
+          <path d="M 110 262 L 110 276 L 170 276 L 170 292" fill="none" stroke="#334155" stroke-width="1.4"/>
+          <path d="M 62 312 L 62 342"   stroke="#334155" stroke-width="1.4"/>
+          <path d="M 170 312 L 170 342" stroke="#334155" stroke-width="1.4"/>
+
+          <!-- 主干节点 -->
+          <circle cx="110" cy="52"  r="9" fill="rgba(30,41,59,.9)" stroke="#94a3b8" stroke-width="1.5"/>
+          <text x="136" y="56" fill="#94a3b8" font-size="9">session 头 · v3 / cwd / 父会话</text>
+
+          <circle cx="110" cy="92"  r="9" fill="rgba(8,51,68,.9)" stroke="#22d3ee" stroke-width="1.5"/>
+          <text x="136" y="96" fill="#cbd5e1" font-size="9">user 消息</text>
+
+          <circle cx="110" cy="132" r="9" fill="rgba(120,53,15,.9)" stroke="#fbbf24" stroke-width="1.5"/>
+          <text x="136" y="136" fill="#cbd5e1" font-size="9">assistant + tool_call</text>
+
+          <circle cx="110" cy="172" r="9" fill="rgba(6,78,59,.9)" stroke="#34d399" stroke-width="1.5"/>
+          <text x="136" y="176" fill="#cbd5e1" font-size="9">tool_result</text>
+
+          <rect x="101" y="203" width="18" height="18" rx="3" fill="rgba(76,29,149,.9)" stroke="#a78bfa" stroke-width="1.5" transform="rotate(45 110 212)"/>
+          <text x="136" y="209" fill="#a78bfa" font-size="9" font-weight="600">compaction 条目</text>
+          <text x="136" y="222" fill="#64748b" font-size="8">读上下文时回溯到这里就停 —— 前面的历史被摘要顶替</text>
+
+          <circle cx="110" cy="252" r="9" fill="rgba(8,51,68,.9)" stroke="#22d3ee" stroke-width="1.5"/>
+          <text x="136" y="256" fill="#cbd5e1" font-size="9">user 消息 · 在这里改主意了</text>
+
+          <!-- 分支 -->
+          <circle cx="62"  cy="302" r="8" fill="rgba(30,41,59,.9)" stroke="#64748b" stroke-width="1.5"/>
+          <circle cx="62"  cy="352" r="8" fill="rgba(30,41,59,.9)" stroke="#64748b" stroke-width="1.5"/>
+          <circle cx="170" cy="302" r="8" fill="rgba(8,51,68,.9)" stroke="#22d3ee" stroke-width="1.5"/>
+          <circle cx="170" cy="352" r="10" fill="rgba(34,211,238,.35)" stroke="#22d3ee" stroke-width="2"/>
+          <circle cx="170" cy="352" r="4" fill="#22d3ee"/>
+
+          <text x="22" y="386" fill="#64748b" font-size="8.5">旧分支</text>
+          <text x="22" y="399" fill="#475569" font-size="8">没删，只是不在路径上</text>
+          <text x="152" y="386" fill="#22d3ee" font-size="8.5">当前叶子</text>
+          <text x="130" y="399" fill="#475569" font-size="8">叶子指针本身也是一条持久条目</text>
+
+          <path d="M 240 302 L 200 302" stroke="#fb923c" stroke-width="1.2" stroke-dasharray="4,3" fill="none"/>
+          <text x="246" y="292" fill="#fb923c" font-size="8.5">切分支时，被放弃的那条</text>
+          <text x="246" y="305" fill="#fb923c" font-size="8.5">会被压成一段摘要注入，</text>
+          <text x="246" y="318" fill="#fb923c" font-size="8.5">不至于"白干一场"</text>
+
+          <text x="16" y="422" fill="#475569" font-size="8.5">三种分叉语义：整棵复制 / 只保留到某条 / 回到某条 user 消息之前</text>
+        
+          </g>
+        
+          </g>
+        </svg>
+      </div>
+
+      <!-- ============ 右：DAG 编排 ============ -->
+      <div class="figure">
+        <svg viewBox="0 0 593 430" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="ar-dag" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#64748b"/>
+            </marker>
+            <marker id="ar-dag-r" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#fb7185"/>
+            </marker>
+          </defs>
+          <g transform="translate(16,0)">
+
+          <text x="16" y="20" fill="#fbbf24" font-size="10.5" font-weight="600">向前 · 编排图 Orchestration DAG</text>
+          <text x="16" y="35" fill="#64748b" font-size="8.5">节点 = 一段确定的工作 · 边 = 依赖 · 路径由你写死</text>
+
+          <!-- 边先画 -->
+          <path d="M 128 92 L 168 68"   fill="none" stroke="#64748b" stroke-width="1.3" marker-end="url(#ar-dag)"/>
+          <path d="M 128 100 L 168 124" fill="none" stroke="#64748b" stroke-width="1.3" marker-end="url(#ar-dag)"/>
+          <path d="M 128 108 L 168 180" fill="none" stroke="#64748b" stroke-width="1.3" marker-end="url(#ar-dag)"/>
+          <path d="M 296 62 L 344 92"   fill="none" stroke="#64748b" stroke-width="1.3" marker-end="url(#ar-dag)"/>
+          <path d="M 296 118 L 344 100" fill="none" stroke="#64748b" stroke-width="1.3" marker-end="url(#ar-dag)"/>
+          <path d="M 296 174 L 344 108" fill="none" stroke="#64748b" stroke-width="1.3" marker-end="url(#ar-dag)"/>
+          <path d="M 448 100 L 448 168" fill="none" stroke="#64748b" stroke-width="1.3" marker-end="url(#ar-dag)"/>
+          <path d="M 400 196 L 60 196 L 60 112" fill="none" stroke="#fb7185" stroke-width="1.3" stroke-dasharray="5,3" marker-end="url(#ar-dag-r)"/>
+
+          <!-- 入口 -->
+          <rect x="20" y="78" width="108" height="44" rx="6" fill="#0f172a"/>
+          <rect x="20" y="78" width="108" height="44" rx="6" fill="rgba(8,51,68,.4)" stroke="#22d3ee" stroke-width="1.5"/>
+          <text x="74" y="98" fill="#fff" font-size="10" font-weight="600" text-anchor="middle">入口</text>
+          <text x="74" y="113" fill="#94a3b8" font-size="8" text-anchor="middle">拆解任务</text>
+
+          <!-- 并行三节点 -->
+          <rect x="168" y="42" width="128" height="42" rx="6" fill="#0f172a"/>
+          <rect x="168" y="42" width="128" height="42" rx="6" fill="rgba(6,78,59,.4)" stroke="#34d399" stroke-width="1.5"/>
+          <text x="232" y="61" fill="#fff" font-size="10" font-weight="600" text-anchor="middle">子任务 A</text>
+          <text x="232" y="76" fill="#94a3b8" font-size="8" text-anchor="middle">独立上下文</text>
+
+          <rect x="168" y="98" width="128" height="42" rx="6" fill="#0f172a"/>
+          <rect x="168" y="98" width="128" height="42" rx="6" fill="rgba(6,78,59,.4)" stroke="#34d399" stroke-width="1.5"/>
+          <text x="232" y="117" fill="#fff" font-size="10" font-weight="600" text-anchor="middle">子任务 B</text>
+          <text x="232" y="132" fill="#94a3b8" font-size="8" text-anchor="middle">独立上下文</text>
+
+          <rect x="168" y="154" width="128" height="42" rx="6" fill="#0f172a"/>
+          <rect x="168" y="154" width="128" height="42" rx="6" fill="rgba(6,78,59,.4)" stroke="#34d399" stroke-width="1.5"/>
+          <text x="232" y="173" fill="#fff" font-size="10" font-weight="600" text-anchor="middle">子任务 C</text>
+          <text x="232" y="188" fill="#94a3b8" font-size="8" text-anchor="middle">独立上下文</text>
+
+          <!-- 汇聚 -->
+          <rect x="344" y="78" width="104" height="44" rx="6" fill="#0f172a"/>
+          <rect x="344" y="78" width="104" height="44" rx="6" fill="rgba(76,29,149,.4)" stroke="#a78bfa" stroke-width="1.5"/>
+          <text x="396" y="98" fill="#fff" font-size="10" font-weight="600" text-anchor="middle">汇聚 / 去重</text>
+          <text x="396" y="113" fill="#94a3b8" font-size="8" text-anchor="middle">普通代码即可</text>
+
+          <!-- 验证 -->
+          <rect x="396" y="168" width="104" height="44" rx="6" fill="#0f172a"/>
+          <rect x="396" y="168" width="104" height="44" rx="6" fill="rgba(136,19,55,.4)" stroke="#fb7185" stroke-width="1.5"/>
+          <text x="448" y="188" fill="#fff" font-size="10" font-weight="600" text-anchor="middle">对抗式验证</text>
+          <text x="448" y="203" fill="#94a3b8" font-size="8" text-anchor="middle">不过 → 打回重来</text>
+
+          <text x="70" y="228" fill="#fb7185" font-size="8.5">↑ 回边由代码控制，不是模型说了算 —— 循环次数、退出条件都可测</text>
+
+          <!-- 对比 -->
+          <rect x="20" y="252" width="230" height="128" rx="8" fill="rgba(120,53,15,.2)" stroke="#fbbf24" stroke-width="1.2"/>
+          <text x="36" y="273" fill="#fbbf24" font-size="10" font-weight="600">自主循环</text>
+          <text x="36" y="294" fill="#cbd5e1" font-size="8.5">路径：模型现场决定</text>
+          <text x="36" y="311" fill="#cbd5e1" font-size="8.5">适合：没法预先枚举的探索</text>
+          <text x="36" y="328" fill="#cbd5e1" font-size="8.5">代价：贵 · 难复现 · 会跑飞</text>
+          <text x="36" y="352" fill="#64748b" font-size="8">"我不知道要查哪几个文件，</text>
+          <text x="36" y="366" fill="#64748b" font-size="8">你自己找"</text>
+
+          <rect x="266" y="252" width="234" height="128" rx="8" fill="rgba(6,78,59,.2)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="282" y="273" fill="#34d399" font-size="10" font-weight="600">DAG 编排</text>
+          <text x="282" y="294" fill="#cbd5e1" font-size="8.5">路径：你写死，模型填节点</text>
+          <text x="282" y="311" fill="#cbd5e1" font-size="8.5">适合：形状已知的批量工作</text>
+          <text x="282" y="328" fill="#cbd5e1" font-size="8.5">红利：并发 · 可重试 · 可断点续</text>
+          <text x="282" y="352" fill="#64748b" font-size="8">"这 40 个文件，每个都按同一</text>
+          <text x="282" y="366" fill="#64748b" font-size="8">套流程走一遍"</text>
+
+          <text x="16" y="406" fill="#475569" font-size="8.5">现实里几乎总是混合：先用 agent 探索出工作清单，再用 DAG 把清单批量做掉。</text>
+          <text x="16" y="421" fill="#475569" font-size="8.5">oh-my-pi 直接把它做成了一个扩展：YAML 描述 DAG，跑多 agent 流水线。</text>
+        
+          </g>
+        
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <div class="takeaway">
+      <b>被低估的一点 →</b> <b>会话树不是"历史记录"，是可执行的状态。</b>只追加、不改写，让"回到三步之前换个思路重试"变成 O(1) 操作；而这正是人类专家干活的真实形态 —— 试错、回退、换条路。你的 agent 如果只有一条线性历史，就等于每次犯错都要从头再来。
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">证据 · <b>pi-mono/packages/agent/src/harness/session/</b>（jsonl-store / fork / repository）· oh-my-pi <b>swarm-extension</b>（YAML DAG）</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

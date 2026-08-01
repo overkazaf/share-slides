@@ -1,0 +1,90 @@
+<section class="slide" data-ch="CH3 原理" data-title="多智能体之争：相隔 24 小时的两篇对撞，与 10 个月后的收敛">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot rose"></span>CH 3 · 原理 · L5</div>
+    <h1 class="s-title">多智能体：<span class="hl-r">相隔 24 小时的两篇对撞</span>，与 10 个月后的收敛</h1>
+    <div class="s-sub">这是整个 agent 工程里争议最大、也最值得原样呈现的一段。两边都不是错的 —— 他们在说不同的事。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="figure plain">
+      <svg viewBox="0 0 1160 400" xmlns="http://www.w3.org/2000/svg">
+          <g transform="translate(-26.1,-17.6) scale(1.0360)">
+        <!-- 时间轴 -->
+        <path d="M 30 210 L 1130 210" stroke="#334155" stroke-width="1.5"/>
+        <text x="30" y="228" fill="#475569" font-size="8">非等距时间轴</text>
+        <circle cx="175" cy="210" r="5" fill="#fb7185"/>
+        <circle cx="475" cy="210" r="5" fill="#34d399"/>
+        <circle cx="700" cy="210" r="5" fill="#a78bfa"/>
+        <circle cx="985" cy="210" r="5" fill="#fbbf24"/>
+        <path d="M 175 190 L 175 205" stroke="#fb7185" stroke-width="1.2"/>
+        <path d="M 480 216 L 480 230" stroke="#34d399" stroke-width="1.2"/>
+        <path d="M 700 190 L 700 205" stroke="#a78bfa" stroke-width="1.2"/>
+        <path d="M 997 216 L 997 230" stroke="#fbbf24" stroke-width="1.2"/>
+
+        <path d="M 190 232 L 460 232" stroke="#fb923c" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="325" y="248" fill="#fb923c" font-size="9" text-anchor="middle" font-weight="600">相隔 24 小时</text>
+        <path d="M 715 202 L 830 202 M 940 202 L 975 202" stroke="#475569" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="885" y="205" fill="#64748b" font-size="9" text-anchor="middle">…10 个月过去…</text>
+
+        <!-- C1 反对方 -->
+        <rect x="40" y="34" width="270" height="156" rx="9" fill="#0f172a"/>
+        <rect x="40" y="34" width="270" height="156" rx="9" fill="rgba(136,19,55,.35)" stroke="#fb7185" stroke-width="1.5"/>
+        <text x="56" y="54" fill="#fb7185" font-size="8.5">2025-06-12 · Cognition（Devin 团队）</text>
+        <text x="56" y="74" fill="#fff" font-size="12" font-weight="700">Don't Build Multi-Agents</text>
+        <text x="56" y="96" fill="#cbd5e1" font-size="9">① 要共享上下文，而且要共享<tspan fill="#fff">完整轨迹</tspan>，</text>
+        <text x="56" y="110" fill="#cbd5e1" font-size="9">　 不只是几条消息</text>
+        <text x="56" y="128" fill="#cbd5e1" font-size="9">② 行动隐含决策，<tspan fill="#fff">决策一冲突，结果就烂</tspan></text>
+        <text x="56" y="150" fill="#fb7185" font-size="8.5">反例：拆给子 agent 做 Flappy Bird —</text>
+        <text x="56" y="164" fill="#94a3b8" font-size="8.5">一个做出了超级马里奥风格的背景，</text>
+        <text x="56" y="178" fill="#94a3b8" font-size="8.5">另一个做的鸟根本不像游戏素材</text>
+
+        <!-- C2 支持方 -->
+        <rect x="340" y="234" width="280" height="152" rx="9" fill="#0f172a"/>
+        <rect x="340" y="234" width="280" height="152" rx="9" fill="rgba(6,78,59,.35)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="356" y="254" fill="#34d399" font-size="8.5">2025-06-13 · Anthropic</text>
+        <text x="356" y="274" fill="#fff" font-size="11.5" font-weight="700">多智能体研究系统是这么建的</text>
+        <text x="356" y="294" fill="#cbd5e1" font-size="9">主 agent 协调，子 agent <tspan fill="#fff">并行</tspan>干活</text>
+        <text x="356" y="312" fill="#cbd5e1" font-size="9">主要收益：<tspan fill="#fff">上下文隔离</tspan> —— 子 agent 是</text>
+        <text x="356" y="326" fill="#cbd5e1" font-size="9">"智能过滤器"，各自独立探索不互相带偏</text>
+        <rect x="356" y="336" width="248" height="38" rx="5" fill="rgba(2,6,23,.6)" stroke="#1e293b" stroke-width="1"/>
+        <text x="368" y="352" fill="#34d399" font-size="9">内部研究评测：比单 agent <tspan font-weight="700">高 90.2%</tspan></text>
+        <text x="368" y="367" fill="#fbbf24" font-size="9">代价：agent≈4× / multi-agent≈15× 的 token</text>
+
+        <!-- C3 裁判 -->
+        <rect x="575" y="34" width="250" height="156" rx="9" fill="#0f172a"/>
+        <rect x="575" y="34" width="250" height="156" rx="9" fill="rgba(76,29,149,.32)" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="591" y="54" fill="#a78bfa" font-size="8.5">2025-06-16 · LangChain</text>
+        <text x="591" y="74" fill="#fff" font-size="11.5" font-weight="700">第三天，裁判下场</text>
+        <text x="591" y="98" fill="#cbd5e1" font-size="9.5">多 agent 之所以失败，</text>
+        <text x="591" y="116" fill="#cbd5e1" font-size="9.5">根因是 <tspan fill="#fff">context engineering</tspan></text>
+        <text x="591" y="134" fill="#cbd5e1" font-size="9.5"><tspan fill="#fff">没做好</tspan>，而不是"多 agent"</text>
+        <text x="591" y="152" fill="#cbd5e1" font-size="9.5">这件事本身有问题。</text>
+        <text x="591" y="176" fill="#475569" font-size="8.5">—— 把争论拉回到了工程层面</text>
+
+        <!-- C4 转向 -->
+        <rect x="855" y="234" width="285" height="152" rx="9" fill="#0f172a"/>
+        <rect x="855" y="234" width="285" height="152" rx="9" fill="rgba(120,53,15,.32)" stroke="#fbbf24" stroke-width="1.5"/>
+        <text x="871" y="254" fill="#fbbf24" font-size="8.5">2026-04-22 · Cognition · 同一位作者</text>
+        <text x="871" y="274" fill="#fff" font-size="11.5" font-weight="700">"现在哪些是真能跑的"</text>
+        <text x="871" y="294" fill="#cbd5e1" font-size="9">① <tspan fill="#fff">代码评审循环</tspan>：评审方<tspan fill="#fbbf24">不共享</tspan>上下文，</text>
+        <text x="871" y="308" fill="#cbd5e1" font-size="9">　 反而更能抓到 bug（作者自称反直觉）</text>
+        <text x="871" y="326" fill="#cbd5e1" font-size="9">② <tspan fill="#fff">聪明朋友</tspan>：弱模型在难点上找强模型求助</text>
+        <text x="871" y="344" fill="#cbd5e1" font-size="9">③ <tspan fill="#fff">管理者派发</tspan>：可行，但要大量上下文工程</text>
+        <text x="871" y="368" fill="#fb7185" font-size="8.5">仍然不行：一群 agent 无结构地自由协商</text>
+      
+          </g>
+        </svg>
+    </div>
+
+    <div class="takeaway">
+      <b>2026 年的共识（原文）→</b> "Multi-agent systems work best today when <b>writes stay single-threaded</b> and the additional agents <b>contribute intelligence rather than actions</b>."<br>
+      <span style="color:#94a3b8">—— 写操作保持单线程；多出来的 agent 应该贡献<b style="color:#34d399">判断力</b>，而不是<b style="color:#fb7185">动作</b>。这也解释了为什么主流产品里的子代理，大多是<b style="color:#e2e8f0">只读的调研员</b>。</span>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">出处 · cognition.com/blog/dont-build-multi-agents · anthropic.com/engineering/multi-agent-research-system · langchain.com/blog · cognition.com/blog/multi-agents-working</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

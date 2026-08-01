@@ -1,0 +1,135 @@
+<section class="slide" data-ch="CH3 原理" data-title="Loop Engineering：一圈里到底发生了什么">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot emerald"></span>CH 3 · 原理 · L5</div>
+    <h1 class="s-title">Loop Engineering：<span class="hl-e">"转圈"是最容易被低估的那部分</span></h1>
+    <div class="s-sub">教科书里的 agent loop 是 <code>while(true){ llm(); tools(); }</code>。真实实现里，难的全在<b style="color:#e2e8f0">中断、插队、判停、截断、并发和错误恢复</b>。pi 的主循环是<b style="color:#e2e8f0">双层 while</b>，这个设计值得抄。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c73">
+      <div class="figure">
+        <svg viewBox="0 0 806 470" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="ar-lp" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+              <polygon points="0 0, 9 3.5, 0 7" fill="#64748b"/>
+            </marker>
+            <marker id="ar-lp-e" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+              <polygon points="0 0, 9 3.5, 0 7" fill="#34d399"/>
+            </marker>
+            <marker id="ar-lp-r" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+              <polygon points="0 0, 9 3.5, 0 7" fill="#fb7185"/>
+            </marker>
+          </defs>
+          <g transform="translate(-114.6,-36.8) scale(1.1616)">
+
+          <!-- ===== 连线先画 ===== -->
+          <path d="M 380 84 L 380 96"   stroke="#64748b" stroke-width="1.4" marker-end="url(#ar-lp)"/>
+          <path d="M 380 142 L 380 154" stroke="#64748b" stroke-width="1.4" marker-end="url(#ar-lp)"/>
+          <path d="M 380 200 L 380 212" stroke="#64748b" stroke-width="1.4" marker-end="url(#ar-lp)"/>
+          <path d="M 380 258 L 380 270" stroke="#64748b" stroke-width="1.4" marker-end="url(#ar-lp)"/>
+          <path d="M 380 316 L 380 328" stroke="#64748b" stroke-width="1.4" marker-end="url(#ar-lp)"/>
+          <path d="M 380 374 L 380 386" stroke="#64748b" stroke-width="1.4" marker-end="url(#ar-lp)"/>
+          <!-- 内层回边 -->
+          <path d="M 180 350 L 152 350 L 152 62 L 176 62" fill="none" stroke="#34d399" stroke-width="1.4" stroke-dasharray="5,3" marker-end="url(#ar-lp-e)"/>
+          <!-- 外层回边 -->
+          <path d="M 180 408 L 118 408 L 118 48 L 380 48 L 380 36" fill="none" stroke="#fbbf24" stroke-width="1.4" stroke-dasharray="7,4" marker-end="url(#ar-lp)"/>
+          <!-- 出口 -->
+          <path d="M 580 176 L 616 176" stroke="#fb7185" stroke-width="1.4" marker-end="url(#ar-lp-r)"/>
+          <path d="M 580 408 L 616 408" stroke="#34d399" stroke-width="1.4" marker-end="url(#ar-lp-e)"/>
+
+          <!-- ===== 节点 ===== -->
+          <rect x="180" y="40" width="400" height="44" rx="6" fill="#0f172a"/>
+          <rect x="180" y="40" width="400" height="44" rx="6" fill="rgba(8,51,68,.4)" stroke="#22d3ee" stroke-width="1.5"/>
+          <text x="196" y="60" fill="#fff" font-size="11" font-weight="600">① 取插队消息 steering</text>
+          <text x="196" y="76" fill="#94a3b8" font-size="8.5">用户在 agent 干活途中补的话，下一轮开头就注入 —— 不用打断重来</text>
+
+          <rect x="180" y="98" width="400" height="44" rx="6" fill="#0f172a"/>
+          <rect x="180" y="98" width="400" height="44" rx="6" fill="rgba(120,53,15,.3)" stroke="#fbbf24" stroke-width="1.5"/>
+          <text x="196" y="118" fill="#fff" font-size="11" font-weight="600">② 流式请求 LLM</text>
+          <text x="196" y="134" fill="#94a3b8" font-size="8.5">每轮重新解析 API key（OAuth 会过期）· 边流边渲染 · 全程可 abort</text>
+
+          <rect x="180" y="156" width="400" height="44" rx="6" fill="#0f172a"/>
+          <rect x="180" y="156" width="400" height="44" rx="6" fill="rgba(136,19,55,.4)" stroke="#fb7185" stroke-width="1.5"/>
+          <text x="196" y="176" fill="#fff" font-size="11" font-weight="600">③ 出错 / 被中断？</text>
+          <text x="196" y="192" fill="#94a3b8" font-size="8.5">是 → 立刻收尾，不做任何补救性猜测</text>
+
+          <rect x="180" y="214" width="400" height="44" rx="6" fill="#0f172a"/>
+          <rect x="180" y="214" width="400" height="44" rx="6" fill="rgba(6,78,59,.4)" stroke="#34d399" stroke-width="1.5"/>
+          <text x="196" y="234" fill="#fff" font-size="11" font-weight="600">④ 有 tool_call 吗？输出被截断了吗？</text>
+          <text x="196" y="250" fill="#fbbf24" font-size="8.5">截断 ⇒ 参数可能不完整 ⇒ 全部判失败，让模型重发（而不是拿半个参数去跑）</text>
+
+          <rect x="180" y="272" width="400" height="44" rx="6" fill="#0f172a"/>
+          <rect x="180" y="272" width="400" height="44" rx="6" fill="rgba(6,78,59,.4)" stroke="#34d399" stroke-width="1.5"/>
+          <text x="196" y="292" fill="#fff" font-size="11" font-weight="600">⑤ 执行工具：并行 or 串行</text>
+          <text x="196" y="308" fill="#94a3b8" font-size="8.5">参数校验与权限钩子<tspan fill="#fbbf24">始终串行</tspan>，只有 execute 并发；结果按源顺序写历史</text>
+
+          <rect x="180" y="330" width="400" height="44" rx="6" fill="#0f172a"/>
+          <rect x="180" y="330" width="400" height="44" rx="6" fill="rgba(76,29,149,.4)" stroke="#a78bfa" stroke-width="1.5"/>
+          <text x="196" y="350" fill="#fff" font-size="11" font-weight="600">⑥ prepareNextTurn · 重建快照</text>
+          <text x="196" y="366" fill="#94a3b8" font-size="8.5">此刻才允许换模型、换上下文、改思考档位 —— 下一轮生效</text>
+
+          <rect x="180" y="386" width="400" height="44" rx="6" fill="#0f172a"/>
+          <rect x="180" y="386" width="400" height="44" rx="6" fill="rgba(120,53,15,.3)" stroke="#fbbf24" stroke-width="1.5"/>
+          <text x="196" y="406" fill="#fff" font-size="11" font-weight="600">⑦ 判停 · 还有后续任务吗？</text>
+          <text x="196" y="422" fill="#94a3b8" font-size="8.5">有 → 外层再来一遍（agent 已收工，又追加了活）</text>
+
+          <!-- 出口盒 -->
+          <rect x="616" y="154" width="168" height="46" rx="6" fill="rgba(136,19,55,.4)" stroke="#fb7185" stroke-width="1.5"/>
+          <text x="700" y="175" fill="#fb7185" font-size="10.5" font-weight="600" text-anchor="middle">立即终止</text>
+          <text x="700" y="191" fill="#94a3b8" font-size="8" text-anchor="middle">error / aborted</text>
+
+          <rect x="616" y="386" width="168" height="46" rx="6" fill="rgba(6,78,59,.4)" stroke="#34d399" stroke-width="1.5"/>
+          <text x="700" y="407" fill="#34d399" font-size="10.5" font-weight="600" text-anchor="middle">agent_end</text>
+          <text x="700" y="423" fill="#94a3b8" font-size="8" text-anchor="middle">交付结果</text>
+
+          <!-- 回边标签 -->
+          <text x="146" y="230" fill="#34d399" font-size="9" text-anchor="middle" transform="rotate(-90 146 230)">INNER · 工具链 + 插队</text>
+          <text x="112" y="230" fill="#fbbf24" font-size="9" text-anchor="middle" transform="rotate(-90 112 230)">OUTER · 后续任务</text>
+
+          <rect x="608" y="240" width="180" height="118" rx="8" fill="rgba(15,23,42,.7)" stroke="#1e293b" stroke-width="1"/>
+          <text x="624" y="262" fill="#94a3b8" font-size="9" font-weight="600">两层循环的分工</text>
+          <text x="624" y="284" fill="#34d399" font-size="8.5">内层：一条"回答 → 调</text>
+          <text x="624" y="297" fill="#34d399" font-size="8.5">工具 → 再回答"的链路</text>
+          <text x="624" y="318" fill="#fbbf24" font-size="8.5">外层：已经收工了，</text>
+          <text x="624" y="331" fill="#fbbf24" font-size="8.5">又追加了新任务</text>
+          <text x="624" y="350" fill="#475569" font-size="8">三种排队语义做进内核，罕见</text>
+        
+          </g>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:11px">
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>判停：四种收敛条件</h3></div>
+          <ul>
+            <li>模型这轮<strong>不再要工具</strong>（最常见）</li>
+            <li>到达<strong>最大轮数</strong>上限</li>
+            <li>工具返回 <strong>terminate</strong> 信号<span class="note" style="color:#475569;font-size:9px">pi 要求批次内<em>每一个</em>结果都 terminate 才停</span></li>
+            <li>用户<strong>中断</strong> / 出错</li>
+          </ul>
+        </div>
+        <div class="card amber">
+          <div class="card-head"><span class="card-dot amber"></span><h3>三个容易踩的坑</h3></div>
+          <ul>
+            <li><strong>没有超时</strong>：pi 把超时交给工具自己管，bash 工具的 timeout <em>默认不设</em> —— 你得自己想清楚</li>
+            <li><strong>并行写同一个文件</strong>：按真实路径（软链接同锁）串行化，否则并行编辑会丢更新</li>
+            <li><strong>报错就是养料</strong>：错误带字段路径回喂模型，比"执行失败"有用一百倍</li>
+          </ul>
+        </div>
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>可借鉴</h3></div>
+          <ul>
+            <li>UI 按<strong>完成顺序</strong>更新，历史按<strong>源顺序</strong>写 —— 体验实时，记录可重放</li>
+            <li>能力层永不抛异常，一律返回 <code style="color:#34d399">Result&lt;T,E&gt;</code></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">证据 · <b>pi-mono/packages/agent/src/agent-loop.ts</b>（runLoop 双层 while / executeToolCalls / shouldTerminateToolBatch）</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

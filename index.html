@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>分享合集 · overkazaf</title>
+<meta name="description" content="技术分享合集：slides、逐页讲稿与带出处的研究笔记，全部开源可核查。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#020617;--line:#1e293b;--fg:#fff;--muted:#94a3b8;--dim:#64748b;--faint:#475569;--cyan:#22d3ee;--amber:#fbbf24;--violet:#a78bfa}
+body{background:var(--bg);color:var(--fg);min-height:100vh;
+  font-family:'JetBrains Mono','PingFang SC','Noto Sans SC',monospace;
+  background-image:
+    radial-gradient(ellipse 60% 50% at 20% 10%,rgba(34,211,238,.10),transparent 70%),
+    radial-gradient(ellipse 50% 40% at 85% 80%,rgba(167,139,250,.09),transparent 70%),
+    repeating-linear-gradient(0deg,transparent 0 39px,rgba(30,41,59,.5) 39px 40px),
+    repeating-linear-gradient(90deg,transparent 0 39px,rgba(30,41,59,.5) 39px 40px);
+  padding:clamp(28px,6vw,80px) clamp(20px,5vw,60px)}
+.wrap{max-width:960px;margin:0 auto}
+header{margin-bottom:52px}
+.tag{display:inline-flex;align-items:center;gap:9px;border:1px solid var(--line);border-radius:999px;
+  padding:5px 14px;font-size:11px;color:var(--muted);letter-spacing:.1em;margin-bottom:24px}
+.pulse{width:8px;height:8px;border-radius:50%;background:var(--cyan);animation:p 2s infinite}
+@keyframes p{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(34,211,238,.5)}50%{opacity:.55;box-shadow:0 0 0 7px rgba(34,211,238,0)}}
+h1{font-size:clamp(28px,5vw,44px);font-weight:700;letter-spacing:-.03em;line-height:1.2}
+h1 .a{color:var(--cyan)}
+.lede{margin-top:18px;font-size:clamp(13px,1.6vw,15px);color:var(--muted);line-height:1.9;max-width:720px}
+.lede b{color:#e2e8f0}
+h2{font-size:11px;letter-spacing:.16em;color:var(--faint);text-transform:uppercase;margin:44px 0 16px}
+.card{display:block;text-decoration:none;border:1px solid var(--line);border-radius:14px;
+  padding:24px 26px;background:rgba(15,23,42,.55);transition:.18s;margin-bottom:14px}
+.card:hover{border-color:rgba(34,211,238,.55);background:rgba(8,51,68,.35);transform:translateY(-2px)}
+.card .k{font-size:10.5px;color:var(--faint);letter-spacing:.1em}
+.card h3{font-size:clamp(17px,2.4vw,22px);font-weight:700;color:var(--fg);margin:8px 0 10px;letter-spacing:-.02em}
+.card p{font-size:12.5px;color:var(--muted);line-height:1.85}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.meta span{font-size:10px;color:var(--dim);border:1px solid var(--line);border-radius:5px;padding:3px 9px}
+.meta span.hot{color:var(--amber);border-color:rgba(251,191,36,.4);background:rgba(120,53,15,.25)}
+.links{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.links a{font-size:11px;color:var(--cyan);text-decoration:none;border:1px solid rgba(34,211,238,.3);
+  border-radius:6px;padding:5px 12px;transition:.15s}
+.links a:hover{background:rgba(34,211,238,.12)}
+.note{border-left:2px solid var(--violet);padding:2px 0 2px 16px;margin-top:36px;
+  font-size:12px;color:var(--muted);line-height:1.9}
+.note b{color:#e2e8f0}
+footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--line);
+  font-size:10.5px;color:var(--faint);line-height:2}
+footer a{color:var(--dim)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="tag"><span class="pulse"></span>SHARE · SLIDES &amp; NOTES</div>
+    <h1>分享<span class="a">合集</span></h1>
+    <div class="lede">
+      技术分享的 slides、<b>逐页讲稿</b>与<b>带出处的研究笔记</b>，全部开源。<br>
+      原则很简单：<b>每一个数字都要能被读者自己核查</b> —— 凡是只在二手转述里见过的，一律不上页，
+      改写进备忘让读者自行判断。发现错了，欢迎直接提 Issue。
+    </div>
+  </header>
+
+  <h2>最新</h2>
+
+  <a class="card" href="./build-your-own-agent/">
+    <div class="k">2026 · 37 页 · 中文</div>
+    <h3>如何打造自己的 Agent —— 从 harness 到 re-agent</h3>
+    <p>
+      从「什么是 agent」讲到「怎么造一个」：演进脉络与关键人物、harness、context engineering、
+      loop / graph engineering、SKILL、工具与扩展点、多智能体之争，再到主流 coding agent 选型，
+      以及一个逆向工程专用 agent 的设计。<br>
+      所有实现细节都对着 <b>pi</b> 与 <b>oh-my-pi</b> 的源码取证，时间线锚定在 npm / PyPI / GitHub API 的机器时间戳上。
+    </p>
+    <div class="meta">
+      <span class="hot">官方榜实证：换 harness 中位挪动 5.39 分，最大 20.90</span>
+      <span>七章 · 37 页</span><span>16 份研究笔记</span><span>逐页讲稿</span><span>PDF 可下载</span>
+    </div>
+    <div class="links">
+      <a href="./build-your-own-agent/">▶ 在线阅读</a>
+      <a href="./build-your-own-agent/如何打造自己的Agent.pdf">↓ PDF</a>
+      <a href="./build-your-own-agent/script/">≡ 讲稿</a>
+      <a href="./build-your-own-agent/research/">⌕ 研究笔记</a>
+    </div>
+  </a>
+
+  <div class="note">
+    <b>怎么读</b>：在线版按 <b>← →</b> 翻页，<b>O</b> 打开缩略图总览，<b>F</b> 全屏。<br>
+    <b>怎么纠错</b>：任何一处数字、日期、引用有问题，欢迎提 Issue —— 这类东西越多人挑越好。<br>
+    <b>怎么跟进</b>：Watch 本仓库，后续分享会更新在这里。<br>
+    <b>想聊聊</b>：<a href="https://discord.gg/vrjd7wQ8" style="color:var(--cyan)">Discord</a> —— 逆向、agent、工具链。
+  </div>
+
+  <footer>
+    <a href="https://github.com/overkazaf/share-slides">github.com/overkazaf/share-slides</a> · <a href="https://discord.gg/vrjd7wQ8">Discord</a> ·
+    slides 使用 cocoonAI / architecture-diagram 深色设计系统 ·
+    内容 CC BY 4.0，代码 MIT
+  </footer>
+</div>
+</body>
+</html>
