@@ -1,8 +1,8 @@
 <section class="slide" data-ch="CH4 场景" data-title="适用场景：反馈可得性 × 任务确定性">
   <div class="s-head">
     <div class="s-kicker"><span class="dot rose"></span>CH 4 · 场景</div>
-    <h1 class="s-title">Agent 的甜点区只有<span class="hl-e">一格</span>，其余三格都<span class="hl-r">别硬上</span></h1>
-    <div class="s-sub">判据不是"难不难"，是：<b style="color:#e2e8f0">路径能不能枚举</b>、<b style="color:#e2e8f0">对错能不能不靠人判断</b>。</div>
+    <h1 class="s-title">四格里只有<span class="hl-e">一格</span>该交给 agent，另外三格<span class="hl-r">别硬来</span></h1>
+    <div class="s-sub">看的不是"这活难不难"，是：<b style="color:#e2e8f0">步骤说不说得清</b>、<b style="color:#e2e8f0">做完了机器能不能判对错</b>。</div>
   </div>
 
   <div class="s-body">
@@ -24,18 +24,18 @@
 
           <!-- 轴标 -->
           <text x="56" y="26" fill="#94a3b8" font-size="9" font-weight="600">反馈高：机器能判对错</text>
-          <text x="56" y="402" fill="#94a3b8" font-size="9" font-weight="600">反馈低：只有人能判，且慢</text>
-          <text x="56" y="422" fill="#64748b" font-size="8.5">← 路径无法预先枚举</text>
-          <text x="600" y="422" fill="#64748b" font-size="8.5" text-anchor="end">路径能预先枚举 →</text>
+          <text x="56" y="402" fill="#94a3b8" font-size="9" font-weight="600">反馈低：只能等人判，还慢</text>
+          <text x="56" y="422" fill="#64748b" font-size="8.5">← 事先说不清怎么走</text>
+          <text x="600" y="422" fill="#64748b" font-size="8.5" text-anchor="end">事先说得清怎么走 →</text>
 
           <!-- 左上：甜点区 -->
-          <text x="72" y="66" fill="#34d399" font-size="12" font-weight="700">★ Agent 的甜点区</text>
+          <text x="72" y="66" fill="#34d399" font-size="12" font-weight="700">★ 这格才该用 agent</text>
           <text x="72" y="90" fill="#cbd5e1" font-size="9.5">写代码 · 调试 · 修 CI</text>
           <text x="72" y="107" fill="#cbd5e1" font-size="9.5">大规模检索 · CTF / crackme · 渗透测试</text>
-          <text x="72" y="132" fill="#94a3b8" font-size="8.5">每步都有<tspan fill="#fff">不靠人的信号</tspan></text>
+          <text x="72" y="132" fill="#94a3b8" font-size="8.5">每步都有<tspan fill="#fff">不用人看的信号</tspan></text>
           <text x="72" y="147" fill="#94a3b8" font-size="8.5">测试过 / 跑起来 / hash 对上</text>
           <text x="72" y="162" fill="#94a3b8" font-size="8.5">但走哪条路事先说不准</text>
-          <text x="72" y="188" fill="#34d399" font-size="8.5">失败很便宜 —— 沙箱里重来</text>
+          <text x="72" y="188" fill="#34d399" font-size="8.5">错了也不心疼 —— 沙箱里重来</text>
 
           <!-- 右上：workflow -->
           <text x="344" y="66" fill="#22d3ee" font-size="12" font-weight="700">用 workflow，别用 agent</text>
@@ -47,7 +47,7 @@
           <!-- 右下：传统代码 -->
           <text x="344" y="240" fill="#94a3b8" font-size="12" font-weight="700">这里不需要 LLM</text>
           <text x="344" y="264" fill="#cbd5e1" font-size="9.5">定时任务 · ETL · 表单校验</text>
-          <text x="344" y="290" fill="#64748b" font-size="8.5">规则清楚、输出确定：</text>
+          <text x="344" y="290" fill="#64748b" font-size="8.5">规则明摆着、结果也固定：</text>
           <text x="344" y="305" fill="#64748b" font-size="8.5">写代码更快、更可靠</text>
           <text x="344" y="334" fill="#475569" font-size="8.5">"能用 if-else 解决的事情，</text>
           <text x="344" y="349" fill="#475569" font-size="8.5">不要请一个会做梦的东西来做"</text>
@@ -56,10 +56,10 @@
           <text x="72" y="240" fill="#fb7185" font-size="12" font-weight="700">⚠ 红线区：别交给 agent</text>
           <text x="72" y="264" fill="#cbd5e1" font-size="9.5">战略判断 · 创意方向 · 人事决定</text>
           <text x="72" y="281" fill="#cbd5e1" font-size="9.5">需要承担法律 / 伦理责任的结论</text>
-          <text x="72" y="306" fill="#94a3b8" font-size="8.5">既<tspan fill="#fff">枚举不出路径</tspan>，又<tspan fill="#fff">验证不了对错</tspan>。</text>
-          <text x="72" y="321" fill="#94a3b8" font-size="8.5">于是唯一确定的结果：</text>
+          <text x="72" y="306" fill="#94a3b8" font-size="8.5"><tspan fill="#fff">步骤说不清</tspan>，<tspan fill="#fff">对错也验不了</tspan>。</text>
+          <text x="72" y="321" fill="#94a3b8" font-size="8.5">于是只有一件事是确定的：</text>
           <text x="72" y="342" fill="#fb7185" font-size="9.5" font-weight="600">它会非常自信地给你一个说法，</text>
-          <text x="72" y="358" fill="#fb7185" font-size="9.5" font-weight="600">而你没有任何办法证伪它。</text>
+          <text x="72" y="358" fill="#fb7185" font-size="9.5" font-weight="600">而你没办法证明它错。</text>
         
           </g>
         
@@ -71,27 +71,27 @@
 
       <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
         <div class="card emerald">
-          <div class="card-head"><span class="card-dot emerald"></span><h3>上线前问三个问题</h3></div>
+          <div class="card-head"><span class="card-dot emerald"></span><h3>真上手前先问三句</h3></div>
           <ul>
-            <li><strong>① 失败便宜吗？</strong>能沙箱能回滚</li>
-            <li><strong>② 成功可验证吗？</strong>有<em>不靠人</em>的信号吗</li>
-            <li><strong>③ 路径能枚举吗？</strong>能 → workflow，不能 → agent</li>
-            <li class="note">三个都"是"→ 放手干；②"否"→ 一票否决</li>
+            <li><strong>① 错了要紧吗？</strong>能沙箱、能撤回</li>
+            <li><strong>② 干完了谁说了算？</strong>有<em>不用人看</em>的信号吗</li>
+            <li><strong>③ 步骤说得清吗？</strong>说得清 → workflow，说不清 → agent</li>
+            <li class="note">三个都行 → 放手干；②不行 → 直接别做</li>
           </ul>
         </div>
         <div class="card rose">
           <div class="card-head"><span class="card-dot rose"></span><h3>四条硬红线</h3></div>
           <ul>
-            <li><strong>不可逆 + 难验证</strong>：删生产数据、发布、转账</li>
-            <li>需要<strong>有人为结果负责</strong>的判断</li>
-            <li>反馈<strong>只有人能给且慢</strong>：品味、关系、政治</li>
-            <li><strong>输入不可信又没隔离</strong> —— 提示注入不是理论风险，CH7 有实例</li>
+            <li><strong>撤不回来、又不好验</strong>：删生产数据、发布、转账</li>
+            <li>出了事<strong>得有人担责</strong>的那种判断</li>
+            <li><strong>只有人能评、还评得慢</strong>：品味、关系、政治</li>
+            <li><strong>喂进去的东西不可信、又没隔开</strong> —— 提示注入真会发生，CH7 有实例</li>
           </ul>
         </div>
         <div class="card amber">
-          <div class="card-head"><span class="card-dot amber"></span><h3>一个实用观察</h3></div>
+          <div class="card-head"><span class="card-dot amber"></span><h3>一条挺好使的观察</h3></div>
           <ul>
-            <li>coding 能落地不是程序员多，是<strong>编译器和测试天然就是验证器</strong> —— 反过来，<strong>能造出验证器 agent 才进得来</strong></li>
+            <li>coding 先跑通不是因为程序员多，是<strong>编译器和测试本来就是现成的判卷人</strong> —— 反过来说，<strong>你这行能造出判卷人，agent 才进得来</strong></li>
           </ul>
         </div>
       </div>

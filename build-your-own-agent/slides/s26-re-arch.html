@@ -2,7 +2,7 @@
   <div class="s-head">
     <div class="s-kicker"><span class="dot orange"></span>CH 7 · 实践 · 落点</div>
     <h1 class="s-title">re-agent：<span class="hl-a">把那七道坎，写进骨架里</span></h1>
-    <div class="s-sub">把 <b style="color:#e2e8f0">Codex 和 Claude Code 当两个"人"来编排</b>，领域约束固化成策略与工具。</div>
+    <div class="s-sub">把 <b style="color:#e2e8f0">Codex 和 Claude Code 当成两个人来派活</b>，这行的规矩直接做成开关和工具。</div>
   </div>
 
   <div class="s-body">
@@ -37,30 +37,30 @@
           <rect x="16" y="82" width="404" height="44" rx="6" fill="#0f172a"/>
           <rect x="16" y="82" width="404" height="44" rx="6" fill="rgba(30,41,59,.55)" stroke="#94a3b8" stroke-width="1.4"/>
           <text x="32" y="102" fill="#fff" font-size="11.5" font-weight="600">配置 + Provider 注册表</text>
-          <text x="32" y="118" fill="#94a3b8" font-size="8.5">线格式隔离在适配器</text>
+          <text x="32" y="118" fill="#94a3b8" font-size="8.5">各家协议差异挡在适配器里</text>
 
           <rect x="16" y="142" width="404" height="68" rx="6" fill="#0f172a"/>
           <rect x="16" y="142" width="404" height="68" rx="6" fill="rgba(6,78,59,.42)" stroke="#34d399" stroke-width="2.2"/>
           <text x="218" y="166" fill="#34d399" font-size="9" text-anchor="middle" font-weight="600">核心 · CH3 讲的那个循环</text>
           <text x="218" y="187" fill="#fff" font-size="14" font-weight="700" text-anchor="middle">Agent Loop</text>
-          <text x="218" y="203" fill="#94a3b8" font-size="8.5" text-anchor="middle">归一化历史 → 调 provider → 执行工具 → 回灌</text>
+          <text x="218" y="203" fill="#94a3b8" font-size="8.5" text-anchor="middle">历史理成一种格式 → 调 provider → 跑工具 → 塞回去</text>
 
           <rect x="16" y="226" width="404" height="48" rx="6" fill="#0f172a"/>
           <rect x="16" y="226" width="404" height="48" rx="6" fill="rgba(136,19,55,.42)" stroke="#fb7185" stroke-width="2"/>
-          <text x="32" y="246" fill="#fb7185" font-size="11.5" font-weight="700">策略闸门 · 每次工具执行前</text>
-          <text x="32" y="264" fill="#cbd5e1" font-size="8.5">读限工作区 · 写 <tspan fill="#fff">--write</tspan> · 联网 <tspan fill="#fff">--allow-network</tspan> · 敏感路径 <tspan fill="#fff">--allow-sensitive</tspan></text>
+          <text x="32" y="246" fill="#fb7185" font-size="11.5" font-weight="700">动手前先问一句 · 每次跑工具之前</text>
+          <text x="32" y="264" fill="#cbd5e1" font-size="8.5">读只限工作区 · 写要 <tspan fill="#fff">--write</tspan> · 联网要 <tspan fill="#fff">--allow-network</tspan> · 敏感路径要 <tspan fill="#fff">--allow-sensitive</tspan></text>
 
           <rect x="16" y="290" width="404" height="48" rx="6" fill="#0f172a"/>
           <rect x="16" y="290" width="404" height="48" rx="6" fill="rgba(120,53,15,.35)" stroke="#fbbf24" stroke-width="1.5"/>
-          <text x="32" y="310" fill="#fbbf24" font-size="11" font-weight="600">逆向工具集 · 全是确定性程序</text>
+          <text x="32" y="310" fill="#fbbf24" font-size="11" font-weight="600">逆向工具集 · 每次跑结果都一样</text>
           <text x="32" y="329" fill="#cbd5e1" font-size="8.5">strings · hexdump · hash_file · extract_symbols · file_info</text>
 
           <rect x="16" y="354" width="404" height="30" rx="6" fill="rgba(76,29,149,.42)" stroke="#a78bfa" stroke-width="1.5"/>
-          <text x="32" y="373" fill="#fff" font-size="11" font-weight="600">会话：只追加的 JSONL · 可复现</text>
+          <text x="32" y="373" fill="#fff" font-size="11" font-weight="600">会话：只往后追加的 JSONL · 别人能照着走一遍</text>
 
           <!-- 角色路由 -->
           <rect x="448" y="30" width="236" height="274" rx="9" fill="none" stroke="#fb923c" stroke-width="1.3" stroke-dasharray="7,4"/>
-          <text x="464" y="50" fill="#fb923c" font-size="10" font-weight="600">角色路由</text>
+          <text x="464" y="50" fill="#fb923c" font-size="10" font-weight="600">谁干什么</text>
 
           <rect x="464" y="80" width="204" height="60" rx="6" fill="#0f172a"/>
           <rect x="464" y="80" width="204" height="60" rx="6" fill="rgba(120,53,15,.35)" stroke="#fbbf24" stroke-width="1.5"/>
@@ -76,15 +76,15 @@
 
           <rect x="464" y="224" width="204" height="32" rx="6" fill="#0f172a"/>
           <rect x="464" y="224" width="204" height="32" rx="6" fill="rgba(136,19,55,.35)" stroke="#fb7185" stroke-width="1.5"/>
-          <text x="480" y="245" fill="#fb7185" font-size="9" font-weight="600">交叉复核 · Grok</text>
+          <text x="480" y="245" fill="#fb7185" font-size="9" font-weight="600">找 Grok 再核一遍</text>
 
           <rect x="464" y="268" width="204" height="28" rx="5" fill="none" stroke="#475569" stroke-width="1.2" stroke-dasharray="4,3"/>
           <text x="566" y="286" fill="#64748b" font-size="8.5" text-anchor="middle">兜底 API：各家直连 / 本地模型</text>
 
           <text x="448" y="330" fill="#34d399" font-size="9" font-weight="600">为什么是分工，不是群聊</text>
-          <text x="448" y="352" fill="#cbd5e1" font-size="8.5">写操作保持单线程，</text>
-          <text x="448" y="368" fill="#cbd5e1" font-size="8.5">额外的模型只贡献<tspan fill="#fff">判断力</tspan>，</text>
-          <text x="448" y="384" fill="#cbd5e1" font-size="8.5">不贡献<tspan fill="#fb7185">动作</tspan>。</text>
+          <text x="448" y="352" fill="#cbd5e1" font-size="8.5">动手的始终只有一个，</text>
+          <text x="448" y="368" fill="#cbd5e1" font-size="8.5">多请的模型只出<tspan fill="#fff">主意</tspan>，</text>
+          <text x="448" y="384" fill="#cbd5e1" font-size="8.5">不许<tspan fill="#fb7185">动手</tspan>。</text>
         
           </g>
         
@@ -100,16 +100,16 @@
         <div class="card emerald">
           <div class="card-head"><span class="card-dot emerald"></span><h3>七道坎 → 三个关键决定</h3></div>
           <ul>
-            <li><strong>①③</strong> 确定性的事外包给确定性程序，工具集<strong>刻意小</strong></li>
-            <li><strong>④⑤</strong> 规划与执行<strong>换模型</strong>，第三个只做复核，轨迹可重放</li>
-            <li><strong>⑥</strong> <strong>默认只读</strong>：写 / 联网 / 敏感路径各要显式开关</li>
+            <li><strong>①③</strong> 普通程序能算准的事就交给程序，工具<strong>故意做少</strong></li>
+            <li><strong>④⑤</strong> 出主意的和动手的<strong>换不同模型</strong>，第三个只复核，全程能重放</li>
+            <li><strong>⑥</strong> <strong>默认只让读</strong>：写、联网、碰敏感路径各配一个开关</li>
           </ul>
         </div>
         <div class="card violet">
-          <div class="card-head"><span class="card-dot violet"></span><h3>它现在是什么</h3></div>
+          <div class="card-head"><span class="card-dot violet"></span><h3>它现在是个什么东西</h3></div>
           <ul>
-            <li><strong>实验室工具</strong>，从 oh-my-pi 裁剪，小几个数量级</li>
-            <li>套 FORK.md 的话：<strong>能放 Tier 0 的，不进核心</strong></li>
+            <li><strong>自己用的实验工具</strong>，从 oh-my-pi 砍出来的，小好几个数量级</li>
+            <li>按 FORK.md 那套说法：<strong>能放 Tier 0 的就别塞进核心</strong></li>
           </ul>
         </div>
       </div>
@@ -117,7 +117,7 @@
 
     <div class="takeaway">
       <b>回到开头那句 →</b> "There are many agent harnesses <b style="color:#22d3ee">but this one is yours</b>"<br>
-      <span style="color:#94a3b8">不是别人的不够强 —— <b style="color:#e2e8f0">只有你知道自己这行的约束</b>，<b style="color:#34d399">那层壳只能自己焊</b>。</span>
+      <span style="color:#94a3b8">不是别人做得不够好 —— <b style="color:#e2e8f0">只有你清楚自己这行的规矩</b>，<b style="color:#34d399">那层壳只能自己焊</b>。</span>
     </div>
   </div>
 

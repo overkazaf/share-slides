@@ -1,8 +1,8 @@
 <section class="slide" data-ch="CH7 实践" data-title="一条你能对号入座的主线：看懂别人的设计，再优化自己的策略">
   <div class="s-head">
     <div class="s-kicker"><span class="dot amber"></span>CH 7 · 实践 · 落地场景</div>
-    <h1 class="s-title">逆向不只是抓坏人 —— 更多是<span class="hl-a">「看懂别人的设计，再优化自己的策略」</span></h1>
-    <div class="s-sub">场景：<b>你的埋点在地铁里大面积丢失、流量还偏高</b>，竞品不丢 —— <b>竞品不会写博客告诉你他们的退避曲线是多少。</b></div>
+    <h1 class="s-title">逆向不光是抓坏人 —— 更多时候是<span class="hl-a">「看懂人家怎么做的，再改自己的」</span></h1>
+    <div class="s-sub">比如：<b>你的埋点在地铁里大片丢数据、流量还偏高</b>，竞品不丢 —— <b>人家不会写博客告诉你退避曲线是怎么设的。</b></div>
   </div>
 
   <div class="s-body">
@@ -24,50 +24,50 @@
 
         <!-- ① -->
         <text x="30" y="52" fill="#fb7185" font-size="11" font-weight="700">①</text>
-        <text x="52" y="52" fill="#fff" font-size="10.5" font-weight="600">立项与边界</text>
+        <text x="52" y="52" fill="#fff" font-size="10.5" font-weight="600">开工前划线</text>
         <text x="252" y="52" fill="#cbd5e1" font-size="9">planner（Codex）出只读 plan：只看上报模块</text>
-        <text x="736" y="52" fill="#cbd5e1" font-size="9"><tspan fill="#fff">划边界。</tspan>哪些是「学设计」、哪些一碰就越线</text>
+        <text x="736" y="52" fill="#cbd5e1" font-size="9"><tspan fill="#fff">划线。</tspan>哪些算「学设计」，哪些一碰就越界</text>
 
         <!-- ② -->
         <text x="30" y="84" fill="#fb7185" font-size="11" font-weight="700">②</text>
         <text x="52" y="84" fill="#fff" font-size="10.5" font-weight="600">样本三查</text>
         <text x="252" y="84" fill="#cbd5e1" font-size="9">确定性工具链 <tspan fill="#a5f3fc">file_info · strings · hash_file · extract_symbols</tspan></text>
-        <text x="736" y="84" fill="#cbd5e1" font-size="9"><tspan fill="#fff">判断可行性。</tspan>重壳 + 控制流平坦化就当场<tspan fill="#fb7185">收手</tspan></text>
+        <text x="736" y="84" fill="#cbd5e1" font-size="9"><tspan fill="#fff">看还值不值得做。</tspan>重壳 + 控制流平坦化就当场<tspan fill="#fb7185">收手</tspan></text>
 
         <!-- ③ -->
         <text x="30" y="116" fill="#fb7185" font-size="11" font-weight="700">③</text>
         <text x="52" y="116" fill="#fff" font-size="10.5" font-weight="600">定位上报模块</text>
         <text x="252" y="116" fill="#cbd5e1" font-size="9">grep + strings 锁定上报域名与 batch / flush / retry / backoff 残留</text>
-        <text x="736" y="116" fill="#cbd5e1" font-size="9"><tspan fill="#fff">认领线索。</tspan>它给 20 个候选，人挑 2 个</text>
+        <text x="736" y="116" fill="#cbd5e1" font-size="9"><tspan fill="#fff">挑线索。</tspan>它给 20 个候选，人挑 2 个</text>
 
         <!-- ④ -->
         <text x="30" y="148" fill="#fb7185" font-size="11" font-weight="700">④</text>
         <text x="52" y="148" fill="#fff" font-size="10.5" font-weight="600">还原机制</text>
         <text x="252" y="148" fill="#cbd5e1" font-size="9">参数表：批量上限 · flush 条件 · 退避曲线 · 离线队列 · 去重键</text>
-        <text x="736" y="148" fill="#cbd5e1" font-size="9"><tspan fill="#fff">决定「够了没有」。</tspan><tspan fill="#fbbf24">判停权在人</tspan></text>
+        <text x="736" y="148" fill="#cbd5e1" font-size="9"><tspan fill="#fff">决定查到这儿够不够。</tspan><tspan fill="#fbbf24">什么时候收手人说了算</tspan></text>
 
         <!-- ⑤ -->
         <text x="30" y="180" fill="#fb7185" font-size="11" font-weight="700">⑤</text>
         <text x="52" y="180" fill="#fff" font-size="10.5" font-weight="600">提炼设计精华</text>
-        <text x="252" y="180" fill="#cbd5e1" font-size="9">升维成「机制卡」：取舍是什么、什么约束下成立</text>
-        <text x="736" y="180" fill="#cbd5e1" font-size="9"><tspan fill="#fff">过滤。</tspan>哪些是精华，哪些是它的历史包袱</text>
+        <text x="252" y="180" fill="#cbd5e1" font-size="9">归纳成「机制卡」：它取舍了什么、什么前提下才成立</text>
+        <text x="736" y="180" fill="#cbd5e1" font-size="9"><tspan fill="#fff">筛一遍。</tspan>哪些真值得学，哪些是人家的历史包袱</text>
 
         <!-- ⑥ -->
         <text x="30" y="228" fill="#34d399" font-size="11" font-weight="700">⑥</text>
         <text x="52" y="228" fill="#fff" font-size="10.5" font-weight="600">差异对照 + 落成改动</text>
         <text x="252" y="228" fill="#cbd5e1" font-size="9">切回自家代码仓逐条列 diff → 改动清单与 PR</text>
-        <text x="736" y="228" fill="#cbd5e1" font-size="9"><tspan fill="#fff">取舍与排期。</tspan><tspan fill="#fbbf24">差异不等于要抄</tspan></text>
+        <text x="736" y="228" fill="#cbd5e1" font-size="9"><tspan fill="#fff">决定做不做、什么时候做。</tspan><tspan fill="#fbbf24">不一样不等于要抄</tspan></text>
 
         <!-- ⑦ -->
         <text x="30" y="260" fill="#34d399" font-size="11" font-weight="700">⑦</text>
         <text x="52" y="260" fill="#fff" font-size="10.5" font-weight="600">回归验证 + 归档轨迹</text>
         <text x="252" y="260" fill="#cbd5e1" font-size="9">弱网回归对比前后，落成<tspan fill="#fff">只追加的 JSONL 轨迹</tspan></text>
-        <text x="736" y="260" fill="#cbd5e1" font-size="9"><tspan fill="#fff">定验收标准。</tspan>不定指标它会自己优化好看的数字</text>
+        <text x="736" y="260" fill="#cbd5e1" font-size="9"><tspan fill="#fff">定验收标准。</tspan>你不定指标，它就去刷好看的数字</text>
 
         <!-- 底部结论条 -->
         <rect x="20" y="292" width="1120" height="34" rx="7" fill="rgba(120,53,15,.24)" stroke="#fbbf24" stroke-width="1"/>
         <text x="40" y="314" fill="#fbbf24" font-size="10.5" font-weight="700">前五步是逆向，后两步是普通 coding。</text>
-        <text x="300" y="314" fill="#e2e8f0" font-size="10.5">通用 coding agent 只在 ⑥⑦ 好用，①–⑤ <tspan fill="#fb7185" font-weight="700">集体撞墙</tspan> —— 这就是 re-agent 的全部理由。</text>
+        <text x="300" y="314" fill="#e2e8f0" font-size="10.5">通用 coding agent 只有 ⑥⑦ 好使，①–⑤ <tspan fill="#fb7185" font-weight="700">全都撞墙</tspan> —— re-agent 就是为这个才做的。</text>
       
           </g>
         </svg>

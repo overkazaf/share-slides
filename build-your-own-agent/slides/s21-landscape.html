@@ -1,8 +1,8 @@
 <section class="slide" data-ch="CH5 全景" data-title="主流 Coding Agent 全景：内核大小 × 开源程度">
   <div class="s-head">
     <div class="s-kicker"><span class="dot"></span>CH 5 · 全景</div>
-    <h1 class="s-title">2026 年的分水岭：<span class="hl">harness 和模型能不能解耦</span></h1>
-    <div class="s-sub">不是"有没有 AI"，是"这层壳是不是你的" —— <b style="color:#e2e8f0">空着的那一格就是个论点</b>。</div>
+    <h1 class="s-title">2026 年的分界线：<span class="hl">harness 和模型拆不拆得开</span></h1>
+    <div class="s-sub">不看"有没有 AI"，看"这层壳归不归你" —— <b style="color:#e2e8f0">图里空着那格本身就是句话</b>。</div>
   </div>
 
   <div class="s-body">
@@ -25,8 +25,8 @@
 
           <text x="60"  y="24" fill="#22d3ee" font-size="9" font-weight="600">宽松开源 · MIT / Apache</text>
           <text x="60"  y="410" fill="#fbbf24" font-size="9" font-weight="600">闭源专有</text>
-          <text x="60"  y="428" fill="#64748b" font-size="8.5">← 内核最小（一切靠你自己长）</text>
-          <text x="660" y="428" fill="#64748b" font-size="8.5" text-anchor="end">电池全包（开箱即用）→</text>
+          <text x="60"  y="428" fill="#64748b" font-size="8.5">← 内核最小（啥都得自己加）</text>
+          <text x="660" y="428" fill="#64748b" font-size="8.5" text-anchor="end">什么都给你备齐（开箱即用）→</text>
 
           <!-- 左上：极简 + 开源 -->
           <circle cx="150" cy="92" r="13" fill="rgba(34,211,238,.4)" stroke="#22d3ee" stroke-width="2.2"/>
@@ -42,7 +42,7 @@
           <!-- 右上：大而全 + 开源 -->
           <circle cx="506" cy="80" r="9" fill="rgba(52,211,153,.35)" stroke="#34d399" stroke-width="1.6"/>
           <text x="522" y="78" fill="#fff" font-size="11" font-weight="600">opencode</text>
-          <text x="522" y="92" fill="#34d399" font-size="8.5">191.7k ★ · 热度天花板</text>
+          <text x="522" y="92" fill="#34d399" font-size="8.5">191.7k ★ · 最火的一个</text>
           <circle cx="592" cy="132" r="7" fill="rgba(52,211,153,.3)" stroke="#34d399" stroke-width="1.4"/>
           <text x="606" y="136" fill="#cbd5e1" font-size="10">Cline</text>
           <circle cx="446" cy="150" r="7" fill="rgba(52,211,153,.3)" stroke="#34d399" stroke-width="1.4"/>
@@ -65,7 +65,7 @@
           <!-- 左下：空 -->
           <text x="210" y="286" fill="#fb7185" font-size="11" font-weight="600" text-anchor="middle">这一格是空的</text>
           <text x="210" y="306" fill="#94a3b8" font-size="9" text-anchor="middle">没有"极简 + 闭源"的产品</text>
-          <text x="210" y="322" fill="#64748b" font-size="8.5" text-anchor="middle">没有做极简的商业动机 —— 功能就是卖点</text>
+          <text x="210" y="322" fill="#64748b" font-size="8.5" text-anchor="middle">卖钱的产品没理由做小 —— 功能就是卖点</text>
           <rect x="112" y="262" width="196" height="72" rx="8" fill="none" stroke="#fb7185" stroke-width="1.2" stroke-dasharray="5,4"/>
         
           </g>
@@ -80,24 +80,24 @@
 
       <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
         <div class="card cyan">
-          <div class="card-head"><span class="card-dot cyan"></span><h3>另一个切法：交互面</h3></div>
+          <div class="card-head"><span class="card-dot cyan"></span><h3>换个角度：你怎么用它</h3></div>
           <ul>
-            <li><strong>终端优先</strong>＝"<em>结对</em>"，随时打断 · <strong>编辑器优先</strong>＝"<em>陪审</em>"，看 diff 批准 · <strong>云端异步</strong>＝"<em>外包</em>"，回来收 PR</li>
-            <li class="note">不是优劣，是你愿意在场多久<span class="note">pi · Codex CLI ／ Cursor · Cline ／ Jules · Codex Cloud</span></li>
+            <li><strong>在终端里</strong>＝"<em>陪着干</em>"，随时喊停 · <strong>在编辑器里</strong>＝"<em>你来审</em>"，看 diff 点同意 · <strong>丢到云上</strong>＝"<em>外包</em>"，回来收 PR</li>
+            <li class="note">没有高下，就看你愿意盯多久<span class="note">pi · Codex CLI ／ Cursor · Cline ／ Jules · Codex Cloud</span></li>
           </ul>
         </div>
         <div class="card emerald">
-          <div class="card-head"><span class="card-dot emerald"></span><h3>2026 年最重要的架构趋势</h3></div>
+          <div class="card-head"><span class="card-dot emerald"></span><h3>2026 年最要紧的一个变化</h3></div>
           <ul>
-            <li><strong>agent 与前端正在解耦</strong>：编辑器侧有通用协议，仓库侧有统一调度台</li>
-            <li><strong>"用哪个 agent"和"在哪用"成了两个独立选择</strong> —— 自己造 harness 的前提</li>
+            <li><strong>agent 正在跟界面分家</strong>：编辑器那头有通用协议，仓库那头有统一调度台</li>
+            <li><strong>"用哪个 agent"和"在哪儿用"变成两件事分开挑</strong> —— 才轮得到你自己造 harness</li>
           </ul>
         </div>
         <div class="card rose">
-          <div class="card-head"><span class="card-dot rose"></span><h3>选型提醒（血泪）</h3></div>
+          <div class="card-head"><span class="card-dot rose"></span><h3>挑之前提个醒（踩过的）</h3></div>
           <ul>
-            <li>赛道<strong>死亡率很高</strong>：核实中就撞见停运、免费档停服、改名换东家</li>
-            <li><strong>把赌注押在"你能改的那部分"</strong>，别押别人的路线图</li>
+            <li>这行<strong>死得很快</strong>：光核实资料就撞上停运、免费档取消、改名换东家</li>
+            <li><strong>要押就押"你自己能改的那部分"</strong>，别押人家的路线图</li>
           </ul>
         </div>
       </div>
