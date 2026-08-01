@@ -11,3 +11,5 @@ build-your-own-agent/distill/
 # 提词器页面内嵌讲稿全文，同样不公开（生成脚本 prompter.py 照常提交）
 build-your-own-agent/prompter.html
 build-your-own-agent/qa.html
+build-your-own-agent/m.html
+build-your-own-agent/print.html
