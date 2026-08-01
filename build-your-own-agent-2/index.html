@@ -1,0 +1,2560 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>如何打造自己的 Agent · Chapter 2 · 解剖 pi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+/* ==========================================================================
+   《如何打造自己的 Agent》· 演示框架
+   设计系统：cocoonAI / architecture-diagram (dark slate + JetBrains Mono)
+   ========================================================================== */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg:        #020617;
+  --bg-soft:   #0f172a;
+  --line:      #1e293b;
+  --fg:        #ffffff;
+  --muted:     #94a3b8;
+  --dim:       #64748b;
+  --faint:     #475569;
+
+  --cyan:      #22d3ee;
+  --emerald:   #34d399;
+  --violet:    #a78bfa;
+  --amber:     #fbbf24;
+  --rose:      #fb7185;
+  --orange:    #fb923c;
+  --slate:     #94a3b8;
+
+  --cyan-fill:    rgba(8, 51, 68, .4);
+  --emerald-fill: rgba(6, 78, 59, .4);
+  --violet-fill:  rgba(76, 29, 149, .4);
+  --amber-fill:   rgba(120, 53, 15, .3);
+  --rose-fill:    rgba(136, 19, 55, .4);
+  --orange-fill:  rgba(251, 146, 60, .3);
+  --slate-fill:   rgba(30, 41, 59, .5);
+
+  --stage-w: 1280px;
+  --stage-h: 720px;
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'JetBrains Mono', 'PingFang SC', 'Noto Sans SC', 'Microsoft YaHei', monospace;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- 舞台：固定 1280x720，等比缩放铺满视口 ---------- */
+#stage-wrap {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#stage {
+  position: relative;
+  width: var(--stage-w);
+  height: var(--stage-h);
+  transform-origin: center center;
+  flex: none;
+}
+
+/* ---------- 幻灯片 ---------- */
+.slide {
+  position: absolute;
+  inset: 0;
+  padding: 46px 60px 54px;
+  display: none;
+  flex-direction: column;
+  background:
+    linear-gradient(180deg, rgba(2,6,23,0) 0%, rgba(2,6,23,.6) 100%),
+    repeating-linear-gradient(0deg,  transparent 0 39px, rgba(30,41,59,.55) 39px 40px),
+    repeating-linear-gradient(90deg, transparent 0 39px, rgba(30,41,59,.55) 39px 40px),
+    var(--bg);
+}
+.slide.active { display: flex; animation: slide-in .32s cubic-bezier(.22,.61,.36,1); }
+@keyframes slide-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* 封面 / 章扉页变体 */
+.slide.cover, .slide.chapter { justify-content: center; }
+.slide.cover::before, .slide.chapter::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 70% 55% at 22% 30%, rgba(34,211,238,.13), transparent 70%),
+              radial-gradient(ellipse 60% 50% at 80% 75%, rgba(167,139,250,.11), transparent 70%);
+  pointer-events: none;
+}
+
+/* ---------- 页眉 ---------- */
+.s-head { margin-bottom: 20px; flex: none; }
+.s-kicker {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--dim); margin-bottom: 10px;
+}
+.s-kicker .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--cyan); }
+.s-kicker .dot.emerald { background: var(--emerald); }
+.s-kicker .dot.violet  { background: var(--violet); }
+.s-kicker .dot.amber   { background: var(--amber); }
+.s-kicker .dot.rose    { background: var(--rose); }
+.s-kicker .dot.orange  { background: var(--orange); }
+
+h1.s-title {
+  font-size: 30px; font-weight: 700; letter-spacing: -.02em; line-height: 1.25;
+}
+h1.s-title .hl { color: var(--cyan); }
+h1.s-title .hl-v { color: var(--violet); }
+h1.s-title .hl-e { color: var(--emerald); }
+h1.s-title .hl-r { color: var(--rose); }
+h1.s-title .hl-a { color: var(--amber); }
+
+.s-sub {
+  margin-top: 9px; font-size: 13px; color: var(--muted); line-height: 1.7;
+  max-width: 1000px;
+}
+.s-sub code { color: var(--amber); font-size: 12px; }
+
+/* ---------- 主体 ---------- */
+.s-body { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 14px; }
+.s-body.center { justify-content: center; }
+
+/* SVG 始终等比缩放到容器内（letterbox），永不撑破版心 */
+.figure {
+  background: rgba(15,23,42,.5);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 14px;
+  flex: 1; min-height: 0; min-width: 0;
+  display: block; overflow: hidden;
+}
+.figure.plain { background: transparent; border: none; padding: 0; }
+.figure > svg { width: 100%; height: 100%; display: block; }
+.figure > table { width: 100%; }
+
+/* 两栏 */
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; flex: 1; min-height: 0; }
+.cols.c37 { grid-template-columns: 3fr 7fr; }
+.cols.c73 { grid-template-columns: 7fr 3fr; }
+.cols.c46 { grid-template-columns: 4fr 6fr; }
+.cols.c64 { grid-template-columns: 6fr 4fr; }
+
+/* ---------- 卡片 ---------- */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 12px; }
+.cards.c2 { grid-template-columns: repeat(2, 1fr); }
+.cards.c3 { grid-template-columns: repeat(3, 1fr); }
+.cards.c4 { grid-template-columns: repeat(4, 1fr); }
+.cards.c5 { grid-template-columns: repeat(5, 1fr); }
+
+.card {
+  background: rgba(15,23,42,.5);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 11px 14px;
+}
+.card.cyan    { border-color: rgba(34,211,238,.35);  background: var(--cyan-fill); }
+.card.emerald { border-color: rgba(52,211,153,.35);  background: var(--emerald-fill); }
+.card.violet  { border-color: rgba(167,139,250,.35); background: var(--violet-fill); }
+.card.amber   { border-color: rgba(251,191,36,.35);  background: var(--amber-fill); }
+.card.rose    { border-color: rgba(251,113,133,.35); background: var(--rose-fill); }
+.card.orange  { border-color: rgba(251,146,60,.35);  background: var(--orange-fill); }
+
+.card-head { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+.card-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; background: var(--slate); }
+.card-dot.cyan{background:var(--cyan)} .card-dot.emerald{background:var(--emerald)}
+.card-dot.violet{background:var(--violet)} .card-dot.amber{background:var(--amber)}
+.card-dot.rose{background:var(--rose)} .card-dot.orange{background:var(--orange)}
+.card h3 { font-size: 13px; font-weight: 600; letter-spacing: -.01em; }
+.card .card-num { margin-left: auto; font-size: 10px; color: var(--faint); }
+.card p  { font-size: 11.5px; color: var(--muted); line-height: 1.75; }
+.card ul { list-style: none; font-size: 11.5px; color: var(--muted); line-height: 1.7; }
+.card ul li { padding-left: 13px; position: relative; }
+.card ul li::before { content: '▸'; position: absolute; left: 0; color: var(--faint); }
+.card strong { color: var(--fg); font-weight: 600; }
+.card em { font-style: normal; color: var(--amber); }
+.card .note { display: block; margin-top: 3px; font-size: 9.5px; color: #7e8ea6; line-height: 1.65; }
+.cards { min-height: 0; }
+.s-body > .cards { align-content: stretch; }
+.s-body > .cards > .card { display: flex; flex-direction: column; }
+
+/* ---------- 要点列表 ---------- */
+ul.points { list-style: none; display: flex; flex-direction: column; gap: 11px; }
+ul.points > li {
+  font-size: 14px; line-height: 1.75; color: #cbd5e1;
+  padding-left: 26px; position: relative;
+}
+ul.points > li::before {
+  content: attr(data-n);
+  position: absolute; left: 0; top: 1px;
+  font-size: 10px; color: var(--cyan);
+  border: 1px solid rgba(34,211,238,.4); border-radius: 4px;
+  width: 18px; height: 18px; display: grid; place-items: center;
+}
+ul.points > li b { color: var(--fg); font-weight: 600; }
+ul.points > li .note { display: block; font-size: 11.5px; color: var(--dim); margin-top: 3px; }
+
+/* ---------- 表格 ---------- */
+table.t {
+  width: 100%; border-collapse: collapse; font-size: 11.5px;
+}
+table.t th {
+  text-align: left; padding: 8px 10px; color: var(--dim);
+  font-size: 10px; letter-spacing: .08em; text-transform: uppercase;
+  border-bottom: 1px solid var(--line); font-weight: 500;
+}
+table.t td {
+  padding: 8px 10px; color: var(--muted); border-bottom: 1px solid rgba(30,41,59,.55);
+  line-height: 1.6;
+}
+table.t tr:last-child td { border-bottom: none; }
+table.t.compact th { padding: 4px 9px; }
+table.t.compact td { padding: 4px 9px; font-size: 10.8px; line-height: 1.5; }
+table.t.compact .note { display: block; margin-top: 1px; font-size: 9px; color: #7e8ea6; }
+table.t td.k { color: var(--fg); font-weight: 600; }
+table.t td .tag {
+  display: inline-block; font-size: 9.5px; padding: 1px 6px; border-radius: 4px;
+  border: 1px solid var(--line); color: var(--dim);
+}
+table.t td .tag.cyan   { color: var(--cyan);    border-color: rgba(34,211,238,.4);  background: var(--cyan-fill); }
+table.t td .tag.emerald{ color: var(--emerald); border-color: rgba(52,211,153,.4);  background: var(--emerald-fill); }
+table.t td .tag.violet { color: var(--violet);  border-color: rgba(167,139,250,.4); background: var(--violet-fill); }
+table.t td .tag.amber  { color: var(--amber);   border-color: rgba(251,191,36,.4);  background: var(--amber-fill); }
+table.t td .tag.rose   { color: var(--rose);    border-color: rgba(251,113,133,.4); background: var(--rose-fill); }
+table.t td .tag.orange { color: var(--orange);  border-color: rgba(251,146,60,.4);  background: var(--orange-fill); }
+
+/* ---------- 引言 / 金句 ---------- */
+.quote {
+  border-left: 2px solid var(--cyan);
+  padding: 4px 0 4px 16px;
+  font-size: 15px; line-height: 1.8; color: #e2e8f0;
+}
+.quote .who { display: block; margin-top: 7px; font-size: 11px; color: var(--dim); }
+
+.takeaway {
+  margin-top: auto;
+  border: 1px solid rgba(52,211,153,.3);
+  background: rgba(6,78,59,.22);
+  border-radius: 10px;
+  padding: 11px 15px;
+  font-size: 12.5px; color: #d1fae5; line-height: 1.7;
+  flex: none;
+}
+.takeaway b { color: var(--emerald); }
+
+/* ---------- 页脚 ---------- */
+.s-foot {
+  position: absolute; left: 60px; right: 60px; bottom: 18px;
+  display: flex; align-items: center; gap: 12px;
+  font-size: 9.5px; color: var(--faint);
+  border-top: 1px solid rgba(30,41,59,.7); padding-top: 9px;
+}
+.s-foot .src { color: var(--faint); }
+.s-foot .src b { color: var(--dim); font-weight: 500; }
+.s-foot .spacer { flex: 1; }
+.s-foot .pg { color: var(--dim); letter-spacing: .1em; }
+
+/* ---------- 封面 ---------- */
+.cover-inner { position: relative; z-index: 1; }
+.cover-tag {
+  display: inline-flex; align-items: center; gap: 9px;
+  border: 1px solid var(--line); border-radius: 999px;
+  padding: 5px 14px; font-size: 10.5px; color: var(--muted);
+  letter-spacing: .1em; margin-bottom: 26px;
+}
+.cover-tag .pulse {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--cyan);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse { 0%,100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34,211,238,.5); }
+                   50% { opacity: .55; box-shadow: 0 0 0 7px rgba(34,211,238,0); } }
+.cover h1 { font-size: 54px; font-weight: 700; letter-spacing: -.03em; line-height: 1.18; }
+.cover h1 .accent { color: var(--cyan); }
+.cover .cover-sub { margin-top: 20px; font-size: 16px; color: var(--muted); line-height: 1.8; }
+.cover .cover-meta {
+  margin-top: 38px; display: flex; gap: 26px; font-size: 11px; color: var(--faint);
+  border-top: 1px solid var(--line); padding-top: 18px; max-width: 760px;
+}
+.cover .cover-meta b { color: var(--dim); font-weight: 500; }
+
+/* 章扉页 */
+.chapter-inner { position: relative; z-index: 1; text-align: left; display: grid;
+                 grid-template-columns: 5fr 5fr; gap: 46px; align-items: start; }
+.chapter .ch-no { font-size: 76px; font-weight: 700; color: rgba(148,163,184,.16); line-height: 1; }
+.chapter h1 { font-size: 38px; font-weight: 700; margin-top: -14px; letter-spacing: -.02em; }
+.chapter h1 .hl { color: var(--cyan); }
+.chapter .ch-q { margin-top: 18px; font-size: 15px; color: #cbd5e1; line-height: 1.8; }
+.chapter .ch-q b { color: var(--fg); }
+.chapter .ch-sub { margin-top: 16px; font-size: 12px; color: var(--dim); line-height: 1.9;
+                   border-left: 2px solid var(--line); padding-left: 14px; }
+.chapter .ch-sub b { color: var(--muted); font-weight: 500; }
+
+.ch-list { list-style: none; }
+.ch-list .ch-list-h { font-size: 10px; letter-spacing: .14em; color: var(--faint);
+                      text-transform: uppercase; margin-bottom: 12px; }
+.ch-list li { display: flex; gap: 12px; align-items: baseline;
+              padding: 7px 0; border-bottom: 1px solid rgba(30,41,59,.7); }
+.ch-list li:last-child { border-bottom: none; }
+.ch-list .n { font-size: 10px; color: var(--faint); min-width: 20px; flex: none; }
+.ch-list .t { font-size: 12.5px; color: #e2e8f0; line-height: 1.5; }
+.ch-list .t i { font-style: normal; display: block; font-size: 10px; color: var(--dim); margin-top: 2px; }
+
+.ch-prog { display: flex; gap: 5px; margin-top: 26px; }
+.ch-prog span { height: 3px; flex: 1; background: var(--line); border-radius: 2px; }
+.ch-prog span.on { background: var(--cyan); box-shadow: 0 0 8px rgba(34,211,238,.6); }
+.ch-prog span.done { background: var(--faint); }
+
+/* ---------- 导航 UI ---------- */
+#progress {
+  position: fixed; left: 0; top: 0; height: 2px; background: var(--cyan);
+  z-index: 90; transition: width .25s ease; box-shadow: 0 0 10px rgba(34,211,238,.7);
+}
+#hud {
+  position: fixed; right: 16px; bottom: 14px; z-index: 90;
+  display: flex; align-items: center; gap: 10px;
+  font-size: 10px; color: var(--faint); letter-spacing: .08em;
+}
+#hud button {
+  background: rgba(15,23,42,.8); border: 1px solid var(--line); color: var(--dim);
+  border-radius: 6px; width: 26px; height: 26px; cursor: pointer; font-size: 12px;
+  font-family: inherit; transition: .15s;
+}
+#hud button:hover { color: var(--cyan); border-color: rgba(34,211,238,.5); }
+
+/* 缩略图总览 */
+#overview {
+  position: fixed; inset: 0; z-index: 100; background: rgba(2,6,23,.97);
+  display: none; padding: 34px; overflow-y: auto;
+}
+#overview.on { display: block; }
+#overview h2 { font-size: 13px; color: var(--dim); margin-bottom: 18px; letter-spacing: .1em; }
+#ov-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(184px, 1fr)); gap: 12px; }
+.ov-item {
+  border: 1px solid var(--line); border-radius: 8px; padding: 11px 12px;
+  cursor: pointer; background: rgba(15,23,42,.55); transition: .15s;
+}
+.ov-item:hover { border-color: rgba(34,211,238,.55); background: rgba(8,51,68,.4); }
+.ov-item.cur { border-color: var(--cyan); }
+.ov-item .n { font-size: 9.5px; color: var(--faint); }
+.ov-item .t { font-size: 11.5px; color: #cbd5e1; margin-top: 5px; line-height: 1.5; }
+.ov-item .c { font-size: 9px; color: var(--dim); margin-top: 6px; }
+
+/* ---------- 打印 / PDF ---------- */
+@media print {
+  @page { size: 1280px 720px; margin: 0; }
+  /* Chrome 默认"省墨"会丢掉所有背景色，深色主题必须显式关掉 */
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  html, body { overflow: visible; height: auto; background: var(--bg); max-width: 100%; overflow-x: hidden; }
+  #stage-wrap { position: static; display: block; }
+  #stage { width: 1280px; height: auto; transform: none !important; }
+  .slide {
+    display: flex !important; position: relative; inset: auto;
+    width: 1280px; height: 720px; page-break-after: always; break-after: page;
+    animation: none;
+  }
+  #hud, #progress, #overview { display: none !important; }
+}
+
+/* ---------- 目录页 ---------- */
+.toc { display: grid; grid-template-columns: 1fr 1fr; gap: 11px 32px; flex: 1; min-height: 0; align-content: start; }
+.toc-ch { border-left: 2px solid var(--line); padding-left: 14px; }
+.toc-ch.cyan   { border-color: var(--cyan); }
+.toc-ch.amber  { border-color: var(--amber); }
+.toc-ch.violet { border-color: var(--violet); }
+.toc-ch.rose   { border-color: var(--rose); }
+.toc-ch.slate  { border-color: var(--slate); }
+.toc-ch.emerald{ border-color: var(--emerald); }
+.toc-ch.orange { border-color: var(--orange); }
+.toc-hd { display: flex; align-items: baseline; gap: 9px; }
+.toc-hd .no { font-size: 10px; color: var(--faint); letter-spacing: .1em; }
+.toc-hd .nm { font-size: 15px; font-weight: 700; color: var(--fg); }
+.toc-hd .pg { margin-left: auto; font-size: 10px; color: var(--faint); }
+.toc-q { font-size: 11px; color: var(--muted); margin-top: 2px; line-height: 1.5; }
+.toc-items { list-style: none; margin-top: 4px; }
+.toc-items li { font-size: 10.5px; color: var(--dim); line-height: 1.62; display: flex; gap: 8px; }
+.toc-items li b { color: #cbd5e1; font-weight: 400; }
+.toc-items li .p { color: var(--faint); min-width: 38px; flex: none; }
+.toc-items li em { font-style: normal; color: var(--amber); }
+
+/* 超紧凑表格：给行数多的对照表用 */
+table.t.micro th { padding: 3px 8px; font-size: 9.5px; }
+table.t.micro td { padding: 3px 8px; font-size: 10.2px; line-height: 1.45; }
+table.t.micro .note { display: block; margin-top: 0; font-size: 8.6px; color: #7e8ea6; line-height: 1.4; }
+
+  </style>
+</head>
+<body>
+  <div id="progress" style="width:0"></div>
+
+  <div id="stage-wrap">
+    <div id="stage">
+<!-- ===== s01-cover.html ===== -->
+<section class="slide cover" data-ch="封面" data-title="Build Your Own Agent · Chapter 2 · Anatomy of pi">
+  <div class="cover-inner">
+    <div class="cover-tag"><span class="pulse"></span>BUILD YOUR OWN AGENT · CHAPTER 2 · ANATOMY OF PI</div>
+    <h1>解剖 <span class="accent">pi</span>：把一个 harness 拆到底</h1>
+    <div class="cover-sub">
+      第 (2) 讲 · 源码级精讲：<b style="color:#e2e8f0">循环</b>、<b style="color:#e2e8f0">会话</b>、<b style="color:#e2e8f0">上下文</b>、<b style="color:#e2e8f0">工具</b>、<b style="color:#e2e8f0">外壳</b><br>
+      上一讲讲清了「需要哪几样」，这一讲把每一样摊成源码。<br>
+      下一讲用这些零件动手造 <span style="color:#fb7185">re-agent</span>。
+    </div>
+    <div class="cover-meta">
+      <div><b>主张</b><br>难点不在调工具，在调完之后的所有事</div>
+      <div><b>样本</b><br>earendil-works/pi · v0.83.0 · 本地实测</div>
+      <div><b>落点</b><br>12 条可抄清单，每条带行号与成本</div>
+    </div>
+  </div>
+  <div class="s-foot">
+    <span class="src">取证基线 · <b>583f153</b> · 2026-08-01 · 本地 v0.83.0 实测</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s02-toc.html ===== -->
+<section class="slide" data-ch="开篇" data-title="目录：七章 27 页">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot"></span>目录 · CONTENTS</div>
+    <h1 class="s-title">七章 · 27 页 · 每章拆<span class="hl">一层</span></h1>
+    <div class="s-sub">越往后越靠外壳。<b style="color:#e2e8f0">时间不够就抓 CH2 和 CH7</b>。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="toc">
+
+      <div class="toc-ch cyan">
+        <div class="toc-hd"><span class="no">CH 1</span><span class="nm">起手</span><span class="pg">P3 – 05</span></div>
+        <div class="toc-q">为什么值得逐行读它？它的结构长什么样？</div>
+      </div>
+
+      <div class="toc-ch violet">
+        <div class="toc-hd"><span class="no">CH 4</span><span class="nm">上下文</span><span class="pg">P13 – 16</span></div>
+        <div class="toc-q">prompt 怎么拼？满了怎么办？SKILL 怎么省？</div>
+      </div>
+
+      <div class="toc-ch emerald">
+        <div class="toc-hd"><span class="no">CH 2</span><span class="nm">循环</span><span class="pg">P6 – 09　<em style="color:#34d399">本场重头</em></span></div>
+        <div class="toc-q">while(true) 之外，真实产品还多做了什么？</div>
+      </div>
+
+      <div class="toc-ch rose">
+        <div class="toc-hd"><span class="no">CH 5</span><span class="nm">工具</span><span class="pg">P17 – 20</span></div>
+        <div class="toc-q">为什么只给四个？edit 到底怎么改对位置？</div>
+      </div>
+
+      <div class="toc-ch amber">
+        <div class="toc-hd"><span class="no">CH 3</span><span class="nm">会话</span><span class="pg">P10 – 12</span></div>
+        <div class="toc-q">为什么说会话是棵树？落盘长什么样？</div>
+      </div>
+
+      <div class="toc-ch slate">
+        <div class="toc-hd"><span class="no">CH 6</span><span class="nm">外壳</span><span class="pg">P21 – 24</span></div>
+        <div class="toc-q">扩展面、模型接入层、自绘 TUI 各值多少工程量？</div>
+      </div>
+
+      <div class="toc-ch orange" style="grid-column: 2">
+        <div class="toc-hd"><span class="no">CH 7</span><span class="nm">抄走</span><span class="pg">P25 – 27　<em style="color:#fb923c">落点</em></span></div>
+        <div class="toc-q">哪 12 条能直接搬进你自己的 harness？</div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">全场行号均基于 <b>583f153</b>（v0.83.0）· 按 <b>O</b> 打开缩略图总览跳转</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s03-ch1.html ===== -->
+<section class="slide chapter" data-ch="CH01 起手" data-title="第 01 章 · 起手">
+  <div class="chapter-inner">
+    <div>
+      <div class="ch-no">01</div>
+      <h1>起手</h1>
+      <div class="ch-q"><b>为什么值得逐行读这一个 harness？</b></div>
+      <div class="ch-sub">八万五千 star、十一万行 TypeScript —— 但真正要看的是<b>它的结构</b>。</div>
+      <div class="ch-prog"><span class="on"></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span></div>
+    </div>
+    <div>
+      <ul class="ch-list">
+        <div class="ch-list-h">本章内容</div>
+        <li><span class="n">04</span><span class="t">可核对的体量表<i>9 个包 · src 行数 · 依赖治理，全部本地实测</i></span></li>
+        <li><span class="n">05</span><span class="t">一个结构事实<i>它有<i>两套</i>编排层，共享同一个内核</i></span></li>
+      </ul>
+      <div class="ch-sub" style="margin-top:22px;border-color:var(--cyan)">先把口径钉死：本讲每个行号都带 commit <b>583f153</b>，每个数字都标「实测」还是「官方」。</div>
+    </div>
+  </div>
+  <div class="s-foot">
+    <span class="src">第 01 章 / 共 7 章</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s04-scale.html ===== -->
+<section class="slide" data-ch="CH1 起手" data-title="基线：9 个包 11 万行，先把口径钉死">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot cyan"></span>CH 1 · 起手</div>
+    <h1 class="s-title">十一万行，一半压在<span class="hl">一个包</span>里</h1>
+    <div class="s-sub">全场数字都来自本地实测（commit <b style="color:#e2e8f0">583f153</b> · v0.83.0）—— <b style="color:#e2e8f0">不引用官方口径</b>。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="16" fill="#94a3b8" font-size="9.5" font-weight="600">9 个包 · src 行数（实测 find + wc -l）</text>
+          <text x="470" y="16" fill="#64748b" font-size="8.5">合计 112,232 行 / 495 文件</text>
+          <path d="M 16 26 L 684 26" stroke="#1e293b" stroke-width="1"/>
+
+          <text x="16" y="63" fill="#e2e8f0" font-size="9.5" font-weight="600">coding-agent</text>
+          <rect x="150" y="54" width="372" height="12" rx="2" fill="#34d399" opacity=".55"/>
+          <text x="528" y="64" fill="#94a3b8" font-size="8.5">56,431 行 · 183 文件</text>
+          <text x="16" y="76" fill="#64748b" font-size="8">产品本体 · CLI/TUI/会话/工具</text>
+
+          <text x="16" y="101" fill="#e2e8f0" font-size="9.5" font-weight="600">ai</text>
+          <rect x="150" y="92" width="141" height="12" rx="2" fill="#fbbf24" opacity=".55"/>
+          <text x="297" y="102" fill="#94a3b8" font-size="8.5">21,429 行 · 169 文件</text>
+          <text x="16" y="114" fill="#64748b" font-size="8">统一多厂商 LLM API</text>
+
+          <text x="16" y="139" fill="#e2e8f0" font-size="9.5" font-weight="600">tui</text>
+          <rect x="150" y="130" width="94" height="12" rx="2" fill="#22d3ee" opacity=".55"/>
+          <text x="250" y="140" fill="#94a3b8" font-size="8.5">14,184 行 · 37 文件</text>
+          <text x="16" y="152" fill="#64748b" font-size="8">差分渲染终端 UI 库</text>
+
+          <text x="16" y="177" fill="#e2e8f0" font-size="9.5" font-weight="600">agent</text>
+          <rect x="150" y="168" width="68" height="12" rx="2" fill="#34d399" opacity=".55"/>
+          <text x="224" y="178" fill="#94a3b8" font-size="8.5">10,368 行 · 37 文件</text>
+          <text x="16" y="190" fill="#64748b" font-size="8">agent 内核 + harness</text>
+
+          <text x="16" y="215" fill="#e2e8f0" font-size="9.5" font-weight="600">server</text>
+          <rect x="150" y="206" width="28" height="12" rx="2" fill="#94a3b8" opacity=".55"/>
+          <text x="184" y="216" fill="#94a3b8" font-size="8.5">4,281 行 · 30 文件</text>
+          <text x="16" y="228" fill="#64748b" font-size="8">实验性 server</text>
+
+          <text x="16" y="253" fill="#e2e8f0" font-size="9.5" font-weight="600">storage/sqlite-node</text>
+          <rect x="150" y="244" width="12" height="12" rx="2" fill="#a78bfa" opacity=".55"/>
+          <text x="168" y="254" fill="#94a3b8" font-size="8.5">1,796 行 · 13 文件</text>
+          <text x="16" y="266" fill="#64748b" font-size="8">SQLite 会话后端</text>
+
+          <text x="16" y="291" fill="#e2e8f0" font-size="9.5" font-weight="600">evals</text>
+          <rect x="150" y="282" width="8" height="12" rx="2" fill="#94a3b8" opacity=".55"/>
+          <text x="164" y="292" fill="#94a3b8" font-size="8.5">1,277 行 · 8 文件</text>
+          <text x="16" y="304" fill="#64748b" font-size="8">评测（不发布）</text>
+
+          <text x="16" y="329" fill="#e2e8f0" font-size="9.5" font-weight="600">protocol</text>
+          <rect x="150" y="320" width="8" height="12" rx="2" fill="#fb923c" opacity=".55"/>
+          <text x="164" y="330" fill="#94a3b8" font-size="8.5">1,233 行 · 8 文件</text>
+          <text x="16" y="342" fill="#64748b" font-size="8">CBOR 远程会话协议</text>
+
+          <text x="16" y="367" fill="#e2e8f0" font-size="9.5" font-weight="600">client</text>
+          <rect x="150" y="358" width="8" height="12" rx="2" fill="#fb923c" opacity=".55"/>
+          <text x="164" y="368" fill="#94a3b8" font-size="8.5">1,233 行 · 10 文件</text>
+          <text x="16" y="380" fill="#64748b" font-size="8">远程会话客户端</text>
+
+          <path d="M 16 398 L 684 398" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="416" fill="#cbd5e1" font-size="9">前三个包＝<tspan fill="#fff">82.0%</tspan>；产品本体一个包＝<tspan fill="#fff">50.3%</tspan>。<tspan fill="#fb923c">tui / ai / protocol 对内零依赖，可单独拿走。</tspan></text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>UI 和内核一个量级</h3></div>
+          <ul>
+            <li>产品包里 <strong>core 27,951 行</strong>，而跑各种界面模式的 <strong>modes 18,862 行</strong> —— 一个「agent 框架」，力气不全花在 agent 上</li>
+          </ul>
+        </div>
+        <div class="card cyan">
+          <div class="card-head"><span class="card-dot cyan"></span><h3>依赖只有 27 个</h3></div>
+          <ul>
+            <li>11 万行源码，去重后<strong>外部生产依赖 27 个</strong>；内核包只依赖 <em>diff / ignore / typebox / yaml</em> 四个</li>
+          </ul>
+        </div>
+        <div class="card violet">
+          <div class="card-head"><span class="card-dot violet"></span><h3>测试 0.885 倍，且一行都不在 src 里</h3></div>
+          <ul>
+            <li>测试 <strong>99,331 行</strong> vs 源码 112,232 行；全部落在各包 <em>test/</em>，<strong>src 目录零测试文件</strong></li>
+          </ul>
+        </div>
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>供应链八道闸</h3></div>
+          <ul>
+            <li>安装脚本默认拒绝，白名单只放行 <strong>2 个包</strong>（各附人肉审计理由）；新版本 <strong>冷却 2 天</strong>；CI Action 按 SHA 钉死</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">本地实测 · <b>583f153</b> · v0.83.0 · 命令见研究笔记 P01</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s05-two-layers.html ===== -->
+<section class="slide" data-ch="CH1 起手" data-title="结构事实：pi 里有两套编排层，共享同一个循环">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot cyan"></span>CH 1 · 起手</div>
+    <h1 class="s-title">它有<span class="hl-r">两套</span>编排层，共享同一个循环</h1>
+    <div class="s-sub">读源码最容易读错的一处：你以为在读产品，其实在读<b style="color:#e2e8f0">还没启用的下一代 SDK</b>。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="a-dn" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#64748b"/>
+            </marker>
+          </defs>
+
+          <text x="16" y="16" fill="#22d3ee" font-size="10" font-weight="600">产品路径 · pi 二进制真正跑的</text>
+          <text x="392" y="16" fill="#a78bfa" font-size="10" font-weight="600">SDK 路径 · 写完了但没启用</text>
+
+          <rect x="16" y="28" width="330" height="52" rx="6" fill="rgba(8,51,68,.32)" stroke="#22d3ee" stroke-width="1.4"/>
+          <text x="32" y="50" fill="#fff" font-size="11.5" font-weight="700">AgentSession</text>
+          <text x="32" y="68" fill="#94a3b8" font-size="8.5">coding-agent/src/core/agent-session.ts:303 · 类体 3,030 行</text>
+
+          <rect x="370" y="28" width="314" height="52" rx="6" fill="rgba(76,29,149,.28)" stroke="#a78bfa" stroke-width="1.4"/>
+          <text x="386" y="50" fill="#fff" font-size="11.5" font-weight="700">AgentHarness</text>
+          <text x="386" y="68" fill="#94a3b8" font-size="8.5">agent/src/harness/agent-harness.ts:173 · 类体 1,013 行</text>
+
+          <rect x="16" y="92" width="330" height="40" rx="6" fill="rgba(6,78,59,.22)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="32" y="110" fill="#34d399" font-size="10" font-weight="600">Agent（有状态包装）</text>
+          <text x="32" y="125" fill="#94a3b8" font-size="8.5">agent/src/agent.ts:171 · 队列 / AbortController / 事件</text>
+
+          <rect x="370" y="92" width="314" height="40" rx="6" fill="rgba(30,41,59,.4)" stroke="#334155" stroke-width="1.2" stroke-dasharray="4,3"/>
+          <text x="386" y="116" fill="#64748b" font-size="9">没有这一层，直接往下调</text>
+
+          <path d="M 181 132 L 181 156" stroke="#64748b" stroke-width="1.2" marker-end="url(#a-dn)"/>
+          <path d="M 527 132 L 527 156" stroke="#64748b" stroke-width="1.2" marker-end="url(#a-dn)"/>
+
+          <rect x="16" y="160" width="668" height="54" rx="6" fill="rgba(6,78,59,.38)" stroke="#34d399" stroke-width="2"/>
+          <text x="350" y="184" fill="#34d399" font-size="12" font-weight="700" text-anchor="middle">同一个内核：runAgentLoop()</text>
+          <text x="350" y="202" fill="#cbd5e1" font-size="8.5" text-anchor="middle">agent/src/agent-loop.ts:95 —— 左边在 agent.ts:403 调它，右边在 agent-harness.ts:658 调它</text>
+
+          <path d="M 16 232 L 684 232" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="250" fill="#94a3b8" font-size="9.5" font-weight="600">五处分叉（实测）</text>
+
+          <rect x="16" y="258" width="668" height="26" rx="4" fill="rgba(30,41,59,.35)"/>
+          <text x="30" y="275" fill="#e2e8f0" font-size="9">持久化</text>
+          <text x="150" y="275" fill="#22d3ee" font-size="8.5">同步 appendFileSync · 1 种后端 · 9 类 entry</text>
+          <text x="440" y="275" fill="#a78bfa" font-size="8.5">异步可注入 FileSystem · 3 种后端 · 11 类 entry</text>
+
+          <rect x="16" y="288" width="668" height="26" rx="4" fill="rgba(30,41,59,.2)"/>
+          <text x="30" y="305" fill="#e2e8f0" font-size="9">工具</text>
+          <text x="150" y="305" fill="#22d3ee" font-size="8.5">7 个，工具拿到的是 cwd 字符串</text>
+          <text x="440" y="305" fill="#a78bfa" font-size="8.5">4 个，换成 ExecutionEnv 抽象</text>
+
+          <rect x="16" y="318" width="668" height="26" rx="4" fill="rgba(30,41,59,.35)"/>
+          <text x="30" y="335" fill="#e2e8f0" font-size="9">扩展</text>
+          <text x="150" y="335" fill="#22d3ee" font-size="8.5">ExtensionAPI · 33 个 on() · 带运行时加载器</text>
+          <text x="440" y="335" fill="#a78bfa" font-size="8.5">22 个事件 · 8 个可拦截 · 无加载器</text>
+
+          <rect x="16" y="348" width="668" height="26" rx="4" fill="rgba(30,41,59,.2)"/>
+          <text x="30" y="365" fill="#e2e8f0" font-size="9">错误</text>
+          <text x="150" y="365" fill="#22d3ee" font-size="8.5">裸 Error + 轮级退避重试</text>
+          <text x="440" y="365" fill="#a78bfa" font-size="8.5">AgentHarnessError · 9 个错误码</text>
+
+          <rect x="16" y="378" width="668" height="26" rx="4" fill="rgba(30,41,59,.35)"/>
+          <text x="30" y="395" fill="#e2e8f0" font-size="9">压缩</text>
+          <text x="150" y="395" fill="#22d3ee" font-size="8.5">满了自动压，压完自动续跑</text>
+          <text x="440" y="395" fill="#a78bfa" font-size="8.5">只有手动 compact()，且要求空闲</text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>复核：SDK 那套<em>没有</em>生产使用者</h3></div>
+          <ul>
+            <li>词边界 grep 在 <em>harness/</em> 目录之外<strong>零命中</strong>，<em>new AgentHarness(</em> 在 src 里一次都没有</li>
+            <li>上一讲说「evals 在用」是<strong>子串误判</strong>，这次更正：evals 走的也是 AgentSession</li>
+          </ul>
+        </div>
+        <div class="card amber">
+          <div class="card-head"><span class="card-dot amber"></span><h3>官方自己写明了</h3></div>
+          <ul>
+            <li>文档原话：<em>coding-agent does not use AgentHarness yet</em>；<strong>「AgentHarness 是 pi 2.0 的事」</strong>，迁移清单里那一栏还没打勾</li>
+            <li>它的设计文档 <strong>4,217 行</strong>，是实现 1,185 行的 3.5 倍</li>
+          </ul>
+        </div>
+        <div class="card violet">
+          <div class="card-head"><span class="card-dot violet"></span><h3>对你的意义</h3></div>
+          <ul>
+            <li>看 pi 学「产品怎么做」看左边；学「接口该怎么设计」看右边 —— <strong>右边是他重写一遍后的答案</strong></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">本地实测 · <b>583f153</b> · 研究笔记 P03（含 grep 命令原文）</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s06-ch2.html ===== -->
+<section class="slide chapter" data-ch="CH02 循环" data-title="第 02 章 · 循环">
+  <div class="chapter-inner">
+    <div>
+      <div class="ch-no">02</div>
+      <h1>循环</h1>
+      <div class="ch-q"><b>while(true) 之外，还得干多少事？</b></div>
+      <div class="ch-sub">伪代码三行就写完的东西，真实产品写了近千行 —— <b>差在哪里</b>。</div>
+      <div class="ch-prog"><span class="done"></span><span class="on"></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span></div>
+    </div>
+    <div>
+      <ul class="ch-list">
+        <div class="ch-list-h">本章内容</div>
+        <li><span class="n">07</span><span class="t">双层循环与判停<i>外层 follow-up · 内层工具轮 · 退出条件逐条</i></span></li>
+        <li><span class="n">08</span><span class="t">中断要穿透三层<i>abort 从按键传到 provider 和工具，再收尾</i></span></li>
+        <li><span class="n">09</span><span class="t">差异清单<i>真实循环比教科书多出来的那些件事</i></span></li>
+      </ul>
+      <div class="ch-sub" style="margin-top:22px;border-color:var(--emerald)">这一章是全场重头：<b>agent 的工程量，八成压在这个循环上</b>。</div>
+    </div>
+  </div>
+  <div class="s-foot">
+    <span class="src">第 02 章 / 共 7 章</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s07-loop.html ===== -->
+<section class="slide" data-ch="CH2 循环" data-title="主循环：两层 while，四个判停点，没有迭代上限">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot emerald"></span>CH 2 · 循环</div>
+    <h1 class="s-title">两层 while，四个判停点，<span class="hl-r">没有</span>迭代上限</h1>
+    <div class="s-sub">真正的循环体 <b style="color:#e2e8f0">121 行</b>，藏在 792 行文件里，而且是<b style="color:#e2e8f0">私有函数</b> —— 外面四个入口全是门面。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="l-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#34d399"/>
+            </marker>
+            <marker id="l-rr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#fb7185"/>
+            </marker>
+          </defs>
+
+          <rect x="16" y="14" width="500" height="330" rx="8" fill="none" stroke="#34d399" stroke-width="1.4" stroke-dasharray="5,4"/>
+          <text x="30" y="34" fill="#34d399" font-size="9.5" font-weight="600">外层 while · follow-up（:170）</text>
+
+          <rect x="40" y="46" width="452" height="238" rx="8" fill="none" stroke="#22d3ee" stroke-width="1.4" stroke-dasharray="5,4"/>
+          <text x="54" y="66" fill="#22d3ee" font-size="9.5" font-weight="600">内层 while · 工具轮 + 插话（:174）</text>
+
+          <rect x="64" y="78" width="404" height="38" rx="6" fill="rgba(120,53,15,.28)" stroke="#fbbf24" stroke-width="1.2"/>
+          <text x="80" y="102" fill="#fbbf24" font-size="10" font-weight="600">① 轮前准备：热换模型 / 上下文 / 思考档位，重取 API key</text>
+
+          <rect x="64" y="124" width="404" height="38" rx="6" fill="rgba(120,53,15,.28)" stroke="#fbbf24" stroke-width="1.2"/>
+          <text x="80" y="148" fill="#fbbf24" font-size="10" font-weight="600">② 调模型（流式，signal 一路传进 fetch）</text>
+
+          <rect x="64" y="170" width="404" height="38" rx="6" fill="rgba(136,19,55,.26)" stroke="#fb7185" stroke-width="1.2"/>
+          <text x="80" y="188" fill="#fb7185" font-size="10" font-weight="600">③ 截断保护：stopReason = length</text>
+          <text x="80" y="202" fill="#cbd5e1" font-size="8">这一批工具<tspan fill="#fff">一个都不执行</tspan> —— 参数是抢救解析出来的，能过校验但内容是残的</text>
+
+          <rect x="64" y="216" width="404" height="52" rx="6" fill="rgba(6,78,59,.28)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="80" y="236" fill="#34d399" font-size="10" font-weight="600">④ 执行工具：串行 / 并行自动分派</text>
+          <text x="80" y="252" fill="#cbd5e1" font-size="8">有副作用的（edit / write）一票否决整批并发；</text>
+          <text x="80" y="264" fill="#cbd5e1" font-size="8">UI 按<tspan fill="#fff">完成顺序</tspan>刷，历史按<tspan fill="#fff">声明顺序</tspan>写 —— 两条时间线</text>
+
+          <path d="M 266 268 L 266 292 L 44 292 L 44 90 L 60 90" fill="none" stroke="#22d3ee" stroke-width="1.2" stroke-dasharray="4,3"/>
+          <text x="120" y="304" fill="#22d3ee" font-size="8.5">还有工具要调，或用户插了话 → 再来一轮</text>
+
+          <path d="M 508 300 L 508 320 L 20 320 L 20 40" fill="none" stroke="#34d399" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#l-ar)"/>
+          <text x="220" y="336" fill="#34d399" font-size="8.5">这一轮干完了，但用户排队的下一条还没处理 → 外层再转</text>
+
+          <text x="534" y="34" fill="#94a3b8" font-size="9.5" font-weight="600">四个判停点</text>
+          <rect x="534" y="44" width="150" height="46" rx="5" fill="rgba(30,41,59,.5)" stroke="#334155"/>
+          <text x="546" y="62" fill="#e2e8f0" font-size="9">① 出错 / 被中断</text>
+          <text x="546" y="78" fill="#64748b" font-size="8">stopReason 是 error / aborted</text>
+
+          <rect x="534" y="96" width="150" height="46" rx="5" fill="rgba(30,41,59,.5)" stroke="#334155"/>
+          <text x="546" y="114" fill="#e2e8f0" font-size="9">② 宿主喊停</text>
+          <text x="546" y="130" fill="#64748b" font-size="8">钩子留了，产品端没接</text>
+
+          <rect x="534" y="148" width="150" height="46" rx="5" fill="rgba(30,41,59,.5)" stroke="#34d399"/>
+          <text x="546" y="166" fill="#34d399" font-size="9">③ 没工具、没插话</text>
+          <text x="546" y="182" fill="#64748b" font-size="8">＝「它说完了」</text>
+
+          <rect x="534" y="200" width="150" height="46" rx="5" fill="rgba(30,41,59,.5)" stroke="#334155"/>
+          <text x="546" y="218" fill="#e2e8f0" font-size="9">④ 没有 follow-up</text>
+          <text x="546" y="234" fill="#64748b" font-size="8">队列空了才真的退</text>
+
+          <rect x="534" y="256" width="150" height="88" rx="5" fill="rgba(136,19,55,.2)" stroke="#fb7185"/>
+          <text x="546" y="274" fill="#fb7185" font-size="9" font-weight="600">刻意没有的东西</text>
+          <text x="546" y="292" fill="#cbd5e1" font-size="8">没有 maxIterations</text>
+          <text x="546" y="306" fill="#cbd5e1" font-size="8">没有 timer / 超时</text>
+          <text x="546" y="320" fill="#cbd5e1" font-size="8">没有一行重试代码</text>
+          <text x="546" y="336" fill="#64748b" font-size="7.5">停不停，交给宿主和 Ctrl-C</text>
+
+          <path d="M 16 362 L 684 362" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="382" fill="#cbd5e1" font-size="9.5">判「它说完了」<tspan fill="#fb7185">不看 stopReason</tspan>，只看这条回复里<tspan fill="#fff">还有没有工具调用</tspan>。</text>
+          <text x="16" y="400" fill="#94a3b8" font-size="8.5">stopReason 全程只被查三次：出错、被中断、被截断。模型说没说完，它不信模型的自述，只看有没有活儿。</text>
+          <text x="16" y="418" fill="#64748b" font-size="8">agent-loop.ts:155-275（循环体）· :203/:206 判停 · :211 截断保护 · :419 串并行分派　583f153</text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>为什么要第二层</h3></div>
+          <ul>
+            <li>agent 在跑的时候用户又发了一条 —— 这条<strong>不能丢，也不能插队打断当前工具</strong>，只能排进 follow-up 队列，等这一轮收干净再转一圈</li>
+          </ul>
+        </div>
+        <div class="card cyan">
+          <div class="card-head"><span class="card-dot cyan"></span><h3>跑一半能插话</h3></div>
+          <ul>
+            <li>steering 队列让你在工具跑着的时候补一句「不对，先看 X」；已经发出去的工具调用<strong>照样跑完</strong>，不撤销</li>
+          </ul>
+        </div>
+        <div class="card amber">
+          <div class="card-head"><span class="card-dot amber"></span><h3>每轮重新取一次 key</h3></div>
+          <ul>
+            <li>注释写得很直白：<em>为了会过期的 token</em>。一个长跑的工具阶段足够让 OAuth token 过期</li>
+          </ul>
+        </div>
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>最阴的一个 bug 被堵在这</h3></div>
+          <ul>
+            <li>输出被截断时，工具参数是流式抢救解析出来的：<strong>schema 校验能过，内容是残的</strong>。所以整批直接不执行</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src"><b>packages/agent/src/agent-loop.ts</b> · 583f153 · 研究笔记 P02</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s08-abort-error.html ===== -->
+<section class="slide" data-ch="CH2 循环" data-title="中断与出错：不抛异常，建模成消息终态">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot emerald"></span>CH 2 · 循环</div>
+    <h1 class="s-title">中断和出错，都<span class="hl-r">不靠抛异常</span></h1>
+    <div class="s-sub">Ctrl-C 不是 throw，是把这一轮<b style="color:#e2e8f0">收成一条正常消息</b> —— 半截回复照样能渲染、能落盘。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="e-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#fb7185"/>
+            </marker>
+            <marker id="e-gr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#34d399"/>
+            </marker>
+          </defs>
+
+          <text x="16" y="16" fill="#fb7185" font-size="10" font-weight="600">Ctrl-C 要穿透三层，还要能立刻见效</text>
+
+          <rect x="16" y="26" width="150" height="40" rx="6" fill="rgba(8,51,68,.32)" stroke="#22d3ee" stroke-width="1.2"/>
+          <text x="91" y="43" fill="#22d3ee" font-size="9.5" text-anchor="middle" font-weight="600">按键</text>
+          <text x="91" y="58" fill="#94a3b8" font-size="8" text-anchor="middle">一次 run 一个 controller</text>
+
+          <path d="M 166 46 L 196 46" stroke="#fb7185" stroke-width="1.3" marker-end="url(#e-ar)"/>
+
+          <rect x="202" y="26" width="150" height="40" rx="6" fill="rgba(6,78,59,.28)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="277" y="43" fill="#34d399" font-size="9.5" text-anchor="middle" font-weight="600">循环内 5 处显式检查</text>
+          <text x="277" y="58" fill="#94a3b8" font-size="8" text-anchor="middle">批次之间、每个工具之前</text>
+
+          <path d="M 352 46 L 382 46" stroke="#fb7185" stroke-width="1.3" marker-end="url(#e-ar)"/>
+
+          <rect x="388" y="26" width="140" height="40" rx="6" fill="rgba(120,53,15,.28)" stroke="#fbbf24" stroke-width="1.2"/>
+          <text x="458" y="43" fill="#fbbf24" font-size="9.5" text-anchor="middle" font-weight="600">provider</text>
+          <text x="458" y="58" fill="#94a3b8" font-size="8" text-anchor="middle">signal 传进 fetch</text>
+
+          <rect x="544" y="26" width="140" height="40" rx="6" fill="rgba(120,53,15,.28)" stroke="#fbbf24" stroke-width="1.2"/>
+          <text x="614" y="43" fill="#fbbf24" font-size="9.5" text-anchor="middle" font-weight="600">工具</text>
+          <text x="614" y="58" fill="#94a3b8" font-size="8" text-anchor="middle">signal 传进 execute()</text>
+
+          <rect x="16" y="82" width="668" height="52" rx="6" fill="rgba(136,19,55,.2)" stroke="#fb7185" stroke-width="1.4"/>
+          <text x="30" y="102" fill="#fb7185" font-size="10" font-weight="600">收尾方式：中断 → 一条 stopReason 为 aborted 的<tspan fill="#fff">完整消息</tspan>，含已经生成的那半截文本</text>
+          <text x="30" y="122" fill="#cbd5e1" font-size="8.5">流的 result() <tspan fill="#fff">永不 reject</tspan> —— 整条链上的 try/catch 少了一大半，UI 直接把半截渲染出来，session 也存得下</text>
+
+          <path d="M 16 148 L 684 148" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="168" fill="#94a3b8" font-size="9.5" font-weight="600">四类错，四条路 —— 循环里一次 retry 都没有</text>
+
+          <rect x="16" y="178" width="330" height="46" rx="5" fill="rgba(30,41,59,.45)" stroke="#334155"/>
+          <text x="30" y="196" fill="#e2e8f0" font-size="9">模型侧报错（限流 / 5xx / 断流）</text>
+          <text x="30" y="212" fill="#64748b" font-size="8">变成 error 终态消息，退出循环 —— 重试在循环<tspan fill="#fb7185">外面</tspan></text>
+
+          <rect x="354" y="178" width="330" height="46" rx="5" fill="rgba(30,41,59,.45)" stroke="#334155"/>
+          <text x="368" y="196" fill="#e2e8f0" font-size="9">工具抛异常</text>
+          <text x="368" y="212" fill="#64748b" font-size="8">100% 被接住，转成一条错误结果喂回模型，会话不死</text>
+
+          <rect x="16" y="230" width="330" height="46" rx="5" fill="rgba(30,41,59,.45)" stroke="#334155"/>
+          <text x="30" y="248" fill="#e2e8f0" font-size="9">参数不合法 / 工具不存在</text>
+          <text x="30" y="264" fill="#64748b" font-size="8">立即结果，不进执行阶段</text>
+
+          <rect x="354" y="230" width="330" height="46" rx="5" fill="rgba(30,41,59,.45)" stroke="#334155"/>
+          <text x="368" y="248" fill="#e2e8f0" font-size="9">输出被截断</text>
+          <text x="368" y="264" fill="#64748b" font-size="8">整批工具不执行，让模型自己重发</text>
+
+          <rect x="16" y="288" width="668" height="76" rx="6" fill="rgba(6,78,59,.16)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="30" y="308" fill="#34d399" font-size="10" font-weight="600">重试为什么放在循环外：跑完一整轮，再决定要不要「接着跑」</text>
+          <text x="30" y="326" fill="#cbd5e1" font-size="8.5">默认 <tspan fill="#fff">3 次</tspan>，退避 <tspan fill="#fff">2s / 4s / 8s</tspan>（纯指数，没有抖动），等待期间可被 Ctrl-C 打断</text>
+          <text x="30" y="342" fill="#cbd5e1" font-size="8.5">重试前<tspan fill="#fff">把那条错误消息从喂给模型的上下文里摘掉</tspan>，但仍然留在 session 文件里 —— 模型看不见，你复盘看得见</text>
+          <text x="30" y="358" fill="#cbd5e1" font-size="8.5">计数器在<tspan fill="#fff">每条成功的回复</tspan>上归零，不是每次 run 归零；上下文溢出<tspan fill="#fb7185">不算可重试</tspan>，那是压缩该管的事</text>
+
+          <path d="M 16 378 L 684 378" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="396" fill="#cbd5e1" font-size="9">主循环里<tspan fill="#fff">一个 timer 都没有</tspan>：HTTP 空闲超时 5 分钟在传输层，工具超时由工具自己打，bash <tspan fill="#fbbf24">默认根本不超时</tspan>。</text>
+          <text x="16" y="414" fill="#64748b" font-size="8">agent-loop.ts:196/697 · agent.ts:496-512 兜底伪造消息 · agent-session.ts:1064/2631 重试　583f153</text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>回调的硬约束：不许抛</h3></div>
+          <ul>
+            <li>几乎每个扩展点的注释都写着同一句 <em>must not throw or reject</em>；真抛了，上层<strong>伪造一条空的 assistant 消息</strong>把事件序列补齐，免得 UI 卡在半路</li>
+          </ul>
+        </div>
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>工具要抛，不要自己编错误</h3></div>
+          <ul>
+            <li>工具接口文档反过来<strong>要求</strong>你抛异常，而不是在返回内容里写「失败了」—— 统一由内核转成模型能读懂的错误结果</li>
+          </ul>
+        </div>
+        <div class="card cyan">
+          <div class="card-head"><span class="card-dot cyan"></span><h3>迟到的进度回调会被丢弃</h3></div>
+          <ul>
+            <li>长跑工具边跑边刷日志；一旦这次执行结算完，<strong>后到的进度更新直接忽略</strong> —— 一个很容易漏掉的竞态</li>
+          </ul>
+        </div>
+        <div class="card violet">
+          <div class="card-head"><span class="card-dot violet"></span><h3>可以抄的一条</h3></div>
+          <ul>
+            <li><strong>把「取消」当成一种正常结局，而不是异常。</strong> 你的 UI、你的落盘、你的复盘全都会变简单</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">本地实测 · <b>583f153</b> · 研究笔记 P02 §4–§5</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s09-diff.html ===== -->
+<section class="slide" data-ch="CH2 循环" data-title="差异清单：教科书 6 行 vs 真实产品 121+517 行">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot emerald"></span>CH 2 · 循环</div>
+    <h1 class="s-title">教科书 6 行，真实产品 <span class="hl">121 + 517</span> 行</h1>
+    <div class="s-sub">多出来的代码，九成在解决同一件事：<b style="color:#e2e8f0">跑到一半，世界变了。</b></div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="16" fill="#94a3b8" font-size="9.5" font-weight="600">多出来的 25 件事，按「跑到一半发生了什么」归类</text>
+
+          <rect x="16" y="26" width="330" height="118" rx="6" fill="rgba(8,51,68,.26)" stroke="#22d3ee" stroke-width="1.2"/>
+          <text x="30" y="45" fill="#22d3ee" font-size="10" font-weight="600">用户变了</text>
+          <text x="30" y="63" fill="#cbd5e1" font-size="8.5">· 又发了一条 → follow-up 第二层循环</text>
+          <text x="30" y="79" fill="#cbd5e1" font-size="8.5">· 跑一半插话 → steering 队列，不撤已发出的工具</text>
+          <text x="30" y="95" fill="#cbd5e1" font-size="8.5">· 中途 /model 换模型 → 下一轮生效</text>
+          <text x="30" y="111" fill="#cbd5e1" font-size="8.5">· 按了 Ctrl-C → 五处检查 + 穿透到 provider 和工具</text>
+          <text x="30" y="130" fill="#64748b" font-size="8">交互式 agent 和批处理脚本的分水岭，全在这一格</text>
+
+          <rect x="354" y="26" width="330" height="118" rx="6" fill="rgba(120,53,15,.24)" stroke="#fbbf24" stroke-width="1.2"/>
+          <text x="368" y="45" fill="#fbbf24" font-size="10" font-weight="600">模型侧变了</text>
+          <text x="368" y="63" fill="#cbd5e1" font-size="8.5">· token 过期 → 每轮重新解析 API key</text>
+          <text x="368" y="79" fill="#cbd5e1" font-size="8.5">· 输出被截断 → 整批工具不执行</text>
+          <text x="368" y="95" fill="#cbd5e1" font-size="8.5">· 参数填法各家有偏差 → 先归一化再校验</text>
+          <text x="368" y="111" fill="#cbd5e1" font-size="8.5">· 上下文快满了 → 压缩挂载点在转换成 LLM 消息之前</text>
+          <text x="368" y="130" fill="#64748b" font-size="8">这一格的每一条，都是被某个真实模型坑出来的</text>
+
+          <rect x="16" y="152" width="330" height="118" rx="6" fill="rgba(6,78,59,.24)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="30" y="171" fill="#34d399" font-size="10" font-weight="600">工具侧变了</text>
+          <text x="30" y="189" fill="#cbd5e1" font-size="8.5">· 有副作用的工具 → 一票否决整批并发</text>
+          <text x="30" y="205" fill="#cbd5e1" font-size="8.5">· 并行执行 → UI 按完成序、历史按声明序，两条时间线</text>
+          <text x="30" y="221" fill="#cbd5e1" font-size="8.5">· 工具想终止整轮 → 全票制，一个说了不算</text>
+          <text x="30" y="237" fill="#cbd5e1" font-size="8.5">· 执行前后各留一个钩子 → 拦截、脱敏、改写</text>
+          <text x="30" y="256" fill="#64748b" font-size="8">「并行调工具」四个字，背后是这四条</text>
+
+          <rect x="354" y="152" width="330" height="118" rx="6" fill="rgba(76,29,149,.22)" stroke="#a78bfa" stroke-width="1.2"/>
+          <text x="368" y="171" fill="#a78bfa" font-size="10" font-weight="600">内外两套账</text>
+          <text x="368" y="189" fill="#cbd5e1" font-size="8.5">· 内部消息模型 ≠ 喂给模型的消息 → 中间要投影一次</text>
+          <text x="368" y="205" fill="#cbd5e1" font-size="8.5">· 一份喂模型、一份喂落盘，生命周期不同 → 双写</text>
+          <text x="368" y="221" fill="#cbd5e1" font-size="8.5">· 10 个生命周期事件，增量事件自带全量快照</text>
+          <text x="368" y="237" fill="#cbd5e1" font-size="8.5">· 事件监听器全部结算完，才算这一轮真的闲下来</text>
+          <text x="368" y="256" fill="#64748b" font-size="8">没有这一格，就没有 TUI，也没有可回放的 session</text>
+
+          <path d="M 16 284 L 684 284" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="304" fill="#94a3b8" font-size="9.5" font-weight="600">分层落点：什么该进循环，什么坚决不进</text>
+
+          <rect x="16" y="314" width="668" height="30" rx="5" fill="rgba(136,19,55,.18)" stroke="#fb7185" stroke-width="1.1"/>
+          <text x="30" y="333" fill="#fb7185" font-size="9">循环之外</text>
+          <text x="120" y="333" fill="#cbd5e1" font-size="8.5">重试 · 压缩后续跑 · session 落盘 · 33 个扩展钩子　—— 这些都不该让循环知道</text>
+
+          <rect x="16" y="348" width="668" height="30" rx="5" fill="rgba(6,78,59,.3)" stroke="#34d399" stroke-width="1.4"/>
+          <text x="30" y="367" fill="#34d399" font-size="9">循环本体 121 行</text>
+          <text x="120" y="367" fill="#cbd5e1" font-size="8.5">纯逻辑：<tspan fill="#fff">没有 IO、没有 timer、没有重试</tspan>　—— 所以它才测得动、读得懂</text>
+
+          <rect x="16" y="382" width="668" height="30" rx="5" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1.1"/>
+          <text x="30" y="401" fill="#94a3b8" font-size="9">循环之下</text>
+          <text x="120" y="401" fill="#cbd5e1" font-size="8.5">工具执行 517 行 · provider 层把出错和中断都变成「消息终态」，不往上抛</text>
+
+          <text x="16" y="424" fill="#64748b" font-size="8">agent-loop.ts:155-275 循环体 / :381-754 工具执行 · agent-session.ts:1064 重试续跑　583f153</text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>这一页就是本讲的中心论点</h3></div>
+          <ul>
+            <li>教科书循环解决的是<em>「怎么把工具结果喂回去」</em>；真实循环九成代码在解决<strong>「跑到一半，世界变了」</strong></li>
+          </ul>
+        </div>
+        <div class="card cyan">
+          <div class="card-head"><span class="card-dot cyan"></span><h3>自己造的时候照这个顺序补</h3></div>
+          <ul>
+            <li>先有<strong>中断</strong>，再有<strong>插话</strong>，再有<strong>压缩</strong>，最后才轮到并行 —— 前两个不补，做出来只是个脚本</li>
+          </ul>
+        </div>
+        <div class="card violet">
+          <div class="card-head"><span class="card-dot violet"></span><h3>一条反向差异</h3></div>
+          <ul>
+            <li>教科书爱加 <em>max_steps</em>，pi <strong>刻意不加</strong>：停不停交给宿主判断和用户的 Ctrl-C —— 这是取舍，不是疏忽</li>
+          </ul>
+        </div>
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>留个把柄</h3></div>
+          <ul>
+            <li>那个「宿主喊停」的钩子，全仓<strong>只有测试在用</strong>，产品路径没接 —— 设计留了口，产品还没用上</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">25 条完整清单见研究笔记 P02 §7 · <b>583f153</b></span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s10-ch3.html ===== -->
+<section class="slide chapter" data-ch="CH03 会话" data-title="第 03 章 · 会话">
+  <div class="chapter-inner">
+    <div>
+      <div class="ch-no">03</div>
+      <h1>会话</h1>
+      <div class="ch-q"><b>为什么说会话是一棵树？</b></div>
+      <div class="ch-sub">它不是聊天记录，是<b>可分叉、可回退、可回放</b>的状态。</div>
+      <div class="ch-prog"><span class="done"></span><span class="done"></span><span class="on"></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span></div>
+    </div>
+    <div>
+      <ul class="ch-list">
+        <div class="ch-list-h">本章内容</div>
+        <li><span class="n">11</span><span class="t">entry 类型与树结构<i>分叉是移指针，不是复制历史</i></span></li>
+        <li><span class="n">12</span><span class="t">落盘与恢复<i>可读、可 diff、可回放的那条路径</i></span></li>
+      </ul>
+      <div class="ch-sub" style="margin-top:22px;border-color:var(--amber)">会话结构决定了你能不能做 rewind、能不能做 subagent、能不能事后复盘。</div>
+    </div>
+  </div>
+  <div class="s-foot">
+    <span class="src">第 03 章 / 共 7 章</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s11-session-model.html ===== -->
+<section class="slide" data-ch="CH3 会话" data-title="会话模型：一个 parentId 撑起整棵树">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot amber"></span>CH 3 · 会话</div>
+    <h1 class="s-title">整棵树，只靠<span class="hl">一个字段</span></h1>
+    <div class="s-sub">文件里从不存「children」；分叉不是复制历史，是<b style="color:#e2e8f0">把叶子指针挪回去</b>。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="t-ar" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
+              <polygon points="0 0, 7 2.5, 0 5" fill="#475569"/>
+            </marker>
+          </defs>
+
+          <text x="16" y="16" fill="#94a3b8" font-size="9.5" font-weight="600">条目基类只有四个字段，树全在 parentId 上</text>
+          <rect x="16" y="24" width="300" height="72" rx="6" fill="rgba(2,6,23,.7)" stroke="#334155"/>
+          <text x="32" y="43" fill="#cbd5e1" font-size="9">type：这条是什么</text>
+          <text x="32" y="59" fill="#cbd5e1" font-size="9">id：自己是谁</text>
+          <text x="32" y="75" fill="#fbbf24" font-size="9" font-weight="600">parentId：接在谁后面　← 唯一的结构字段</text>
+          <text x="32" y="90" fill="#64748b" font-size="8">timestamp：什么时候</text>
+
+          <text x="336" y="40" fill="#94a3b8" font-size="8.5">children 是<tspan fill="#fff">现算</tspan>的：要看某条的孩子，全表扫一遍</text>
+          <text x="336" y="56" fill="#94a3b8" font-size="8.5">append-only：条目<tspan fill="#fff">不能改、不能删</tspan>（注释即契约）</text>
+          <text x="336" y="72" fill="#94a3b8" font-size="8.5">追加＝挂在当前叶子下面；分叉＝把叶子挪到旧节点</text>
+          <text x="336" y="88" fill="#64748b" font-size="8">session-manager.ts:46-51 / :1210 / :1296　583f153</text>
+
+          <path d="M 16 106 L 684 106" stroke="#1e293b" stroke-width="1"/>
+
+          <text x="16" y="126" fill="#94a3b8" font-size="9.5" font-weight="600">分叉的三种物理形态（越往下越贵）</text>
+
+          <circle cx="60" cy="160" r="9" fill="#334155" stroke="#64748b"/>
+          <circle cx="110" cy="160" r="9" fill="#334155" stroke="#64748b"/>
+          <circle cx="160" cy="160" r="9" fill="#334155" stroke="#64748b"/>
+          <circle cx="210" cy="140" r="9" fill="#334155" stroke="#64748b"/>
+          <circle cx="210" cy="182" r="9" fill="#34d399" stroke="#34d399"/>
+          <path d="M 69 160 L 101 160" stroke="#475569" stroke-width="1.2" marker-end="url(#t-ar)"/>
+          <path d="M 119 160 L 151 160" stroke="#475569" stroke-width="1.2" marker-end="url(#t-ar)"/>
+          <path d="M 168 155 L 201 143" stroke="#475569" stroke-width="1.2" marker-end="url(#t-ar)"/>
+          <path d="M 168 166 L 201 179" stroke="#34d399" stroke-width="1.2" marker-end="url(#t-ar)"/>
+          <text x="228" y="136" fill="#64748b" font-size="8">原来那条分支：留着，不删</text>
+          <text x="228" y="186" fill="#34d399" font-size="8.5">叶子挪到这，新内容长在这边</text>
+
+          <rect x="380" y="126" width="304" height="34" rx="5" fill="rgba(6,78,59,.24)" stroke="#34d399" stroke-width="1.1"/>
+          <text x="394" y="140" fill="#34d399" font-size="9" font-weight="600">① 只挪指针</text>
+          <text x="394" y="153" fill="#94a3b8" font-size="8">函数体三行，纯内存，零写盘</text>
+
+          <rect x="380" y="164" width="304" height="34" rx="5" fill="rgba(120,53,15,.24)" stroke="#fbbf24" stroke-width="1.1"/>
+          <text x="394" y="178" fill="#fbbf24" font-size="9" font-weight="600">② 挪指针 + 追加一条「分支摘要」</text>
+          <text x="394" y="191" fill="#94a3b8" font-size="8">旧分支的结论以文本形式带过来</text>
+
+          <rect x="380" y="202" width="304" height="34" rx="5" fill="rgba(136,19,55,.2)" stroke="#fb7185" stroke-width="1.1"/>
+          <text x="394" y="216" fill="#fb7185" font-size="9" font-weight="600">③ fork：新建一个 session 文件</text>
+          <text x="394" y="229" fill="#94a3b8" font-size="8">还要把父指针重新链一遍</text>
+
+          <path d="M 16 250 L 684 250" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="270" fill="#94a3b8" font-size="9.5" font-weight="600">九种条目，只有四种会被送进模型</text>
+
+          <rect x="16" y="280" width="330" height="82" rx="5" fill="rgba(6,78,59,.18)" stroke="#34d399" stroke-width="1.1"/>
+          <text x="30" y="298" fill="#34d399" font-size="9" font-weight="600">进上下文</text>
+          <text x="30" y="314" fill="#cbd5e1" font-size="8.5">message · compaction 摘要 · 分支摘要 · 自定义消息</text>
+          <text x="30" y="332" fill="#64748b" font-size="8">投影规则只有一个函数说了算：命中这四种才产出消息，</text>
+          <text x="30" y="346" fill="#64748b" font-size="8">其余一律返回空数组</text>
+
+          <rect x="354" y="280" width="330" height="82" rx="5" fill="rgba(30,41,59,.45)" stroke="#334155" stroke-width="1.1"/>
+          <text x="368" y="298" fill="#94a3b8" font-size="9" font-weight="600">只改状态，不进上下文</text>
+          <text x="368" y="314" fill="#cbd5e1" font-size="8.5">换模型 · 换思考档位 · 打标签 · 会话信息 · 自定义数据</text>
+          <text x="368" y="332" fill="#64748b" font-size="8">「什么该让模型看见」被收敛到一个函数里 ——</text>
+          <text x="368" y="346" fill="#64748b" font-size="8">这是最值得抄的一处结构设计</text>
+
+          <rect x="16" y="374" width="668" height="44" rx="6" fill="rgba(76,29,149,.18)" stroke="#a78bfa" stroke-width="1.1"/>
+          <text x="30" y="392" fill="#a78bfa" font-size="9.5" font-weight="600">同一个问题，两代实现给了三种答案：「我现在在树的哪个位置」</text>
+          <text x="30" y="410" fill="#cbd5e1" font-size="8.5">产品路径＝<tspan fill="#fff">内存变量</tspan>（重开会掉）→ SDK 路径＝<tspan fill="#fff">把叶子本身写成一条事件</tspan> → SQLite＝<tspan fill="#fff">一个可更新的列</tspan></text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
+        <div class="card amber">
+          <div class="card-head"><span class="card-dot amber"></span><h3>为什么值得做成树</h3></div>
+          <ul>
+            <li>回到三步之前换个思路，<strong>旧那条不删</strong>；压缩、分支摘要都能当成普通条目挂上去 —— 复盘时整个决策过程都在</li>
+          </ul>
+        </div>
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>一个真实的缺口（可以当教训讲）</h3></div>
+          <ul>
+            <li>产品路径的叶子指针<strong>不落盘</strong>：跳到旧节点后如果什么都不写就退出，下次打开会回到文件最后一条所在的分支</li>
+            <li>只要之后写了任何一条，就自然落回正确分支 —— 所以日常用不出问题，<strong>但它确实是个洞</strong></li>
+          </ul>
+        </div>
+        <div class="card violet">
+          <div class="card-head"><span class="card-dot violet"></span><h3>抄走这条</h3></div>
+          <ul>
+            <li><strong>「当前位置」是状态，不是日志。</strong> 想只用事件日志表达它，就得为它专门发明一种事件</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src"><b>core/session-manager.ts</b> · 583f153 · 研究笔记 P04</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s12-persist.html ===== -->
+<section class="slide" data-ch="CH3 会话" data-title="落盘：同步写 JSONL，且第一条回复之前不建文件">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot amber"></span>CH 3 · 会话</div>
+    <h1 class="s-title">全同步写 JSONL —— 这是<span class="hl">故意的</span></h1>
+    <div class="s-sub">用「慢一点」换一个强不变式：<b style="color:#e2e8f0">函数返回时，这一行已经在磁盘上了</b>。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="16" fill="#94a3b8" font-size="9.5" font-weight="600">产品路径：同步文件 API 40 处，await 只有 10 处（且全在列目录）</text>
+
+          <rect x="16" y="26" width="668" height="62" rx="6" fill="rgba(2,6,23,.7)" stroke="#334155"/>
+          <text x="32" y="46" fill="#cbd5e1" font-size="9">追加一条 ＝ 推进内存数组 → 更新索引 → <tspan fill="#fbbf24">叶子指针前移</tspan> → 同步写盘</text>
+          <text x="32" y="64" fill="#94a3b8" font-size="8.5">写路径是被 agent 的事件回调直接调用的同步函数 —— 一旦异步化，「消息落盘」和「界面渲染」之间就出现窗口</text>
+          <text x="32" y="80" fill="#fb7185" font-size="8.5">崩溃时会丢尾巴。所以它用同步换确定性。</text>
+
+          <text x="16" y="110" fill="#94a3b8" font-size="9.5" font-weight="600">一个很有产品味道的细节：第一条 assistant 回复之前，磁盘上没有文件</text>
+
+          <rect x="16" y="120" width="216" height="72" rx="6" fill="rgba(30,41,59,.45)" stroke="#334155"/>
+          <text x="30" y="140" fill="#e2e8f0" font-size="9">起来敲了半句就退出</text>
+          <text x="30" y="158" fill="#34d399" font-size="8.5">磁盘上<tspan fill="#fff">不留空 session 文件</tspan></text>
+          <text x="30" y="176" fill="#64748b" font-size="8">条目先攒在内存里</text>
+
+          <rect x="244" y="120" width="216" height="72" rx="6" fill="rgba(6,78,59,.24)" stroke="#34d399"/>
+          <text x="258" y="140" fill="#e2e8f0" font-size="9">第一条回复到达</text>
+          <text x="258" y="158" fill="#34d399" font-size="8.5">一次性把攒的全部刷成文件</text>
+          <text x="258" y="176" fill="#64748b" font-size="8">建文件用「已存在就报错」的模式，不覆盖</text>
+
+          <rect x="472" y="120" width="212" height="72" rx="6" fill="rgba(120,53,15,.24)" stroke="#fbbf24"/>
+          <text x="486" y="140" fill="#e2e8f0" font-size="9">之后</text>
+          <text x="486" y="158" fill="#fbbf24" font-size="8.5">一条一行，纯追加</text>
+          <text x="486" y="176" fill="#64748b" font-size="8">人能直接读，能 diff，能回放</text>
+
+          <path d="M 16 206 L 684 206" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="226" fill="#94a3b8" font-size="9.5" font-weight="600">三个后端并存，接口只有六个方法</text>
+
+          <rect x="16" y="236" width="216" height="58" rx="5" fill="rgba(30,41,59,.45)" stroke="#334155"/>
+          <text x="30" y="254" fill="#e2e8f0" font-size="9" font-weight="600">内存</text>
+          <text x="30" y="270" fill="#94a3b8" font-size="8">130 行，测试与嵌入用</text>
+
+          <rect x="244" y="236" width="216" height="58" rx="5" fill="rgba(6,78,59,.2)" stroke="#34d399"/>
+          <text x="258" y="254" fill="#34d399" font-size="9" font-weight="600">JSONL</text>
+          <text x="258" y="270" fill="#94a3b8" font-size="8">438 行 · 异步版（SDK 路径用）</text>
+          <text x="258" y="285" fill="#64748b" font-size="8">与产品路径共用同一套文件名编码</text>
+
+          <rect x="472" y="236" width="212" height="58" rx="5" fill="rgba(76,29,149,.2)" stroke="#a78bfa"/>
+          <text x="486" y="254" fill="#a78bfa" font-size="9" font-weight="600">SQLite</text>
+          <text x="486" y="270" fill="#94a3b8" font-size="8">7 张表 10 个索引，一条一事务</text>
+          <text x="486" y="285" fill="#fb7185" font-size="8">写完了，但本 commit 零生产使用者</text>
+
+          <rect x="16" y="306" width="668" height="60" rx="6" fill="rgba(120,53,15,.16)" stroke="#fbbf24" stroke-width="1.1"/>
+          <text x="30" y="325" fill="#fbbf24" font-size="9.5" font-weight="600">「树」是后加的：v1 是一条线，v2 才补上父指针</text>
+          <text x="30" y="343" fill="#cbd5e1" font-size="8.5">迁移逻辑就是给老日志<tspan fill="#fff">逐条补 id，把父指针指向前一条</tspan> —— 把线当成退化的树重新贴一遍</text>
+          <text x="30" y="359" fill="#94a3b8" font-size="8.5">这也是全代码库<tspan fill="#fff">唯一一处</tspan>会重写整个 session 文件的地方；正常路径永远只追加</text>
+
+          <rect x="16" y="376" width="668" height="42" rx="6" fill="rgba(6,78,59,.16)" stroke="#34d399" stroke-width="1.1"/>
+          <text x="30" y="394" fill="#34d399" font-size="9.5" font-weight="600">同一天的三个提交，讲同一个故事：规模上来之后，读路径要挨个线性化</text>
+          <text x="30" y="410" fill="#cbd5e1" font-size="8.5">打开会话不再数条目 · 取路径从平方降到线性 · 加一张分支末梢表，让线性追加从「重算整条根路径」降到<tspan fill="#fff">写一行</tspan></text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>为什么 JSONL 值得抄</h3></div>
+          <ul>
+            <li>人能读、能 grep、能 diff、能手改；出事故时<strong>不需要专用工具就能验尸</strong>。数据库是后来才需要的</li>
+          </ul>
+        </div>
+        <div class="card cyan">
+          <div class="card-head"><span class="card-dot cyan"></span><h3>条目 id 只有 8 位十六进制</h3></div>
+          <ul>
+            <li>为了在树选择器和日志里<strong>肉眼可读</strong>；碰撞就现场重摇，最多 100 次 —— 可读性优先于理论上的唯一性</li>
+          </ul>
+        </div>
+        <div class="card violet">
+          <div class="card-head"><span class="card-dot violet"></span><h3>抄走这两条</h3></div>
+          <ul>
+            <li><strong>先落盘再渲染</strong>，别反过来</li>
+            <li><strong>空会话不建文件</strong> —— 一个小到不值一提、但用起来天天有感的产品细节</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src"><b>core/session-manager.ts</b> · storage/sqlite-node · 583f153 · 研究笔记 P04</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s13-ch4.html ===== -->
+<section class="slide chapter" data-ch="CH04 上下文" data-title="第 04 章 · 上下文">
+  <div class="chapter-inner">
+    <div>
+      <div class="ch-no">04</div>
+      <h1>上下文</h1>
+      <div class="ch-q"><b>prompt 怎么拼？满了怎么办？</b></div>
+      <div class="ch-sub">上下文是<b>预算</b>，不是仓库 —— 这一章看它怎么记账。</div>
+      <div class="ch-prog"><span class="done"></span><span class="done"></span><span class="done"></span><span class="on"></span><span class=""></span><span class=""></span><span class=""></span></div>
+    </div>
+    <div>
+      <ul class="ch-list">
+        <div class="ch-list-h">本章内容</div>
+        <li><span class="n">14</span><span class="t">system prompt 由哪几块拼成<i>自带上下文只有 1,311 token，项目文件是它的两倍</i></span></li>
+        <li><span class="n">15</span><span class="t">满了怎么办<i>compaction：触发条件 · 保留策略 · 回灌</i></span></li>
+        <li><span class="n">16</span><span class="t">SKILL 渐进式披露<i>常驻几十 token，展开才是全文</i></span></li>
+      </ul>
+      <div class="ch-sub" style="margin-top:22px;border-color:var(--violet)">省 token 不是抠门，是<b>把注意力留给真正要紧的那部分</b>。</div>
+    </div>
+  </div>
+  <div class="s-foot">
+    <span class="src">第 04 章 / 共 7 章</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s14-prompt.html ===== -->
+<section class="slide" data-ch="CH4 上下文" data-title="system prompt：内核自带只有 1,311 token">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot violet"></span>CH 4 · 上下文</div>
+    <h1 class="s-title">内核自带的上下文，只有 <span class="hl">1,311</span> token</h1>
+    <div class="s-sub">而它自己项目里那份 AGENTS.md 是 <b style="color:#e2e8f0">2,683 token</b> —— <b style="color:#e2e8f0">你写的比它带的多一倍</b>。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="16" fill="#94a3b8" font-size="9.5" font-weight="600">开一个新会话，模型第一眼看到的东西（本地复刻实测）</text>
+
+          <rect x="16" y="28" width="300" height="46" rx="6" fill="rgba(6,78,59,.26)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="32" y="48" fill="#34d399" font-size="10" font-weight="600">system prompt 骨架</text>
+          <text x="32" y="65" fill="#cbd5e1" font-size="8.5">2,520 字符 ≈ <tspan fill="#fff">630 token</tspan></text>
+
+          <rect x="16" y="82" width="300" height="46" rx="6" fill="rgba(120,53,15,.26)" stroke="#fbbf24" stroke-width="1.2"/>
+          <text x="32" y="102" fill="#fbbf24" font-size="10" font-weight="600">四个工具的 schema</text>
+          <text x="32" y="119" fill="#cbd5e1" font-size="8.5">2,724 字符 ≈ <tspan fill="#fff">681 token</tspan></text>
+
+          <rect x="16" y="136" width="300" height="40" rx="6" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1.1"/>
+          <text x="32" y="161" fill="#94a3b8" font-size="9">环境信息：<tspan fill="#e2e8f0">只有一行 cwd</tspan> —— 没有日期、没有平台、没有 git 状态</text>
+
+          <rect x="336" y="28" width="348" height="148" rx="6" fill="rgba(76,29,149,.2)" stroke="#a78bfa" stroke-width="1.4"/>
+          <text x="352" y="48" fill="#a78bfa" font-size="10" font-weight="600">项目上下文文件（你写的那些）</text>
+          <text x="352" y="70" fill="#fff" font-size="16" font-weight="700">2,683 token</text>
+          <text x="352" y="86" fill="#94a3b8" font-size="8.5">＝ pi 自己仓库里的 AGENTS.md，10,731 字符</text>
+          <text x="352" y="110" fill="#cbd5e1" font-size="8.5">也就是说：一个 agent 的「性格」里，</text>
+          <text x="352" y="126" fill="#cbd5e1" font-size="8.5">内核只占三分之一，<tspan fill="#fff">三分之二是项目自己写的</tspan></text>
+          <text x="352" y="150" fill="#64748b" font-size="8">上一讲讲 harness 决定兑现多少；这一页是它最便宜的一种兑现方式</text>
+          <text x="352" y="166" fill="#64748b" font-size="8">—— 改一个 markdown 文件，不用改一行代码</text>
+
+          <path d="M 16 192 L 684 192" stroke="#1e293b" stroke-width="1"/>
+
+          <text x="16" y="212" fill="#94a3b8" font-size="9.5" font-weight="600">复核一条上一讲的说法：prompt 到底放在哪</text>
+
+          <rect x="16" y="222" width="330" height="62" rx="6" fill="rgba(136,19,55,.18)" stroke="#fb7185" stroke-width="1.2"/>
+          <text x="30" y="240" fill="#fb7185" font-size="9.5" font-weight="600">实测：内置 prompt 100% 写在 TS 字符串里</text>
+          <text x="30" y="257" fill="#cbd5e1" font-size="8.5">在源码目录里找 .md 文件 —— <tspan fill="#fff">一个都没有</tspan></text>
+          <text x="30" y="273" fill="#94a3b8" font-size="8">「prompt 一律进 .md」那条规矩是 oh-my-pi 的，不是 pi 的。别记串</text>
+
+          <rect x="354" y="222" width="330" height="62" rx="6" fill="rgba(6,78,59,.2)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="368" y="240" fill="#34d399" font-size="9.5" font-weight="600">走 .md 的是<tspan fill="#fff">用户侧</tspan>的五类</text>
+          <text x="368" y="257" fill="#cbd5e1" font-size="8.5">项目上下文 · 系统提示覆盖 · skill · 提示模板 · 主题</text>
+          <text x="368" y="273" fill="#94a3b8" font-size="8">分界很清楚：<tspan fill="#e2e8f0">内核的写死，你的可改</tspan></text>
+
+          <rect x="16" y="298" width="668" height="60" rx="6" fill="rgba(136,19,55,.2)" stroke="#fb7185" stroke-width="1.4"/>
+          <text x="30" y="318" fill="#fb7185" font-size="10" font-weight="600">顺手挖到的一个安全缺口（值得单独记一笔）</text>
+          <text x="30" y="336" fill="#cbd5e1" font-size="8.5">仓库里的 <tspan fill="#fff">.pi/SYSTEM.md</tspan> 要你先信任才加载；但 <tspan fill="#fff">AGENTS.md 不在信任清单里</tspan></text>
+          <text x="30" y="352" fill="#cbd5e1" font-size="8.5">克隆一个陌生仓库、里面只放 AGENTS.md —— <tspan fill="#fb7185">不弹任何提示，全文直接进 system prompt</tspan></text>
+
+          <rect x="16" y="368" width="668" height="48" rx="6" fill="rgba(30,41,59,.4)" stroke="#334155"/>
+          <text x="30" y="387" fill="#94a3b8" font-size="9">这正是上一讲那条红线的实物版：<tspan fill="#e2e8f0">输入不可信、又没隔开</tspan>。</text>
+          <text x="30" y="405" fill="#64748b" font-size="8.5">要抄的对策也很简单：<tspan fill="#cbd5e1">凡是从仓库里读进 system prompt 的文件，一律走同一道信任闸</tspan>，不要按文件名开小灶。</text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
+        <div class="card violet">
+          <div class="card-head"><span class="card-dot violet"></span><h3>先看这个数，再谈优化</h3></div>
+          <ul>
+            <li>内核 <strong>1,311 token</strong> 是个基准线。你的 agent 如果开局就吃掉一万 token，多半不是模型的问题</li>
+          </ul>
+        </div>
+        <div class="card amber">
+          <div class="card-head"><span class="card-dot amber"></span><h3>环境信息只给一行</h3></div>
+          <ul>
+            <li>没有日期、没有 OS、没有 git 分支 —— 需要就<strong>让它自己用 bash 去查</strong>，而不是每轮都塞给它</li>
+          </ul>
+        </div>
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>这一页要念出来的一句</h3></div>
+          <ul>
+            <li>system prompt 的成本不在长度，在<strong>「每一轮都要重付一遍」</strong>。所以它宁可少给，让模型按需去取</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">本地复刻实测 · <b>583f153</b> · 研究笔记 P05（含复刻脚本口径）</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s15-compaction.html ===== -->
+<section class="slide" data-ch="CH4 上下文" data-title="压缩：切点算法比摘要本身讲究得多">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot violet"></span>CH 4 · 上下文</div>
+    <h1 class="s-title">压缩的难点不在摘要，在<span class="hl-r">切在哪</span></h1>
+    <div class="s-sub">切错一刀，工具调用和它的结果就被劈散 —— 所以它有一张<b style="color:#e2e8f0">合法切点白名单</b>。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="16" fill="#94a3b8" font-size="9.5" font-weight="600">什么时候压：一行绝对值减法，不是百分比</text>
+
+          <rect x="16" y="26" width="668" height="56" rx="6" fill="rgba(2,6,23,.7)" stroke="#334155"/>
+          <text x="32" y="47" fill="#fbbf24" font-size="10.5" font-weight="600">已用 &gt; 窗口 − 16,384　→　压</text>
+          <text x="32" y="66" fill="#cbd5e1" font-size="8.5">20 万窗口触发于 <tspan fill="#fff">91.8%</tspan>；100 万窗口触发于 <tspan fill="#fff">98.4%</tspan> —— <tspan fill="#fb7185">窗口越大，触发越晚</tspan>，因为留的是绝对余量</text>
+
+          <text x="16" y="102" fill="#94a3b8" font-size="9.5" font-weight="600">怎么切：先估到量，再吸附到合法切点</text>
+
+          <rect x="16" y="112" width="668" height="96" rx="6" fill="rgba(30,41,59,.35)" stroke="#334155"/>
+          <rect x="30" y="126" width="150" height="26" rx="4" fill="rgba(136,19,55,.3)" stroke="#fb7185"/>
+          <text x="105" y="143" fill="#fb7185" font-size="8.5" text-anchor="middle">丢弃段（要摘要）</text>
+          <rect x="188" y="126" width="70" height="26" rx="4" fill="rgba(120,53,15,.3)" stroke="#fbbf24"/>
+          <text x="223" y="143" fill="#fbbf24" font-size="8" text-anchor="middle">半个 turn</text>
+          <rect x="266" y="126" width="404" height="26" rx="4" fill="rgba(6,78,59,.3)" stroke="#34d399"/>
+          <text x="468" y="143" fill="#34d399" font-size="8.5" text-anchor="middle">保留段（原样留着）</text>
+
+          <text x="30" y="172" fill="#cbd5e1" font-size="8.5">① 从最新往回累加，够了就停 → ② 往后挪到<tspan fill="#fff">最近的合法切点</tspan> → ③ 把不进上下文的元数据条目一起吸走</text>
+          <text x="30" y="190" fill="#cbd5e1" font-size="8.5">④ 如果这一刀劈开了一个 turn，被劈掉的前半段<tspan fill="#fff">单独再摘要一次</tspan> —— 一次压缩可能发两次请求</text>
+
+          <rect x="16" y="218" width="330" height="76" rx="6" fill="rgba(136,19,55,.18)" stroke="#fb7185" stroke-width="1.2"/>
+          <text x="30" y="237" fill="#fb7185" font-size="9.5" font-weight="600">绝对不能切的地方</text>
+          <text x="30" y="255" fill="#fff" font-size="9">工具结果</text>
+          <text x="30" y="271" fill="#cbd5e1" font-size="8.5">它必须紧跟在自己的调用后面；切散了，</text>
+          <text x="30" y="285" fill="#cbd5e1" font-size="8.5">发给模型的消息序列直接是非法的</text>
+
+          <rect x="354" y="218" width="330" height="76" rx="6" fill="rgba(6,78,59,.18)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="368" y="237" fill="#34d399" font-size="9.5" font-weight="600">摘要会忘，文件清单不忘</text>
+          <text x="368" y="255" fill="#cbd5e1" font-size="8.5">读过哪些文件、改过哪些文件，是<tspan fill="#fff">结构化字段</tspan></text>
+          <text x="368" y="271" fill="#cbd5e1" font-size="8.5">逐次压缩<tspan fill="#fff">累积传递</tspan>，不经过模型转写</text>
+          <text x="368" y="287" fill="#94a3b8" font-size="8">最后以两个 XML 块拼在摘要末尾</text>
+
+          <text x="16" y="316" fill="#94a3b8" font-size="9.5" font-weight="600">四道护栏，全是「防止刚压完又压」</text>
+
+          <rect x="16" y="326" width="164" height="44" rx="5" fill="rgba(30,41,59,.45)" stroke="#334155"/>
+          <text x="28" y="343" fill="#e2e8f0" font-size="8.5">换模型豁免</text>
+          <text x="28" y="358" fill="#64748b" font-size="7.5">小窗切大窗，旧的溢出错误不算数</text>
+
+          <rect x="188" y="326" width="164" height="44" rx="5" fill="rgba(30,41,59,.45)" stroke="#334155"/>
+          <text x="200" y="343" fill="#e2e8f0" font-size="8.5">时间戳比边界</text>
+          <text x="200" y="358" fill="#64748b" font-size="7.5">压缩线之前的消息不参与判定</text>
+
+          <rect x="360" y="326" width="164" height="44" rx="5" fill="rgba(30,41,59,.45)" stroke="#334155"/>
+          <text x="372" y="343" fill="#e2e8f0" font-size="8.5">溢出只救一次</text>
+          <text x="372" y="358" fill="#64748b" font-size="7.5">再失败就明说：换个大窗模型</text>
+
+          <rect x="532" y="326" width="152" height="44" rx="5" fill="rgba(30,41,59,.45)" stroke="#334155"/>
+          <text x="544" y="343" fill="#e2e8f0" font-size="8.5">用量来源要新</text>
+          <text x="544" y="358" fill="#64748b" font-size="7.5">别拿压缩前的旧数字判现在</text>
+
+          <rect x="16" y="380" width="668" height="38" rx="6" fill="rgba(76,29,149,.18)" stroke="#a78bfa" stroke-width="1.1"/>
+          <text x="30" y="398" fill="#a78bfa" font-size="9.5" font-weight="600">回灌只有四行：写一条压缩条目 → 从会话树整体重建 → 换掉内存里的消息</text>
+          <text x="30" y="412" fill="#cbd5e1" font-size="8.5">旧内容<tspan fill="#fff">一条都没删</tspan>，只是读路径不再走到它们；模型那边最后只看到<tspan fill="#fff">一条普通的 user 消息</tspan></text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
+        <div class="card violet">
+          <div class="card-head"><span class="card-dot violet"></span><h3>token 是「混着算」的</h3></div>
+          <ul>
+            <li>拿<strong>模型返回的真实用量打底</strong>，后面新增的消息按字符数除四补上 —— 全程不跑本地分词器；图片按固定字符数记账</li>
+          </ul>
+        </div>
+        <div class="card amber">
+          <div class="card-head"><span class="card-dot amber"></span><h3>摘要 prompt 只有三句</h3></div>
+          <ul>
+            <li>后两句是硬约束：<em>不要接着对话，不要回答里面的问题，只输出结构化摘要</em> —— 摘要模型也会被上下文带跑</li>
+          </ul>
+        </div>
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>抄走这条</h3></div>
+          <ul>
+            <li><strong>压缩窗口只在「上次边界 → 现在」之间</strong>，从不重读整段历史；上一版摘要作为输入迭代合并</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src"><b>core/compaction/compaction.ts</b> · 583f153 · 研究笔记 P05 §3</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s16-skill.html ===== -->
+<section class="slide" data-ch="CH4 上下文" data-title="SKILL：结构体里根本没有 content 字段">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot violet"></span>CH 4 · 上下文</div>
+    <h1 class="s-title">SKILL 的秘密：结构体里<span class="hl-r">没有</span> content 字段</h1>
+    <div class="s-sub">常驻上下文里只放<b style="color:#e2e8f0">名字、描述、文件路径</b>三行；正文什么时候读？<b style="color:#e2e8f0">模型自己用 read 去拿。</b></div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="sk-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#a78bfa"/>
+            </marker>
+          </defs>
+
+          <text x="16" y="16" fill="#94a3b8" font-size="9.5" font-weight="600">Skill 结构体只有六个字段（本讲复核：说法成立，行号都没变）</text>
+
+          <rect x="16" y="26" width="330" height="94" rx="6" fill="rgba(2,6,23,.7)" stroke="#334155"/>
+          <text x="32" y="45" fill="#cbd5e1" font-size="9">name　　 description　　 filePath</text>
+          <text x="32" y="62" fill="#cbd5e1" font-size="9">baseDir　 sourceInfo　　 disableModelInvocation</text>
+          <text x="32" y="84" fill="#fb7185" font-size="9" font-weight="600">没有 content。正文永远在磁盘上。</text>
+          <text x="32" y="102" fill="#64748b" font-size="8">description 是硬性必填 —— 没有描述的 skill 直接不加载</text>
+
+          <rect x="354" y="26" width="330" height="94" rx="6" fill="rgba(76,29,149,.2)" stroke="#a78bfa" stroke-width="1.3"/>
+          <text x="368" y="45" fill="#a78bfa" font-size="10" font-weight="600">常驻 vs 展开</text>
+          <text x="368" y="66" fill="#fff" font-size="14" font-weight="700">380 字符　→　3,097 字符</text>
+          <text x="368" y="84" fill="#cbd5e1" font-size="8.5">每个 skill 常驻只花 380 字符，用到才展开正文</text>
+          <text x="368" y="102" fill="#34d399" font-size="8.5">压缩比 <tspan fill="#fff">8 : 1</tspan>，而且<tspan fill="#fff">不占任何工具槽位</tspan></text>
+
+          <text x="16" y="146" fill="#94a3b8" font-size="9.5" font-weight="600">三级加载：每一级都由模型自己决定要不要往下走</text>
+
+          <rect x="16" y="156" width="200" height="62" rx="6" fill="rgba(30,41,59,.5)" stroke="#334155"/>
+          <text x="30" y="175" fill="#e2e8f0" font-size="9" font-weight="600">① 常驻</text>
+          <text x="30" y="192" fill="#94a3b8" font-size="8.5">名字 + 描述 + 路径</text>
+          <text x="30" y="208" fill="#64748b" font-size="8">system prompt 里的一小段 XML</text>
+
+          <path d="M 220 187 L 244 187" stroke="#a78bfa" stroke-width="1.3" marker-end="url(#sk-ar)"/>
+
+          <rect x="250" y="156" width="200" height="62" rx="6" fill="rgba(76,29,149,.22)" stroke="#a78bfa"/>
+          <text x="264" y="175" fill="#a78bfa" font-size="9" font-weight="600">② 觉得对得上</text>
+          <text x="264" y="192" fill="#cbd5e1" font-size="8.5">用 read 工具去读那个路径</text>
+          <text x="264" y="208" fill="#64748b" font-size="8">和读任何一个文件没区别</text>
+
+          <path d="M 454 187 L 478 187" stroke="#a78bfa" stroke-width="1.3" marker-end="url(#sk-ar)"/>
+
+          <rect x="484" y="156" width="200" height="62" rx="6" fill="rgba(6,78,59,.24)" stroke="#34d399"/>
+          <text x="498" y="175" fill="#34d399" font-size="9" font-weight="600">③ 正文进上下文</text>
+          <text x="498" y="192" fill="#cbd5e1" font-size="8.5">里面还能再引相对路径的附件</text>
+          <text x="498" y="208" fill="#64748b" font-size="8">要几层就几层</text>
+
+          <rect x="16" y="234" width="668" height="52" rx="6" fill="rgba(120,53,15,.2)" stroke="#fbbf24" stroke-width="1.2"/>
+          <text x="30" y="253" fill="#fbbf24" font-size="9.5" font-weight="600">一个很能说明设计品味的条件：没有 read 工具，就一个 skill 都不列</text>
+          <text x="30" y="271" fill="#cbd5e1" font-size="8.5">因为模型<tspan fill="#fff">没手段把正文拉进来</tspan> —— 列了也是白花 token。能力不在，索引就不发</text>
+
+          <path d="M 16 300 L 684 300" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="320" fill="#94a3b8" font-size="9.5" font-weight="600">为什么这招值钱：它把「功能多」和「上下文贵」解耦了</text>
+
+          <rect x="16" y="330" width="330" height="52" rx="6" fill="rgba(136,19,55,.18)" stroke="#fb7185" stroke-width="1.1"/>
+          <text x="30" y="349" fill="#fb7185" font-size="9" font-weight="600">常见做法</text>
+          <text x="30" y="366" fill="#cbd5e1" font-size="8.5">能力越多 → prompt 越长 → 每轮都重付一次</text>
+
+          <rect x="354" y="330" width="330" height="52" rx="6" fill="rgba(6,78,59,.2)" stroke="#34d399" stroke-width="1.1"/>
+          <text x="368" y="349" fill="#34d399" font-size="9" font-weight="600">这里的做法</text>
+          <text x="368" y="366" fill="#cbd5e1" font-size="8.5">能力越多 → 索引长一点点 → 正文<tspan fill="#fff">用到才付</tspan></text>
+
+          <text x="16" y="404" fill="#cbd5e1" font-size="9">另一条路是显式喊：<tspan fill="#fff">/skill:名字</tspan> —— 这时才是 pi 主动读盘，把正文塞进这一轮。</text>
+          <text x="16" y="420" fill="#64748b" font-size="8">core/skills.ts:74-81 结构体 · :335-361 注入格式 · system-prompt.ts:154 注入条件 · agent-session.ts:1312 读盘点　583f153</text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
+        <div class="card violet">
+          <div class="card-head"><span class="card-dot violet"></span><h3>这是最容易抄的一条</h3></div>
+          <ul>
+            <li>不需要任何框架：<strong>一个目录 + 每个文件写好 description + 让模型自己 read</strong>。你今天下午就能给自己的 agent 加上</li>
+          </ul>
+        </div>
+        <div class="card cyan">
+          <div class="card-head"><span class="card-dot cyan"></span><h3>描述比正文重要</h3></div>
+          <ul>
+            <li>模型只靠那一句 description 决定要不要展开 —— <strong>description 写砸了，正文写得再好也永远不会被读到</strong></li>
+          </ul>
+        </div>
+        <div class="card amber">
+          <div class="card-head"><span class="card-dot amber"></span><h3>SDK 那套反而有 content</h3></div>
+          <ul>
+            <li>但<strong>依然不进 prompt</strong> —— 字段有没有是实现细节，「常驻只放索引」这条语义两边一致</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src"><b>core/skills.ts</b> · 583f153 · 研究笔记 P05 §4（含复核证据三条）</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s17-ch5.html ===== -->
+<section class="slide chapter" data-ch="CH05 工具" data-title="第 05 章 · 工具">
+  <div class="chapter-inner">
+    <div>
+      <div class="ch-no">05</div>
+      <h1>工具</h1>
+      <div class="ch-q"><b>为什么只给模型四个工具？</b></div>
+      <div class="ch-sub">工具不是越多越好 —— 多了模型会选错，<b>这有代码证据</b>。</div>
+      <div class="ch-prog"><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="on"></span><span class=""></span><span class=""></span></div>
+    </div>
+    <div>
+      <ul class="ch-list">
+        <div class="ch-list-h">本章内容</div>
+        <li><span class="n">18</span><span class="t">定义了几个，默认给几个<i>差额那几个为什么不默认给</i></span></li>
+        <li><span class="n">19</span><span class="t">edit 解剖<i>匹配算法、失败文案、模型怎么自愈</i></span></li>
+        <li><span class="n">20</span><span class="t">没有权限弹窗<i>「刻意不做」在代码里到底成不成立</i></span></li>
+      </ul>
+      <div class="ch-sub" style="margin-top:22px;border-color:var(--rose)">工具设计的真问题不是「给什么」，是<b>「给错了怎么让它自己爬起来」</b>。</div>
+    </div>
+  </div>
+  <div class="s-foot">
+    <span class="src">第 05 章 / 共 7 章</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s18-four-tools.html ===== -->
+<section class="slide" data-ch="CH5 工具" data-title="工具：写了 7 个，默认只给模型 4 个">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot rose"></span>CH 5 · 工具</div>
+    <h1 class="s-title">写了 7 个工具，默认<span class="hl">只给 4 个</span></h1>
+    <div class="s-sub">另外三个不是没做完 —— 是<b style="color:#e2e8f0">故意让位给 bash</b>，省下三个槽位和 591 字符描述预算。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="16" fill="#94a3b8" font-size="9.5" font-weight="600">默认四件套 · 提示预算实测 2,595 字符</text>
+
+          <rect x="16" y="26" width="668" height="150" rx="6" fill="rgba(30,41,59,.3)" stroke="#334155"/>
+
+          <rect x="30" y="38" width="248" height="30" rx="4" fill="rgba(6,78,59,.35)" stroke="#34d399"/>
+          <text x="44" y="58" fill="#34d399" font-size="9.5" font-weight="600">read</text>
+          <text x="150" y="58" fill="#cbd5e1" font-size="8.5">492 字符</text>
+
+          <rect x="30" y="74" width="248" height="30" rx="4" fill="rgba(6,78,59,.35)" stroke="#34d399"/>
+          <text x="44" y="94" fill="#34d399" font-size="9.5" font-weight="600">bash</text>
+          <text x="150" y="94" fill="#cbd5e1" font-size="8.5">437 字符</text>
+
+          <rect x="30" y="110" width="640" height="30" rx="4" fill="rgba(136,19,55,.35)" stroke="#fb7185" stroke-width="1.4"/>
+          <text x="44" y="130" fill="#fb7185" font-size="9.5" font-weight="600">edit</text>
+          <text x="150" y="130" fill="#fff" font-size="8.5">1,388 字符　＝　默认四件套预算的 53%</text>
+
+          <rect x="30" y="146" width="140" height="20" rx="4" fill="rgba(6,78,59,.35)" stroke="#34d399"/>
+          <text x="44" y="160" fill="#34d399" font-size="9" font-weight="600">write</text>
+          <text x="150" y="160" fill="#cbd5e1" font-size="8.5">278 字符</text>
+
+          <text x="360" y="160" fill="#fbbf24" font-size="8.5">把描述预算<tspan fill="#fff">压在最容易出错的那一个工具</tspan>上 —— 这是取舍，不是随手写的</text>
+
+          <path d="M 16 190 L 684 190" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="210" fill="#94a3b8" font-size="9.5" font-weight="600">另外三个：grep / find / ls —— 做了，但默认不给</text>
+
+          <rect x="16" y="220" width="330" height="88" rx="6" fill="rgba(120,53,15,.2)" stroke="#fbbf24" stroke-width="1.2"/>
+          <text x="30" y="239" fill="#fbbf24" font-size="9.5" font-weight="600">代码里的直接证据</text>
+          <text x="30" y="257" fill="#cbd5e1" font-size="8.5">system prompt 里有一条<tspan fill="#fff">条件规则</tspan>：</text>
+          <text x="30" y="273" fill="#e2e8f0" font-size="8.5">「有 bash 而没有 grep/find/ls 时 →</text>
+          <text x="30" y="287" fill="#e2e8f0" font-size="8.5">　告诉模型：用 bash 干 ls / rg / find」</text>
+          <text x="30" y="302" fill="#64748b" font-size="8">默认配置下这条一定生效</text>
+
+          <rect x="354" y="220" width="330" height="88" rx="6" fill="rgba(30,41,59,.45)" stroke="#334155"/>
+          <text x="368" y="239" fill="#e2e8f0" font-size="9.5" font-weight="600">为什么能省</text>
+          <text x="368" y="257" fill="#cbd5e1" font-size="8.5">这三个本来就是外部命令的包装，</text>
+          <text x="368" y="273" fill="#cbd5e1" font-size="8.5">相对「bash 里跑一条」<tspan fill="#fff">没有信息增量</tspan></text>
+          <text x="368" y="291" fill="#94a3b8" font-size="8.5">要用随时能开：命令行一个参数的事</text>
+
+          <rect x="16" y="322" width="668" height="44" rx="6" fill="rgba(76,29,149,.18)" stroke="#a78bfa" stroke-width="1.2"/>
+          <text x="30" y="341" fill="#a78bfa" font-size="9.5" font-weight="600">描述分三层，这个结构值得抄</text>
+          <text x="30" y="358" fill="#cbd5e1" font-size="8.5">工具本身的 <tspan fill="#fff">description</tspan>　＋　塞进 system prompt 的 <tspan fill="#fff">片段</tspan>　＋　几条 <tspan fill="#fff">使用守则</tspan>　—— 三层各有各的位置，不混在一起写</text>
+
+          <rect x="16" y="376" width="668" height="42" rx="6" fill="rgba(6,78,59,.16)" stroke="#34d399" stroke-width="1.1"/>
+          <text x="30" y="394" fill="#34d399" font-size="9.5" font-weight="600">SDK 那套更狠：只有 4 个，而且是硬边界</text>
+          <text x="30" y="410" fill="#cbd5e1" font-size="8.5">「工具越多越强」在这份代码里<tspan fill="#fff">完全不成立</tspan> —— 它的方向是：<tspan fill="#fff">给一把能张成一切的原语</tspan></text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>先问「能不能用 bash 张出来」</h3></div>
+          <ul>
+            <li>加一个工具的成本不只是代码，是<strong>每一轮都要重付的描述 token + 一个会被选错的选项</strong></li>
+          </ul>
+        </div>
+        <div class="card amber">
+          <div class="card-head"><span class="card-dot amber"></span><h3>预算要分配，不是平均</h3></div>
+          <ul>
+            <li>最容易写错的工具（edit）拿走一半预算，最简单的（write）只有 278 字符 —— <strong>按出错概率分配文档</strong></li>
+          </ul>
+        </div>
+        <div class="card cyan">
+          <div class="card-head"><span class="card-dot cyan"></span><h3>可选装 ≠ 缺失</h3></div>
+          <ul>
+            <li>官方文档把七个都列出来，帮助文本里直接演示<em>只读四件套</em>怎么配 —— <strong>默认值是产品决策，不是能力上限</strong></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src"><b>core/tools/index.ts</b> · system-prompt.ts:97-105 · 583f153 · 研究笔记 P06</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s19-edit.html ===== -->
+<section class="slide" data-ch="CH5 工具" data-title="edit 解剖：所谓模糊匹配，就是两次 indexOf">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot rose"></span>CH 5 · 工具</div>
+    <h1 class="s-title">所谓「模糊匹配」，就是<span class="hl">两次 indexOf</span></h1>
+    <div class="s-sub">没有编辑距离、没有打分、没有模型兜底 —— 只有<b style="color:#e2e8f0">一次确定性的字符归一化</b>，然后再找一次。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="ed-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/>
+            </marker>
+          </defs>
+
+          <rect x="16" y="18" width="200" height="44" rx="6" fill="rgba(6,78,59,.28)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="116" y="38" fill="#34d399" font-size="9.5" text-anchor="middle" font-weight="600">① 精确找一次</text>
+          <text x="116" y="54" fill="#94a3b8" font-size="8" text-anchor="middle">找到就用，结束</text>
+
+          <path d="M 220 40 L 244 40" stroke="#94a3b8" stroke-width="1.2" marker-end="url(#ed-ar)"/>
+
+          <rect x="250" y="18" width="230" height="44" rx="6" fill="rgba(120,53,15,.26)" stroke="#fbbf24" stroke-width="1.2"/>
+          <text x="365" y="38" fill="#fbbf24" font-size="9.5" text-anchor="middle" font-weight="600">② 两边都归一化，再找一次</text>
+          <text x="365" y="54" fill="#94a3b8" font-size="8" text-anchor="middle">归一化只做五类，别的一律不放过</text>
+
+          <path d="M 484 40 L 508 40" stroke="#94a3b8" stroke-width="1.2" marker-end="url(#ed-ar)"/>
+
+          <rect x="514" y="18" width="170" height="44" rx="6" fill="rgba(136,19,55,.26)" stroke="#fb7185" stroke-width="1.2"/>
+          <text x="599" y="38" fill="#fb7185" font-size="9.5" text-anchor="middle" font-weight="600">③ 还找不到就报错</text>
+          <text x="599" y="54" fill="#94a3b8" font-size="8" text-anchor="middle">带着修复指令回给模型</text>
+
+          <rect x="16" y="76" width="330" height="106" rx="6" fill="rgba(30,41,59,.4)" stroke="#334155"/>
+          <text x="30" y="95" fill="#e2e8f0" font-size="9.5" font-weight="600">归一化就这五类</text>
+          <text x="30" y="113" fill="#cbd5e1" font-size="8.5">· Unicode 兼容规范化</text>
+          <text x="30" y="129" fill="#cbd5e1" font-size="8.5">· 每行去掉行尾空白</text>
+          <text x="30" y="145" fill="#cbd5e1" font-size="8.5">· 弯引号 → 直引号</text>
+          <text x="30" y="161" fill="#cbd5e1" font-size="8.5">· 各种破折号 → 短横；各种怪空格 → 普通空格</text>
+          <text x="30" y="177" fill="#fb7185" font-size="8">缩进、大小写、行内空格数量 —— <tspan fill="#fff">一律不放过</tspan></text>
+
+          <rect x="354" y="76" width="330" height="106" rx="6" fill="rgba(136,19,55,.18)" stroke="#fb7185" stroke-width="1.2"/>
+          <text x="368" y="95" fill="#fb7185" font-size="9.5" font-weight="600">命中多处怎么办：报错，绝不选第一个</text>
+          <text x="368" y="115" fill="#cbd5e1" font-size="8.5">而且唯一性检查<tspan fill="#fff">无条件按模糊口径</tspan>数 ——</text>
+          <text x="368" y="131" fill="#cbd5e1" font-size="8.5">比匹配本身还严：精确只有一处、模糊有两处，也拒</text>
+          <text x="368" y="151" fill="#fbbf24" font-size="8.5">错误文案自带指令：<tspan fill="#fff">「请多给点上下文让它唯一」</tspan></text>
+          <text x="368" y="169" fill="#94a3b8" font-size="8">—— 模型下一轮几乎总能自己修好</text>
+
+          <path d="M 16 198 L 684 198" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="218" fill="#94a3b8" font-size="9.5" font-weight="600">一批编辑的原子性：全对才写，错一个字节都不落盘</text>
+
+          <rect x="16" y="228" width="668" height="62" rx="6" fill="rgba(6,78,59,.18)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="30" y="248" fill="#cbd5e1" font-size="8.5">· 一批 edit <tspan fill="#fff">全部对着同一份原始快照</tspan>匹配，不是改一次重读一次</text>
+          <text x="30" y="266" fill="#cbd5e1" font-size="8.5">· 施加时<tspan fill="#fff">从后往前逆序</tspan>来，前面的偏移就不会被后面的改动带歪</text>
+          <text x="30" y="283" fill="#cbd5e1" font-size="8.5">· 任何一处失败 → <tspan fill="#fb7185">整批放弃</tspan>，文件保持原样；重叠的编辑也会被检出来</text>
+
+          <rect x="16" y="304" width="330" height="52" rx="6" fill="rgba(76,29,149,.18)" stroke="#a78bfa" stroke-width="1.1"/>
+          <text x="30" y="323" fill="#a78bfa" font-size="9" font-weight="600">给模型擦屁股的兼容层</text>
+          <text x="30" y="340" fill="#cbd5e1" font-size="8.5">参数填歪了先归一化再校验；注释里<tspan fill="#fff">直接点名</tspan>了是哪几个模型</text>
+
+          <rect x="354" y="304" width="330" height="52" rx="6" fill="rgba(120,53,15,.18)" stroke="#fbbf24" stroke-width="1.1"/>
+          <text x="368" y="323" fill="#fbbf24" font-size="9" font-weight="600">校验失败时，把收到的参数原样回给模型</text>
+          <text x="368" y="340" fill="#cbd5e1" font-size="8.5">「你发了什么、错在哪个字段」—— <tspan fill="#fff">自愈信息量的上限</tspan></text>
+
+          <rect x="16" y="370" width="668" height="48" rx="6" fill="rgba(30,41,59,.45)" stroke="#334155"/>
+          <text x="30" y="389" fill="#94a3b8" font-size="9">错误文案没有统一包装：没有 &lt;error&gt; 标签、没有前缀、没有堆栈，<tspan fill="#e2e8f0">就是异常消息原文</tspan>。</text>
+          <text x="30" y="407" fill="#64748b" font-size="8.5">刻意的：<tspan fill="#cbd5e1">谁最懂这个错，谁写文案</tspan> —— 内核只负责原样搬运。</text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>这一页最该带走的一句</h3></div>
+          <ul>
+            <li>编辑工具的可靠性<strong>不来自更聪明的匹配，来自更严格的拒绝</strong>：宁可让模型再来一次，也不改到别处去</li>
+          </ul>
+        </div>
+        <div class="card cyan">
+          <div class="card-head"><span class="card-dot cyan"></span><h3>对照上一讲</h3></div>
+          <ul>
+            <li>oh-my-pi 的 hashline 走的是另一条路：<strong>给文件铸内容指纹</strong>，指纹不对就拒。两种解法，同一个问题</li>
+          </ul>
+        </div>
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>错误文案是产品的一部分</h3></div>
+          <ul>
+            <li>六种失败各有一句<strong>可执行的修复提示</strong>。写「操作失败」的那种工具，模型只能瞎猜</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src"><b>core/tools/edit-diff.ts</b>（560 行纯函数、零 IO）· 583f153 · 研究笔记 P06 §3</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s20-no-permission.html ===== -->
+<section class="slide" data-ch="CH5 工具" data-title="没有权限弹窗：复核成立，而且比宣传更彻底">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot rose"></span>CH 5 · 工具</div>
+    <h1 class="s-title">「不做权限弹窗」<span class="hl-r">成立</span>，而且比宣传更彻底</h1>
+    <div class="s-sub">全仓搜 permission，三处命中：一条剪贴板注释 + 两行许可证。<b style="color:#e2e8f0">没有一处是权限逻辑。</b></div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="16" fill="#94a3b8" font-size="9.5" font-weight="600">逐项核对「可能存在的拦截面」——全部实测</text>
+
+          <rect x="16" y="26" width="668" height="30" rx="4" fill="rgba(136,19,55,.16)"/>
+          <text x="30" y="45" fill="#e2e8f0" font-size="9">执行前弹窗确认</text>
+          <text x="300" y="45" fill="#fb7185" font-size="9" font-weight="600">不存在</text>
+          <text x="400" y="45" fill="#64748b" font-size="8">准备阶段只有：找工具 → 归一化参数 → 校验 → 钩子 → 检查中断</text>
+
+          <rect x="16" y="60" width="668" height="30" rx="4" fill="rgba(136,19,55,.1)"/>
+          <text x="30" y="79" fill="#e2e8f0" font-size="9">命令白名单 / 黑名单</text>
+          <text x="300" y="79" fill="#fb7185" font-size="9" font-weight="600">不存在</text>
+          <text x="400" y="79" fill="#64748b" font-size="8">命令从参数直达进程创建，中间只拼了个前缀</text>
+
+          <rect x="16" y="94" width="668" height="30" rx="4" fill="rgba(136,19,55,.16)"/>
+          <text x="30" y="113" fill="#e2e8f0" font-size="9">路径沙箱（限制在工作目录内）</text>
+          <text x="300" y="113" fill="#fb7185" font-size="9" font-weight="600">不存在</text>
+          <text x="400" y="113" fill="#64748b" font-size="8">绝对路径原样通过；判断「在不在 cwd 内」的函数只用于<tspan fill="#cbd5e1">显示</tspan></text>
+
+          <rect x="16" y="128" width="668" height="30" rx="4" fill="rgba(136,19,55,.1)"/>
+          <text x="30" y="147" fill="#e2e8f0" font-size="9">敏感文件保护（.env / .ssh 之类）</text>
+          <text x="300" y="147" fill="#fb7185" font-size="9" font-weight="600">不存在</text>
+          <text x="400" y="147" fill="#64748b" font-size="8">读写三个工具全文没有任何路径模式匹配</text>
+
+          <rect x="16" y="162" width="668" height="30" rx="4" fill="rgba(120,53,15,.16)"/>
+          <text x="30" y="181" fill="#e2e8f0" font-size="9">只读模式</text>
+          <text x="300" y="181" fill="#fbbf24" font-size="9" font-weight="600">靠不给工具</text>
+          <text x="400" y="181" fill="#64748b" font-size="8">不是运行时拦截，是压根不把写工具放进去</text>
+
+          <path d="M 16 208 L 684 208" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="228" fill="#34d399" font-size="9.5" font-weight="600">内核只留了一个口子：执行前的那个钩子</text>
+
+          <rect x="16" y="238" width="668" height="66" rx="6" fill="rgba(6,78,59,.2)" stroke="#34d399" stroke-width="1.3"/>
+          <text x="30" y="258" fill="#cbd5e1" font-size="8.5">钩子返回「拦下 + 一句理由」→ 这次调用变成一条错误结果回给模型，<tspan fill="#fff">不执行</tspan></text>
+          <text x="30" y="276" fill="#cbd5e1" font-size="8.5">没有任何扩展注册时<tspan fill="#fff">直接短路放行</tspan>，零开销 —— 不为「可能有人要管」而给所有人上税</text>
+          <text x="30" y="294" fill="#fbbf24" font-size="8.5">官方给的参考实现（一个权限闸扩展）总共 <tspan fill="#fff">34 行</tspan></text>
+
+          <rect x="16" y="318" width="330" height="46" rx="6" fill="rgba(30,41,59,.45)" stroke="#334155"/>
+          <text x="30" y="337" fill="#e2e8f0" font-size="9" font-weight="600">它的原话</text>
+          <text x="30" y="354" fill="#94a3b8" font-size="8">「跑在容器里，或者按你自己的环境和安全要求写一套确认流程」</text>
+
+          <rect x="354" y="318" width="330" height="46" rx="6" fill="rgba(76,29,149,.18)" stroke="#a78bfa"/>
+          <text x="368" y="337" fill="#a78bfa" font-size="9" font-weight="600">这是立场，不是偷懒</text>
+          <text x="368" y="354" fill="#94a3b8" font-size="8">默认给最锋利的形态，安全边界交给部署方</text>
+
+          <rect x="16" y="376" width="668" height="42" rx="6" fill="rgba(136,19,55,.2)" stroke="#fb7185" stroke-width="1.2"/>
+          <text x="30" y="394" fill="#fb7185" font-size="9.5" font-weight="600">所以：拿它当日常主力，请自己补两样 —— 容器，和那 34 行</text>
+          <text x="30" y="410" fill="#cbd5e1" font-size="8.5">配合上一页那条：<tspan fill="#fff">陌生仓库的 AGENTS.md 不走信任闸</tspan>。两条叠在一起，就是上一讲说的「输入不可信、又没隔开」</text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>复核结果：说法成立</h3></div>
+          <ul>
+            <li>上一讲说它「坦诚地不做权限」，这次逐项核对<strong>确认属实</strong>，而且连路径沙箱都没有 —— 比宣传更彻底</li>
+          </ul>
+        </div>
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>可抄的设计</h3></div>
+          <ul>
+            <li><strong>内核只提供拦截点，不提供策略。</strong> 策略是每个团队自己的，写进内核就等于替所有人做决定</li>
+            <li>没人用时短路，是这个设计能被接受的前提</li>
+          </ul>
+        </div>
+        <div class="card amber">
+          <div class="card-head"><span class="card-dot amber"></span><h3>顺带一条 bash 的冷知识</h3></div>
+          <ul>
+            <li><strong>默认根本不超时</strong>；输出截断保尾 2,000 行 / 50KB，超出部分<strong>全量落到临时文件</strong>并把路径告诉模型 —— 截断不丢数据</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">grep 实测 · <b>583f153</b> · 研究笔记 P06 §6（含命令原文与三处命中）</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s21-ch6.html ===== -->
+<section class="slide chapter" data-ch="CH06 外壳" data-title="第 06 章 · 外壳">
+  <div class="chapter-inner">
+    <div>
+      <div class="ch-no">06</div>
+      <h1>外壳</h1>
+      <div class="ch-q"><b>内核之外，还有三大坨工程量</b></div>
+      <div class="ch-sub">扩展面、模型接入层、终端界面 —— <b>加起来比内核还大</b>。</div>
+      <div class="ch-prog"><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="on"></span><span class=""></span></div>
+    </div>
+    <div>
+      <ul class="ch-list">
+        <div class="ch-list-h">本章内容</div>
+        <li><span class="n">22</span><span class="t">扩展面<i>hook 全表 + 三个真实扩展读一遍</i></span></li>
+        <li><span class="n">23</span><span class="t">模型接入层<i>两万行在解决什么：零官方 SDK、流式拼装、计费</i></span></li>
+        <li><span class="n">24</span><span class="t">自绘 TUI<i>为什么要自己写一万四千行终端</i></span></li>
+      </ul>
+      <div class="ch-sub" style="margin-top:22px;border-color:var(--slate)">看清这三坨，你才知道自建 harness 的<b>真实报价</b>。</div>
+    </div>
+  </div>
+  <div class="s-foot">
+    <span class="src">第 06 章 / 共 7 章</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s22-extensibility.html ===== -->
+<section class="slide" data-ch="CH6 外壳" data-title="扩展面：33 个钩子，14 个能真正改变流程">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot"></span>CH 6 · 外壳</div>
+    <h1 class="s-title">33 个钩子，其中 <span class="hl">14 个</span>能真正改流程</h1>
+    <div class="s-sub">扩展是<b style="color:#e2e8f0">就地转译的 TypeScript</b>，不编译、不打包、无沙箱，直接跑在主进程里。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="16" fill="#94a3b8" font-size="9.5" font-weight="600">可外挂的资源，精确只有四类（写死在一行里）</text>
+
+          <rect x="16" y="26" width="160" height="40" rx="6" fill="rgba(6,78,59,.26)" stroke="#34d399"/>
+          <text x="96" y="44" fill="#34d399" font-size="10" text-anchor="middle" font-weight="600">extensions</text>
+          <text x="96" y="59" fill="#94a3b8" font-size="8" text-anchor="middle">改行为</text>
+
+          <rect x="186" y="26" width="160" height="40" rx="6" fill="rgba(76,29,149,.24)" stroke="#a78bfa"/>
+          <text x="266" y="44" fill="#a78bfa" font-size="10" text-anchor="middle" font-weight="600">skills</text>
+          <text x="266" y="59" fill="#94a3b8" font-size="8" text-anchor="middle">加知识</text>
+
+          <rect x="356" y="26" width="160" height="40" rx="6" fill="rgba(120,53,15,.24)" stroke="#fbbf24"/>
+          <text x="436" y="44" fill="#fbbf24" font-size="10" text-anchor="middle" font-weight="600">prompts</text>
+          <text x="436" y="59" fill="#94a3b8" font-size="8" text-anchor="middle">存套路</text>
+
+          <rect x="526" y="26" width="158" height="40" rx="6" fill="rgba(8,51,68,.3)" stroke="#22d3ee"/>
+          <text x="605" y="44" fill="#22d3ee" font-size="10" text-anchor="middle" font-weight="600">themes</text>
+          <text x="605" y="59" fill="#94a3b8" font-size="8" text-anchor="middle">换皮</text>
+
+          <text x="16" y="86" fill="#64748b" font-size="8">四类共用同一条流水线：发现 → 过信任闸 → 合并；同一张文件类型表。加第五类要改内核，所以它一直只有四类。</text>
+
+          <path d="M 16 96 L 684 96" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="116" fill="#94a3b8" font-size="9.5" font-weight="600">加载分两趟，中间夹一道信任闸 —— 这个顺序是关键</text>
+
+          <rect x="16" y="126" width="212" height="62" rx="6" fill="rgba(30,41,59,.45)" stroke="#334155"/>
+          <text x="30" y="145" fill="#e2e8f0" font-size="9" font-weight="600">第一趟</text>
+          <text x="30" y="162" fill="#cbd5e1" font-size="8.5">强制「本项目<tspan fill="#fff">不可信</tspan>」</text>
+          <text x="30" y="178" fill="#94a3b8" font-size="8">只加载你自己的全局扩展</text>
+
+          <rect x="244" y="126" width="212" height="62" rx="6" fill="rgba(120,53,15,.22)" stroke="#fbbf24"/>
+          <text x="258" y="145" fill="#fbbf24" font-size="9" font-weight="600">用这个「干净的 pi」问你</text>
+          <text x="258" y="162" fill="#cbd5e1" font-size="8.5">要不要信任这个项目</text>
+          <text x="258" y="178" fill="#94a3b8" font-size="8">问话的那个 pi 自己没被项目污染</text>
+
+          <rect x="472" y="126" width="212" height="62" rx="6" fill="rgba(6,78,59,.22)" stroke="#34d399"/>
+          <text x="486" y="145" fill="#34d399" font-size="9" font-weight="600">第二趟</text>
+          <text x="486" y="162" fill="#cbd5e1" font-size="8.5">点头之后才碰项目目录</text>
+          <text x="486" y="178" fill="#94a3b8" font-size="8">四类资源全部受这道闸管</text>
+
+          <rect x="16" y="200" width="330" height="76" rx="6" fill="rgba(136,19,55,.16)" stroke="#fb7185" stroke-width="1.2"/>
+          <text x="30" y="219" fill="#fb7185" font-size="9.5" font-weight="600">代价说清楚：扩展没有沙箱</text>
+          <text x="30" y="237" fill="#cbd5e1" font-size="8.5">就地转译的 TS，<tspan fill="#fff">跑在 pi 主进程里</tspan></text>
+          <text x="30" y="253" fill="#cbd5e1" font-size="8.5">能力上限 ＝ pi 本身的能力上限</text>
+          <text x="30" y="269" fill="#94a3b8" font-size="8">所以那道信任闸不是形式，是这套设计唯一的护栏</text>
+
+          <rect x="354" y="200" width="330" height="76" rx="6" fill="rgba(6,78,59,.18)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="368" y="219" fill="#34d399" font-size="9.5" font-weight="600">扩展面到底能干多大的事</text>
+          <text x="368" y="237" fill="#cbd5e1" font-size="8.5">· 一个 558 行的扩展 = 完整重建 plan mode</text>
+          <text x="368" y="253" fill="#cbd5e1" font-size="8.5">· 一个 321 行的扩展 = <tspan fill="#fff">同名覆盖内置 bash</tspan>，接管沙箱</text>
+          <text x="368" y="269" fill="#cbd5e1" font-size="8.5">· 一个 610 行的扩展 = 接一整个新模型厂商，含登录流程</text>
+
+          <path d="M 16 292 L 684 292" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="312" fill="#94a3b8" font-size="9.5" font-weight="600">接上一讲的成本模型：扩展面把哪些需求降成了「零冲突」</text>
+
+          <rect x="16" y="322" width="330" height="52" rx="6" fill="rgba(6,78,59,.2)" stroke="#34d399" stroke-width="1.1"/>
+          <text x="30" y="341" fill="#34d399" font-size="9" font-weight="600">降到外挂即可（功能层）</text>
+          <text x="30" y="358" fill="#cbd5e1" font-size="8.5">模式 · 权限 · 沙箱 · 子代理 · 新厂商 · 压缩策略 · 界面外观</text>
+
+          <rect x="354" y="322" width="330" height="52" rx="6" fill="rgba(136,19,55,.18)" stroke="#fb7185" stroke-width="1.1"/>
+          <text x="368" y="341" fill="#fb7185" font-size="9" font-weight="600">仍然得改内核（语义层）</text>
+          <text x="368" y="358" fill="#cbd5e1" font-size="8.5">循环怎么判停 · 会话条目有哪几种 · 资源就这四类</text>
+
+          <rect x="16" y="384" width="668" height="34" rx="6" fill="rgba(76,29,149,.16)" stroke="#a78bfa" stroke-width="1.1"/>
+          <text x="30" y="405" fill="#cbd5e1" font-size="9">这也正好解释了上一讲的那个 fork：<tspan fill="#fff">oh-my-pi 想改的恰恰是语义层</tspan>，所以它只能重写，挂扩展够不着。</text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>复核并修正上一讲</h3></div>
+          <ul>
+            <li>上一讲说「8 个钩子能改流程」，这次逐个数：<strong>是 14 个</strong> —— 上次只数了集中定义的那一块，漏了散落三处的</li>
+          </ul>
+        </div>
+        <div class="card cyan">
+          <div class="card-head"><span class="card-dot cyan"></span><h3>扩展面好不好，只看一个指标</h3></div>
+          <ul>
+            <li>不是「有多少钩子」，是<strong>「能不能只靠钩子做完一件真事」</strong>。上面三个例子就是它的答卷</li>
+          </ul>
+        </div>
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>它也有反例</h3></div>
+          <ul>
+            <li>本该外挂的东西留在了内核里：<strong>默认不启用的三个工具、746 行 HTML 导出、写死到某家平台的分享功能</strong> —— 谁都会有历史包袱</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src"><b>core/extensions/</b> · examples/extensions 79 个样例 · docs/extensions.md 2,984 行 · 583f153 · P07</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s23-ai-layer.html ===== -->
+<section class="slide" data-ch="CH6 外壳" data-title="模型接入层：两万行在解决「别家的坑」">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot"></span>CH 6 · 外壳</div>
+    <h1 class="s-title">两万行接入层，<span class="hl">核心类型只有 795 行</span></h1>
+    <div class="s-sub">38 家厂商、10 种线上格式，收敛到一份 canonical 形状 —— <b style="color:#e2e8f0">剩下的都是在填别人的坑</b>。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="ai-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#fbbf24"/>
+            </marker>
+          </defs>
+
+          <rect x="16" y="20" width="180" height="80" rx="6" fill="rgba(120,53,15,.24)" stroke="#fbbf24" stroke-width="1.2"/>
+          <text x="106" y="46" fill="#fbbf24" font-size="14" text-anchor="middle" font-weight="700">38 家</text>
+          <text x="106" y="64" fill="#cbd5e1" font-size="8.5" text-anchor="middle">provider</text>
+          <text x="106" y="84" fill="#94a3b8" font-size="8" text-anchor="middle">两处独立计数都是 38</text>
+
+          <path d="M 200 60 L 236 60" stroke="#fbbf24" stroke-width="1.3" marker-end="url(#ai-ar)"/>
+
+          <rect x="242" y="20" width="180" height="80" rx="6" fill="rgba(251,146,60,.22)" stroke="#fb923c" stroke-width="1.2"/>
+          <text x="332" y="46" fill="#fb923c" font-size="14" text-anchor="middle" font-weight="700">10 种</text>
+          <text x="332" y="64" fill="#cbd5e1" font-size="8.5" text-anchor="middle">线上格式</text>
+          <text x="332" y="84" fill="#94a3b8" font-size="8" text-anchor="middle">约 20 家共用同一套适配器</text>
+
+          <path d="M 426 60 L 462 60" stroke="#fbbf24" stroke-width="1.3" marker-end="url(#ai-ar)"/>
+
+          <rect x="468" y="20" width="216" height="80" rx="6" fill="rgba(6,78,59,.28)" stroke="#34d399" stroke-width="1.6"/>
+          <text x="576" y="46" fill="#34d399" font-size="14" text-anchor="middle" font-weight="700">795 行</text>
+          <text x="576" y="64" fill="#cbd5e1" font-size="8.5" text-anchor="middle">一份 canonical 类型，全仓共用</text>
+          <text x="576" y="84" fill="#94a3b8" font-size="8" text-anchor="middle">收敛点越窄，上层越好写</text>
+
+          <path d="M 16 118 L 684 118" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="138" fill="#94a3b8" font-size="9.5" font-weight="600">三个「读代码才知道」的细节</text>
+
+          <rect x="16" y="148" width="668" height="52" rx="6" fill="rgba(30,41,59,.4)" stroke="#334155"/>
+          <text x="30" y="167" fill="#e2e8f0" font-size="9" font-weight="600">① 官方 SDK 和手写 HTTP 并存 —— 不是立场，是逐个 API 判断</text>
+          <text x="30" y="185" fill="#cbd5e1" font-size="8.5">五家用官方 SDK；另有两处自己手写流式解析器。其中一个解析的是 <tspan fill="#fff">pi 自己定义的线上协议</tspan> —— 抽象层反手造出了一个新协议</text>
+
+          <rect x="16" y="208" width="668" height="52" rx="6" fill="rgba(120,53,15,.18)" stroke="#fbbf24" stroke-width="1.1"/>
+          <text x="30" y="227" fill="#fbbf24" font-size="9" font-weight="600">② 模型元数据是构建期抓的快照，而且不进 git</text>
+          <text x="30" y="245" fill="#cbd5e1" font-size="8.5">脚本去抓 → 落成本地 json → 被 ignore 掉 → 仓库里只留 37 个八行的薄壳，构建前用哈希校验结构。代价：<tspan fill="#fff">不重新构建就拿不到新价格</tspan></text>
+
+          <rect x="16" y="268" width="668" height="66" rx="6" fill="rgba(136,19,55,.16)" stroke="#fb7185" stroke-width="1.1"/>
+          <text x="30" y="287" fill="#fb7185" font-size="9" font-weight="600">③ 计费二十行，藏了两条最容易算错的规则</text>
+          <text x="30" y="305" fill="#cbd5e1" font-size="8.5">· 阶梯价是<tspan fill="#fff">按请求</tspan>算的，不是累进 —— 超过阈值，整个请求都按高价</text>
+          <text x="30" y="321" fill="#cbd5e1" font-size="8.5">· 长缓存写入单独计价；思考 token 是输出的<tspan fill="#fff">子集</tspan>，加一遍就重复计费了</text>
+
+          <rect x="16" y="342" width="330" height="76" rx="6" fill="rgba(76,29,149,.18)" stroke="#a78bfa" stroke-width="1.1"/>
+          <text x="30" y="361" fill="#a78bfa" font-size="9" font-weight="600">思考内容怎么处理：三分支</text>
+          <text x="30" y="379" fill="#cbd5e1" font-size="8.5">同一个模型且带签名 → <tspan fill="#fff">原样回灌</tspan></text>
+          <text x="30" y="395" fill="#cbd5e1" font-size="8.5">空的 → 直接丢</text>
+          <text x="30" y="411" fill="#cbd5e1" font-size="8.5">其余（换了模型）→ <tspan fill="#fff">降级成普通文本</tspan></text>
+
+          <rect x="354" y="342" width="330" height="76" rx="6" fill="rgba(6,78,59,.16)" stroke="#34d399" stroke-width="1.1"/>
+          <text x="368" y="361" fill="#34d399" font-size="9" font-weight="600">一段值得抄的注释：各家溢出错误对照表</text>
+          <text x="368" y="379" fill="#cbd5e1" font-size="8.5">有的家会明说超了，有的<tspan fill="#fff">静默接受</tspan>，有的<tspan fill="#fff">静默截断</tspan></text>
+          <text x="368" y="397" fill="#94a3b8" font-size="8.5">「没有错误消息的溢出」是最难查的一类问题 ——</text>
+          <text x="368" y="411" fill="#94a3b8" font-size="8.5">他把踩过的坑写成了表，留在代码里</text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
+        <div class="card amber">
+          <div class="card-head"><span class="card-dot amber"></span><h3>这两万行的性质</h3></div>
+          <ul>
+            <li>不是「架构复杂」，是<strong>兼容性债务</strong>：每一段都对应某一家的一个脾气。自己造 harness 时，这一层是最没法省、也最该抄的</li>
+          </ul>
+        </div>
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>现成的「读代码要读到实现」案例</h3></div>
+          <ul>
+            <li>重试那段注释写着「加抖动之前」，<strong>而实现里根本没有抖动</strong> —— 注释和代码对不上，以代码为准</li>
+          </ul>
+        </div>
+        <div class="card violet">
+          <div class="card-head"><span class="card-dot violet"></span><h3>重试分两层</h3></div>
+          <ul>
+            <li>底层看状态码（带抖动、服务端要求等太久就直接失败）；上层看错误文案，<strong>40 条可重试规则减 8 条计费黑名单</strong> —— 计费类错误绝不重试</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src"><b>packages/ai</b> 21,429 行 · 583f153 · 研究笔记 P09</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s24-tui.html ===== -->
+<section class="slide" data-ch="CH6 外壳" data-title="自绘 TUI：一万四千行里，八成是终端怪癖">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot"></span>CH 6 · 外壳</div>
+    <h1 class="s-title">一万四千行终端代码，<span class="hl-r">八成</span>在填终端的坑</h1>
+    <div class="s-sub">没有 Ink、没有 blessed、没有 React —— 运行时依赖只有<b style="color:#e2e8f0">两个</b>：算东亚字宽，和渲染 Markdown。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="16" fill="#94a3b8" font-size="9.5" font-weight="600">渲染模型：整棵树重渲 → 和上一帧逐行比 → 只写变化的那一段</text>
+
+          <rect x="16" y="26" width="150" height="46" rx="6" fill="rgba(30,41,59,.5)" stroke="#334155"/>
+          <text x="91" y="46" fill="#e2e8f0" font-size="9" text-anchor="middle">每帧重渲整棵树</text>
+          <text x="91" y="62" fill="#64748b" font-size="8" text-anchor="middle">写起来像声明式</text>
+
+          <rect x="178" y="26" width="150" height="46" rx="6" fill="rgba(8,51,68,.3)" stroke="#22d3ee"/>
+          <text x="253" y="46" fill="#22d3ee" font-size="9" text-anchor="middle">和上一帧逐行比对</text>
+          <text x="253" y="62" fill="#64748b" font-size="8" text-anchor="middle">找出首个和末个变化行</text>
+
+          <rect x="340" y="26" width="150" height="46" rx="6" fill="rgba(6,78,59,.28)" stroke="#34d399"/>
+          <text x="415" y="46" fill="#34d399" font-size="9" text-anchor="middle">只写这一段</text>
+          <text x="415" y="62" fill="#64748b" font-size="8" text-anchor="middle">整段包进同步输出，一次写完</text>
+
+          <rect x="502" y="26" width="182" height="46" rx="6" fill="rgba(120,53,15,.24)" stroke="#fbbf24"/>
+          <text x="593" y="46" fill="#fbbf24" font-size="9" text-anchor="middle">上限 62.5 帧/秒</text>
+          <text x="593" y="62" fill="#64748b" font-size="8" text-anchor="middle">再快也没意义，只会闪</text>
+
+          <rect x="16" y="86" width="668" height="64" rx="6" fill="rgba(136,19,55,.18)" stroke="#fb7185" stroke-width="1.3"/>
+          <text x="30" y="106" fill="#fb7185" font-size="10" font-weight="600">最硬的一条规矩：只要有一行超过终端宽度，它就主动崩</text>
+          <text x="30" y="124" fill="#cbd5e1" font-size="8.5">崩之前先把所有行连宽度 dump 进崩溃日志，恢复终端状态，再抛错告诉你该用哪两个函数量和截</text>
+          <text x="30" y="141" fill="#94a3b8" font-size="8.5">原因：<tspan fill="#e2e8f0">终端一旦自己折行，行号映射就永久错位</tspan> —— 与其画错，不如立刻停</text>
+
+          <text x="16" y="172" fill="#94a3b8" font-size="9.5" font-weight="600">那一万四千行到底花在哪</text>
+
+          <rect x="16" y="182" width="330" height="120" rx="6" fill="rgba(30,41,59,.4)" stroke="#334155"/>
+          <text x="30" y="201" fill="#e2e8f0" font-size="9" font-weight="600">十五条具体的终端怪癖（各带行号）</text>
+          <text x="30" y="219" fill="#cbd5e1" font-size="8.5">· 某手机终端软键盘一变高，会重播整段历史</text>
+          <text x="30" y="235" fill="#cbd5e1" font-size="8.5">· 某系统自带终端不发某个组合键，只能去读本机修饰键</text>
+          <text x="30" y="251" fill="#cbd5e1" font-size="8.5">· Windows 得加载原生模块才分得清 Shift+Tab</text>
+          <text x="30" y="267" fill="#cbd5e1" font-size="8.5">· 复用器得先问它转不转发某个转义序列</text>
+          <text x="30" y="283" fill="#cbd5e1" font-size="8.5">· 流式时半个 emoji 的宽度必须保守按 2 算</text>
+          <text x="30" y="298" fill="#64748b" font-size="8">配套还有 349 行用户文档，专讲终端怎么配</text>
+
+          <rect x="354" y="182" width="330" height="120" rx="6" fill="rgba(6,78,59,.18)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="368" y="201" fill="#34d399" font-size="9" font-weight="600">粘贴处理：一个很有产品味的细节</text>
+          <text x="368" y="219" fill="#cbd5e1" font-size="8.5">粘超过 10 行或 1000 字符 → 折叠成一个占位标记</text>
+          <text x="368" y="235" fill="#cbd5e1" font-size="8.5">原文存在旁边，<tspan fill="#fff">提交时才展开</tspan></text>
+          <text x="368" y="253" fill="#cbd5e1" font-size="8.5">这个标记在移动光标、删词、换行时被当成<tspan fill="#fff">单个字符</tspan></text>
+          <text x="368" y="271" fill="#94a3b8" font-size="8.5">快捷键分两层共 79 条，用户可以整份改键；</text>
+          <text x="368" y="287" fill="#94a3b8" font-size="8.5">扩展想抢键，有一张 18 条保留键的白名单挡着</text>
+
+          <path d="M 16 318 L 684 318" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="338" fill="#94a3b8" font-size="9.5" font-weight="600">给要自己造的人：哪些必须写，哪些能省</text>
+
+          <rect x="16" y="348" width="330" height="70" rx="6" fill="rgba(136,19,55,.16)" stroke="#fb7185" stroke-width="1.1"/>
+          <text x="30" y="367" fill="#fb7185" font-size="9" font-weight="600">必须自己写（三件）</text>
+          <text x="30" y="385" fill="#cbd5e1" font-size="8.5">按键解析 · 字符宽度契约 · 流式的「重建再比对」边界</text>
+          <text x="30" y="403" fill="#94a3b8" font-size="8">这三件没有库能替你兜底，因为它们和你的渲染模型绑死</text>
+
+          <rect x="354" y="348" width="330" height="70" rx="6" fill="rgba(6,78,59,.2)" stroke="#34d399" stroke-width="1.1"/>
+          <text x="368" y="367" fill="#34d399" font-size="9" font-weight="600">可以省（估算）</text>
+          <text x="368" y="385" fill="#cbd5e1" font-size="8.5">布局引擎 · 响应式 · 备用屏 / 鼠标 / 图片 · 精细能力探测</text>
+          <text x="368" y="403" fill="#fff" font-size="8.5">按它的文件拆解估算：<tspan fill="#34d399">约 2,600 行就能跑起一个够用的</tspan></text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
+        <div class="card cyan">
+          <div class="card-head"><span class="card-dot cyan"></span><h3>测试比源码还多</h3></div>
+          <ul>
+            <li>14,184 行源码，<strong>14,839 行测试</strong>；而且用一个真正的终端模拟器当断言基准，验证自己画得对不对</li>
+          </ul>
+        </div>
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>把「全量重绘次数」做成断言</h3></div>
+          <ul>
+            <li>全量重绘次数是个<strong>公开计数器</strong>，CI 里直接断言「这次操作不许触发全量重绘」—— 性能被写成了测试</li>
+          </ul>
+        </div>
+        <div class="card violet">
+          <div class="card-head"><span class="card-dot violet"></span><h3>这一页的用处</h3></div>
+          <ul>
+            <li>下次有人说「做个 agent 不就是调 API 加个循环」，把这一万四千行给他看：<strong>界面这一坨，谁都躲不掉</strong></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src"><b>packages/tui</b> 14,184 行 · 依赖 2 个 · 583f153 · 研究笔记 P08</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s25-ch7.html ===== -->
+<section class="slide chapter" data-ch="CH07 抄走" data-title="第 07 章 · 抄走">
+  <div class="chapter-inner">
+    <div>
+      <div class="ch-no">07</div>
+      <h1>抄走</h1>
+      <div class="ch-q"><b>哪些能直接搬进你自己的 harness？</b></div>
+      <div class="ch-sub">读完不动手等于没读 —— 这一章只给<b>可执行清单</b>。</div>
+      <div class="ch-prog"><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="on"></span></div>
+    </div>
+    <div>
+      <ul class="ch-list">
+        <div class="ch-list-h">本章内容</div>
+        <li><span class="n">26</span><span class="t">12 条可抄清单<i>每条绑行号证据 + 抄的成本（低/中/高）</i></span></li>
+        <li><span class="n">27</span><span class="t">接下一讲<i>从「读别人的」到「造自己的」：re-agent</i></span></li>
+      </ul>
+      <div class="ch-sub" style="margin-top:22px;border-color:var(--orange)">落点：<b>抄方法，不抄零件</b>。零件是它的场景逼出来的。</div>
+    </div>
+  </div>
+  <div class="s-foot">
+    <span class="src">第 07 章 / 共 7 章</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s26-takeaways.html ===== -->
+<section class="slide" data-ch="CH7 抄走" data-title="12 条可抄清单：每条带证据与成本">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot orange"></span>CH 7 · 抄走</div>
+    <h1 class="s-title">12 条能直接搬走的，按<span class="hl">成本</span>排序</h1>
+    <div class="s-sub"><b style="color:#e2e8f0">低</b>＝半天落地　<b style="color:#e2e8f0">中</b>＝一到三天　<b style="color:#e2e8f0">高</b>＝一周以上或要持续投入。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="14" fill="#34d399" font-size="9.5" font-weight="600">成本：低 —— 今天下午就能做完</text>
+
+          <rect x="16" y="22" width="668" height="26" rx="4" fill="rgba(6,78,59,.2)"/>
+          <text x="30" y="39" fill="#fff" font-size="9" font-weight="600">① 用空环境跑测试</text>
+          <text x="230" y="39" fill="#cbd5e1" font-size="8.5">79 行 bash 把家目录、git 配置、密钥全断掉 —— <tspan fill="#34d399">投入产出比全场最高</tspan></text>
+
+          <rect x="16" y="52" width="668" height="26" rx="4" fill="rgba(6,78,59,.14)"/>
+          <text x="30" y="69" fill="#fff" font-size="9" font-weight="600">② 真实厂商测试自动降级</text>
+          <text x="230" y="69" fill="#cbd5e1" font-size="8.5">没有 key 就跳过。一份测试文件，既是 CI 空跑，也是有 key 时的真实回归</text>
+
+          <rect x="16" y="82" width="668" height="26" rx="4" fill="rgba(6,78,59,.2)"/>
+          <text x="30" y="99" fill="#fff" font-size="9" font-weight="600">③ 回归测试按 issue 号命名</text>
+          <text x="230" y="99" fill="#cbd5e1" font-size="8.5">单独一个目录，44 个被永久钉死的历史 bug —— 不用纠结分类</text>
+
+          <rect x="16" y="112" width="668" height="26" rx="4" fill="rgba(6,78,59,.14)"/>
+          <text x="30" y="129" fill="#fff" font-size="9" font-weight="600">④ 所有检查串成一条命令</text>
+          <text x="230" y="129" fill="#cbd5e1" font-size="8.5">一个名字四处复用；warning 一律当 error；专门写一句「<tspan fill="#fbbf24">看全量输出，不许 tail</tspan>」给 AI 看</text>
+
+          <rect x="16" y="142" width="668" height="26" rx="4" fill="rgba(6,78,59,.2)"/>
+          <text x="30" y="159" fill="#fff" font-size="9" font-weight="600">⑤ 提交前钩子只干三件事</text>
+          <text x="230" y="159" fill="#cbd5e1" font-size="8.5">拦 lockfile（专门防 agent 自作主张装包）· 跑检查 · <tspan fill="#fbbf24">改完记得重新 stage</tspan></text>
+
+          <rect x="16" y="172" width="668" height="26" rx="4" fill="rgba(6,78,59,.14)"/>
+          <text x="30" y="189" fill="#fff" font-size="9" font-weight="600">⑥ CI 里的 action 全部按 SHA 钉死</text>
+          <text x="230" y="189" fill="#cbd5e1" font-size="8.5">34 处引用零例外；默认零权限，每个任务自己申请</text>
+
+          <rect x="16" y="202" width="668" height="26" rx="4" fill="rgba(6,78,59,.2)"/>
+          <text x="30" y="219" fill="#fff" font-size="9" font-weight="600">⑦ 多包锁同一个版本号</text>
+          <text x="230" y="219" fill="#cbd5e1" font-size="8.5">78 行脚本，版本对不齐就直接失败并告诉你该跑哪条命令；<tspan fill="#fbbf24">脚本自己有测试</tspan></text>
+
+          <text x="16" y="248" fill="#fbbf24" font-size="9.5" font-weight="600">成本：中 —— 要按自己项目改造</text>
+
+          <rect x="16" y="256" width="668" height="26" rx="4" fill="rgba(120,53,15,.2)"/>
+          <text x="30" y="273" fill="#fff" font-size="9" font-weight="600">⑧ 把「假模型」做成正式 provider</text>
+          <text x="230" y="273" fill="#cbd5e1" font-size="8.5">不是 mock —— 它走完整代码路径，只替掉网络那一层。<tspan fill="#fbbf24">塞不进去，说明你的抽象有问题</tspan></text>
+
+          <rect x="16" y="286" width="668" height="26" rx="4" fill="rgba(120,53,15,.14)"/>
+          <text x="30" y="303" fill="#fff" font-size="9" font-weight="600">⑨ 依赖全钉死 + 默认禁装包脚本</text>
+          <text x="230" y="303" fill="#cbd5e1" font-size="8.5">白名单只放行两个包，<tspan fill="#fbbf24">每条写明放行理由</tspan> —— 半年后没人会记得为什么</text>
+
+          <rect x="16" y="316" width="668" height="26" rx="4" fill="rgba(120,53,15,.2)"/>
+          <text x="30" y="333" fill="#fff" font-size="9" font-weight="600">⑩ 本地脚本止步于推 tag，发包交给 CI</text>
+          <text x="230" y="333" fill="#cbd5e1" font-size="8.5">本地不碰令牌；发布幂等可重跑；先发草稿，全绿了才转公开</text>
+
+          <rect x="16" y="346" width="668" height="26" rx="4" fill="rgba(120,53,15,.14)"/>
+          <text x="30" y="363" fill="#fff" font-size="9" font-weight="600">⑪ 把开发规范写成给 AI 看的指令</text>
+          <text x="230" y="363" fill="#cbd5e1" font-size="8.5">禁 git add -A、禁七条危险 git 命令 —— <tspan fill="#fbbf24">因为同一个目录里可能并发跑着好几个 agent</tspan></text>
+
+          <text x="16" y="392" fill="#fb7185" font-size="9.5" font-weight="600">成本：高 —— 但这是唯一能回答「改好了没有」的东西</text>
+
+          <rect x="16" y="400" width="668" height="26" rx="4" fill="rgba(136,19,55,.2)"/>
+          <text x="30" y="417" fill="#fff" font-size="9" font-weight="600">⑫ 把「改了 prompt 有没有变好」做成可测量的数字</text>
+          <text x="330" y="417" fill="#cbd5e1" font-size="8.5">同一批输入跑基线和候选各 N 次，看<tspan fill="#fff">通过率差多少个百分点</tspan></text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
+        <div class="card orange">
+          <div class="card-head"><span class="card-dot"></span><h3>为什么第 ⑪ 条最「元」</h3></div>
+          <ul>
+            <li>pi 自己的开发大量用 agent 完成，那份规范是<strong>它给自己写的 system prompt</strong>；每条规矩背后都是一次真实事故</li>
+            <li>抄那 162 行没意义，<strong>抄「agent 每干一次蠢事就往里加一条」这个机制</strong></li>
+          </ul>
+        </div>
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>第 ⑫ 条的纪律很重要</h3></div>
+          <ul>
+            <li>评测分数低<strong>只当观测，不算测试失败</strong>；硬断言只留给基础设施契约 —— 否则评测会退化成又一个红色的 CI</li>
+          </ul>
+        </div>
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>一句话收口</h3></div>
+          <ul>
+            <li>这 12 条<strong>没有一条是关于模型的</strong>。这正是上一讲那句话的注脚：<em>模型决定上限，harness 决定你能兑现多少</em></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">12 条完整证据（路径:行号）见研究笔记 P10 §7 · <b>583f153</b></span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s27-next.html ===== -->
+<section class="slide" data-ch="CH7 抄走" data-title="收尾：从读别人的，到造自己的">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot orange"></span>CH 7 · 抄走</div>
+    <h1 class="s-title">读完了别人的，<span class="hl">下一讲动手</span></h1>
+    <div class="s-sub">这一讲把 pi 拆成了零件。第 (3) 讲只回答一个问题：<b style="color:#e2e8f0">哪些零件我真的需要？</b></div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="nx-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#fb923c"/>
+            </marker>
+          </defs>
+
+          <text x="16" y="16" fill="#94a3b8" font-size="9.5" font-weight="600">本讲七章，用一句话各收一次</text>
+
+          <rect x="16" y="26" width="668" height="26" rx="4" fill="rgba(8,51,68,.24)"/>
+          <text x="30" y="43" fill="#22d3ee" font-size="9" font-weight="600">起手</text>
+          <text x="120" y="43" fill="#cbd5e1" font-size="8.5">十一万行里一半压在一个包；而且它有<tspan fill="#fff">两套编排层</tspan>，读之前先分清在读哪套</text>
+
+          <rect x="16" y="56" width="668" height="26" rx="4" fill="rgba(6,78,59,.24)"/>
+          <text x="30" y="73" fill="#34d399" font-size="9" font-weight="600">循环</text>
+          <text x="120" y="73" fill="#cbd5e1" font-size="8.5">教科书 6 行，真实产品 121 + 517 行 —— 多出来的九成在处理<tspan fill="#fff">「跑到一半，世界变了」</tspan></text>
+
+          <rect x="16" y="86" width="668" height="26" rx="4" fill="rgba(120,53,15,.24)"/>
+          <text x="30" y="103" fill="#fbbf24" font-size="9" font-weight="600">会话</text>
+          <text x="120" y="103" fill="#cbd5e1" font-size="8.5">一个父指针撑起整棵树，只追加不删改；<tspan fill="#fff">先落盘再渲染</tspan></text>
+
+          <rect x="16" y="116" width="668" height="26" rx="4" fill="rgba(76,29,149,.24)"/>
+          <text x="30" y="133" fill="#a78bfa" font-size="9" font-weight="600">上下文</text>
+          <text x="120" y="133" fill="#cbd5e1" font-size="8.5">内核只带 1,311 token；压缩的难点在切点；SKILL <tspan fill="#fff">常驻只放索引</tspan></text>
+
+          <rect x="16" y="146" width="668" height="26" rx="4" fill="rgba(136,19,55,.24)"/>
+          <text x="30" y="163" fill="#fb7185" font-size="9" font-weight="600">工具</text>
+          <text x="120" y="163" fill="#cbd5e1" font-size="8.5">写了 7 个只给 4 个；编辑工具的可靠性来自<tspan fill="#fff">更严格的拒绝</tspan>，不是更聪明的匹配</text>
+
+          <rect x="16" y="176" width="668" height="26" rx="4" fill="rgba(30,41,59,.5)"/>
+          <text x="30" y="193" fill="#94a3b8" font-size="9" font-weight="600">外壳</text>
+          <text x="120" y="193" fill="#cbd5e1" font-size="8.5">扩展面 + 接入层 + 终端界面，<tspan fill="#fff">加起来比内核还大</tspan> —— 这才是自建 harness 的真实报价</text>
+
+          <rect x="16" y="206" width="668" height="26" rx="4" fill="rgba(251,146,60,.24)"/>
+          <text x="30" y="223" fill="#fb923c" font-size="9" font-weight="600">抄走</text>
+          <text x="120" y="223" fill="#cbd5e1" font-size="8.5">12 条里<tspan fill="#fff">没有一条是关于模型的</tspan></text>
+
+          <path d="M 350 244 L 350 268" stroke="#fb923c" stroke-width="1.4" marker-end="url(#nx-ar)"/>
+
+          <rect x="16" y="276" width="668" height="66" rx="6" fill="rgba(251,146,60,.16)" stroke="#fb923c" stroke-width="1.4"/>
+          <text x="350" y="300" fill="#fb923c" font-size="12" font-weight="700" text-anchor="middle">第 (3) 讲 · 动手造 re-agent</text>
+          <text x="350" y="320" fill="#cbd5e1" font-size="9" text-anchor="middle">不再造一个通用 coding agent —— 造一个<tspan fill="#fff">逆向工程专用</tspan>的</text>
+          <text x="350" y="336" fill="#94a3b8" font-size="8.5" text-anchor="middle">因为通用 agent 在这个场景里，恰好缺了最要紧的那样东西：判卷人</text>
+
+          <rect x="16" y="352" width="330" height="66" rx="6" fill="rgba(6,78,59,.18)" stroke="#34d399" stroke-width="1.1"/>
+          <text x="30" y="371" fill="#34d399" font-size="9" font-weight="600">下一讲会直接用到本讲的这几页</text>
+          <text x="30" y="389" fill="#cbd5e1" font-size="8.5">循环怎么写 · 会话怎么存 · 工具怎么划边界</text>
+          <text x="30" y="406" fill="#cbd5e1" font-size="8.5">以及最重要的：<tspan fill="#fff">哪些坚决不做</tspan></text>
+
+          <rect x="354" y="352" width="330" height="66" rx="6" fill="rgba(136,19,55,.16)" stroke="#fb7185" stroke-width="1.1"/>
+          <text x="368" y="371" fill="#fb7185" font-size="9" font-weight="600">带走一个提醒</text>
+          <text x="368" y="389" fill="#cbd5e1" font-size="8.5">拿 pi 当日常主力，请自己补上<tspan fill="#fff">容器</tspan>和<tspan fill="#fff">那 34 行权限闸</tspan></text>
+          <text x="368" y="406" fill="#94a3b8" font-size="8.5">它把锋利留给你，安全边界也留给你</text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
+        <div class="card orange">
+          <div class="card-head"><span class="card-dot"></span><h3>这一讲的方法本身也可以抄</h3></div>
+          <ul>
+            <li>钉一个 commit、所有数字自己跑命令、每条断言留 <strong>路径:行号</strong>、和上一讲冲突的地方<strong>明说是复核</strong></li>
+            <li>本讲一共复核并修正了三处旧说法 —— 都写在研究笔记里</li>
+          </ul>
+        </div>
+        <div class="card cyan">
+          <div class="card-head"><span class="card-dot cyan"></span><h3>十份研究笔记全部开源</h3></div>
+          <ul>
+            <li>每份都带命令原文和「待核实」表。<strong>发现哪条错了，直接提 Issue</strong> —— 这类东西越多人挑越好</li>
+          </ul>
+        </div>
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>最后一句</h3></div>
+          <ul>
+            <li>读源码的意义不是把它抄一遍，是<strong>知道每一处复杂在为谁买单</strong> —— 然后决定这笔账你付不付</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">全场基线 <b>583f153</b> · v0.83.0 · 2026-08-02 本地实测 · 研究笔记 P01–P10</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+    </div>
+  </div>
+
+  <div id="hud">
+    <span id="counter">01/27</span>
+    <button id="btn-prev" title="上一页 ←">‹</button>
+    <button id="btn-next" title="下一页 →">›</button>
+    <button id="btn-ov" title="总览 O">⊞</button>
+  </div>
+
+  <div id="overview">
+    <h2>总览 · 点击跳转 · ESC 返回</h2>
+    <div id="ov-grid"></div>
+  </div>
+
+  <script>
+/* 演示框架运行时：等比缩放 / 键盘导航 / 缩略图总览 */
+(function () {
+  var stage = document.getElementById('stage');
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var progress = document.getElementById('progress');
+  var counter = document.getElementById('counter');
+  var overview = document.getElementById('overview');
+  var ovGrid = document.getElementById('ov-grid');
+  var cur = 0;
+
+  /* --- 等比缩放到视口 --- */
+  function fit() {
+    var pad = 0;
+    var sx = (window.innerWidth - pad) / 1280;
+    var sy = (window.innerHeight - pad) / 720;
+    var s = Math.min(sx, sy);
+    stage.style.transform = 'scale(' + s + ')';
+  }
+  window.addEventListener('resize', fit);
+  fit();
+
+  /* --- 页码 / 页脚注入 --- */
+  slides.forEach(function (el, i) {
+    var foot = el.querySelector('.s-foot .pg');
+    if (foot) foot.textContent = String(i + 1).padStart(2, '0') + ' / ' + String(slides.length).padStart(2, '0');
+  });
+
+  function show(i) {
+    if (i < 0) i = 0;
+    if (i > slides.length - 1) i = slides.length - 1;
+    slides[cur].classList.remove('active');
+    cur = i;
+    slides[cur].classList.add('active');
+    progress.style.width = ((cur + 1) / slides.length * 100) + '%';
+    counter.textContent = String(cur + 1).padStart(2, '0') + '/' + slides.length;
+    if (location.hash !== '#' + (cur + 1)) history.replaceState(null, '', '#' + (cur + 1));
+    Array.prototype.forEach.call(ovGrid.children, function (c, j) {
+      c.classList.toggle('cur', j === cur);
+    });
+  }
+
+  /* --- 缩略图总览 --- */
+  slides.forEach(function (el, i) {
+    var d = document.createElement('div');
+    d.className = 'ov-item';
+    d.innerHTML = '<div class="n">' + String(i + 1).padStart(2, '0') + '</div>' +
+      '<div class="t">' + (el.dataset.title || '') + '</div>' +
+      '<div class="c">' + (el.dataset.ch || '') + '</div>';
+    d.onclick = function () { toggleOverview(false); show(i); };
+    ovGrid.appendChild(d);
+  });
+  function toggleOverview(on) {
+    if (on === undefined) on = !overview.classList.contains('on');
+    overview.classList.toggle('on', on);
+  }
+
+  /* --- 键盘 --- */
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { toggleOverview(false); return; }
+    if (e.key === 'o' || e.key === 'O') { toggleOverview(); return; }
+    if (overview.classList.contains('on')) return;
+    switch (e.key) {
+      case 'ArrowRight': case 'ArrowDown': case ' ': case 'PageDown': case 'n':
+        e.preventDefault(); show(cur + 1); break;
+      case 'ArrowLeft': case 'ArrowUp': case 'PageUp': case 'p':
+        e.preventDefault(); show(cur - 1); break;
+      case 'Home': show(0); break;
+      case 'End': show(slides.length - 1); break;
+      case 'f': case 'F':
+        if (document.fullscreenElement) document.exitFullscreen();
+        else document.documentElement.requestFullscreen();
+        break;
+    }
+  });
+
+  /* --- 点击左右半屏翻页 --- */
+  document.getElementById('stage-wrap').addEventListener('click', function (e) {
+    if (overview.classList.contains('on')) return;
+    if (e.target.closest('#hud')) return;
+    show(e.clientX < window.innerWidth * 0.32 ? cur - 1 : cur + 1);
+  });
+
+  document.getElementById('btn-prev').onclick = function (e) { e.stopPropagation(); show(cur - 1); };
+  document.getElementById('btn-next').onclick = function (e) { e.stopPropagation(); show(cur + 1); };
+  document.getElementById('btn-ov').onclick = function (e) { e.stopPropagation(); toggleOverview(); };
+
+  var start = parseInt((location.hash || '#1').slice(1), 10);
+  show(isNaN(start) ? 0 : start - 1);
+})();
+
+  </script>
+</body>
+</html>

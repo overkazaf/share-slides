@@ -289,7 +289,7 @@ def build():
     doc = f"""<!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>提词器 · 如何打造自己的 Agent（{len(pages)} 页）</title>
+<title>提词器 · 解剖 pi（{len(pages)} 页）</title>
 <style>{CSS}</style></head><body>
 <div id="bar">
   <span class="pg" id="pgno">1/{len(pages)}</span>

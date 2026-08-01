@@ -1,0 +1,95 @@
+<section class="slide" data-ch="CH6 外壳" data-title="模型接入层：两万行在解决「别家的坑」">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot"></span>CH 6 · 外壳</div>
+    <h1 class="s-title">两万行接入层，<span class="hl">核心类型只有 795 行</span></h1>
+    <div class="s-sub">38 家厂商、10 种线上格式，收敛到一份 canonical 形状 —— <b style="color:#e2e8f0">剩下的都是在填别人的坑</b>。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="ai-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#fbbf24"/>
+            </marker>
+          </defs>
+
+          <rect x="16" y="20" width="180" height="80" rx="6" fill="rgba(120,53,15,.24)" stroke="#fbbf24" stroke-width="1.2"/>
+          <text x="106" y="46" fill="#fbbf24" font-size="14" text-anchor="middle" font-weight="700">38 家</text>
+          <text x="106" y="64" fill="#cbd5e1" font-size="8.5" text-anchor="middle">provider</text>
+          <text x="106" y="84" fill="#94a3b8" font-size="8" text-anchor="middle">两处独立计数都是 38</text>
+
+          <path d="M 200 60 L 236 60" stroke="#fbbf24" stroke-width="1.3" marker-end="url(#ai-ar)"/>
+
+          <rect x="242" y="20" width="180" height="80" rx="6" fill="rgba(251,146,60,.22)" stroke="#fb923c" stroke-width="1.2"/>
+          <text x="332" y="46" fill="#fb923c" font-size="14" text-anchor="middle" font-weight="700">10 种</text>
+          <text x="332" y="64" fill="#cbd5e1" font-size="8.5" text-anchor="middle">线上格式</text>
+          <text x="332" y="84" fill="#94a3b8" font-size="8" text-anchor="middle">约 20 家共用同一套适配器</text>
+
+          <path d="M 426 60 L 462 60" stroke="#fbbf24" stroke-width="1.3" marker-end="url(#ai-ar)"/>
+
+          <rect x="468" y="20" width="216" height="80" rx="6" fill="rgba(6,78,59,.28)" stroke="#34d399" stroke-width="1.6"/>
+          <text x="576" y="46" fill="#34d399" font-size="14" text-anchor="middle" font-weight="700">795 行</text>
+          <text x="576" y="64" fill="#cbd5e1" font-size="8.5" text-anchor="middle">一份 canonical 类型，全仓共用</text>
+          <text x="576" y="84" fill="#94a3b8" font-size="8" text-anchor="middle">收敛点越窄，上层越好写</text>
+
+          <path d="M 16 118 L 684 118" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="138" fill="#94a3b8" font-size="9.5" font-weight="600">三个「读代码才知道」的细节</text>
+
+          <rect x="16" y="148" width="668" height="52" rx="6" fill="rgba(30,41,59,.4)" stroke="#334155"/>
+          <text x="30" y="167" fill="#e2e8f0" font-size="9" font-weight="600">① 官方 SDK 和手写 HTTP 并存 —— 不是立场，是逐个 API 判断</text>
+          <text x="30" y="185" fill="#cbd5e1" font-size="8.5">五家用官方 SDK；另有两处自己手写流式解析器。其中一个解析的是 <tspan fill="#fff">pi 自己定义的线上协议</tspan> —— 抽象层反手造出了一个新协议</text>
+
+          <rect x="16" y="208" width="668" height="52" rx="6" fill="rgba(120,53,15,.18)" stroke="#fbbf24" stroke-width="1.1"/>
+          <text x="30" y="227" fill="#fbbf24" font-size="9" font-weight="600">② 模型元数据是构建期抓的快照，而且不进 git</text>
+          <text x="30" y="245" fill="#cbd5e1" font-size="8.5">脚本去抓 → 落成本地 json → 被 ignore 掉 → 仓库里只留 37 个八行的薄壳，构建前用哈希校验结构。代价：<tspan fill="#fff">不重新构建就拿不到新价格</tspan></text>
+
+          <rect x="16" y="268" width="668" height="66" rx="6" fill="rgba(136,19,55,.16)" stroke="#fb7185" stroke-width="1.1"/>
+          <text x="30" y="287" fill="#fb7185" font-size="9" font-weight="600">③ 计费二十行，藏了两条最容易算错的规则</text>
+          <text x="30" y="305" fill="#cbd5e1" font-size="8.5">· 阶梯价是<tspan fill="#fff">按请求</tspan>算的，不是累进 —— 超过阈值，整个请求都按高价</text>
+          <text x="30" y="321" fill="#cbd5e1" font-size="8.5">· 长缓存写入单独计价；思考 token 是输出的<tspan fill="#fff">子集</tspan>，加一遍就重复计费了</text>
+
+          <rect x="16" y="342" width="330" height="76" rx="6" fill="rgba(76,29,149,.18)" stroke="#a78bfa" stroke-width="1.1"/>
+          <text x="30" y="361" fill="#a78bfa" font-size="9" font-weight="600">思考内容怎么处理：三分支</text>
+          <text x="30" y="379" fill="#cbd5e1" font-size="8.5">同一个模型且带签名 → <tspan fill="#fff">原样回灌</tspan></text>
+          <text x="30" y="395" fill="#cbd5e1" font-size="8.5">空的 → 直接丢</text>
+          <text x="30" y="411" fill="#cbd5e1" font-size="8.5">其余（换了模型）→ <tspan fill="#fff">降级成普通文本</tspan></text>
+
+          <rect x="354" y="342" width="330" height="76" rx="6" fill="rgba(6,78,59,.16)" stroke="#34d399" stroke-width="1.1"/>
+          <text x="368" y="361" fill="#34d399" font-size="9" font-weight="600">一段值得抄的注释：各家溢出错误对照表</text>
+          <text x="368" y="379" fill="#cbd5e1" font-size="8.5">有的家会明说超了，有的<tspan fill="#fff">静默接受</tspan>，有的<tspan fill="#fff">静默截断</tspan></text>
+          <text x="368" y="397" fill="#94a3b8" font-size="8.5">「没有错误消息的溢出」是最难查的一类问题 ——</text>
+          <text x="368" y="411" fill="#94a3b8" font-size="8.5">他把踩过的坑写成了表，留在代码里</text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
+        <div class="card amber">
+          <div class="card-head"><span class="card-dot amber"></span><h3>这两万行的性质</h3></div>
+          <ul>
+            <li>不是「架构复杂」，是<strong>兼容性债务</strong>：每一段都对应某一家的一个脾气。自己造 harness 时，这一层是最没法省、也最该抄的</li>
+          </ul>
+        </div>
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>现成的「读代码要读到实现」案例</h3></div>
+          <ul>
+            <li>重试那段注释写着「加抖动之前」，<strong>而实现里根本没有抖动</strong> —— 注释和代码对不上，以代码为准</li>
+          </ul>
+        </div>
+        <div class="card violet">
+          <div class="card-head"><span class="card-dot violet"></span><h3>重试分两层</h3></div>
+          <ul>
+            <li>底层看状态码（带抖动、服务端要求等太久就直接失败）；上层看错误文案，<strong>40 条可重试规则减 8 条计费黑名单</strong> —— 计费类错误绝不重试</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src"><b>packages/ai</b> 21,429 行 · 583f153 · 研究笔记 P09</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

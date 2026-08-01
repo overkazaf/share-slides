@@ -1,0 +1,96 @@
+<section class="slide" data-ch="CH7 抄走" data-title="收尾：从读别人的，到造自己的">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot orange"></span>CH 7 · 抄走</div>
+    <h1 class="s-title">读完了别人的，<span class="hl">下一讲动手</span></h1>
+    <div class="s-sub">这一讲把 pi 拆成了零件。第 (3) 讲只回答一个问题：<b style="color:#e2e8f0">哪些零件我真的需要？</b></div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="nx-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#fb923c"/>
+            </marker>
+          </defs>
+
+          <text x="16" y="16" fill="#94a3b8" font-size="9.5" font-weight="600">本讲七章，用一句话各收一次</text>
+
+          <rect x="16" y="26" width="668" height="26" rx="4" fill="rgba(8,51,68,.24)"/>
+          <text x="30" y="43" fill="#22d3ee" font-size="9" font-weight="600">起手</text>
+          <text x="120" y="43" fill="#cbd5e1" font-size="8.5">十一万行里一半压在一个包；而且它有<tspan fill="#fff">两套编排层</tspan>，读之前先分清在读哪套</text>
+
+          <rect x="16" y="56" width="668" height="26" rx="4" fill="rgba(6,78,59,.24)"/>
+          <text x="30" y="73" fill="#34d399" font-size="9" font-weight="600">循环</text>
+          <text x="120" y="73" fill="#cbd5e1" font-size="8.5">教科书 6 行，真实产品 121 + 517 行 —— 多出来的九成在处理<tspan fill="#fff">「跑到一半，世界变了」</tspan></text>
+
+          <rect x="16" y="86" width="668" height="26" rx="4" fill="rgba(120,53,15,.24)"/>
+          <text x="30" y="103" fill="#fbbf24" font-size="9" font-weight="600">会话</text>
+          <text x="120" y="103" fill="#cbd5e1" font-size="8.5">一个父指针撑起整棵树，只追加不删改；<tspan fill="#fff">先落盘再渲染</tspan></text>
+
+          <rect x="16" y="116" width="668" height="26" rx="4" fill="rgba(76,29,149,.24)"/>
+          <text x="30" y="133" fill="#a78bfa" font-size="9" font-weight="600">上下文</text>
+          <text x="120" y="133" fill="#cbd5e1" font-size="8.5">内核只带 1,311 token；压缩的难点在切点；SKILL <tspan fill="#fff">常驻只放索引</tspan></text>
+
+          <rect x="16" y="146" width="668" height="26" rx="4" fill="rgba(136,19,55,.24)"/>
+          <text x="30" y="163" fill="#fb7185" font-size="9" font-weight="600">工具</text>
+          <text x="120" y="163" fill="#cbd5e1" font-size="8.5">写了 7 个只给 4 个；编辑工具的可靠性来自<tspan fill="#fff">更严格的拒绝</tspan>，不是更聪明的匹配</text>
+
+          <rect x="16" y="176" width="668" height="26" rx="4" fill="rgba(30,41,59,.5)"/>
+          <text x="30" y="193" fill="#94a3b8" font-size="9" font-weight="600">外壳</text>
+          <text x="120" y="193" fill="#cbd5e1" font-size="8.5">扩展面 + 接入层 + 终端界面，<tspan fill="#fff">加起来比内核还大</tspan> —— 这才是自建 harness 的真实报价</text>
+
+          <rect x="16" y="206" width="668" height="26" rx="4" fill="rgba(251,146,60,.24)"/>
+          <text x="30" y="223" fill="#fb923c" font-size="9" font-weight="600">抄走</text>
+          <text x="120" y="223" fill="#cbd5e1" font-size="8.5">12 条里<tspan fill="#fff">没有一条是关于模型的</tspan></text>
+
+          <path d="M 350 244 L 350 268" stroke="#fb923c" stroke-width="1.4" marker-end="url(#nx-ar)"/>
+
+          <rect x="16" y="276" width="668" height="66" rx="6" fill="rgba(251,146,60,.16)" stroke="#fb923c" stroke-width="1.4"/>
+          <text x="350" y="300" fill="#fb923c" font-size="12" font-weight="700" text-anchor="middle">第 (3) 讲 · 动手造 re-agent</text>
+          <text x="350" y="320" fill="#cbd5e1" font-size="9" text-anchor="middle">不再造一个通用 coding agent —— 造一个<tspan fill="#fff">逆向工程专用</tspan>的</text>
+          <text x="350" y="336" fill="#94a3b8" font-size="8.5" text-anchor="middle">因为通用 agent 在这个场景里，恰好缺了最要紧的那样东西：判卷人</text>
+
+          <rect x="16" y="352" width="330" height="66" rx="6" fill="rgba(6,78,59,.18)" stroke="#34d399" stroke-width="1.1"/>
+          <text x="30" y="371" fill="#34d399" font-size="9" font-weight="600">下一讲会直接用到本讲的这几页</text>
+          <text x="30" y="389" fill="#cbd5e1" font-size="8.5">循环怎么写 · 会话怎么存 · 工具怎么划边界</text>
+          <text x="30" y="406" fill="#cbd5e1" font-size="8.5">以及最重要的：<tspan fill="#fff">哪些坚决不做</tspan></text>
+
+          <rect x="354" y="352" width="330" height="66" rx="6" fill="rgba(136,19,55,.16)" stroke="#fb7185" stroke-width="1.1"/>
+          <text x="368" y="371" fill="#fb7185" font-size="9" font-weight="600">带走一个提醒</text>
+          <text x="368" y="389" fill="#cbd5e1" font-size="8.5">拿 pi 当日常主力，请自己补上<tspan fill="#fff">容器</tspan>和<tspan fill="#fff">那 34 行权限闸</tspan></text>
+          <text x="368" y="406" fill="#94a3b8" font-size="8.5">它把锋利留给你，安全边界也留给你</text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
+        <div class="card orange">
+          <div class="card-head"><span class="card-dot"></span><h3>这一讲的方法本身也可以抄</h3></div>
+          <ul>
+            <li>钉一个 commit、所有数字自己跑命令、每条断言留 <strong>路径:行号</strong>、和上一讲冲突的地方<strong>明说是复核</strong></li>
+            <li>本讲一共复核并修正了三处旧说法 —— 都写在研究笔记里</li>
+          </ul>
+        </div>
+        <div class="card cyan">
+          <div class="card-head"><span class="card-dot cyan"></span><h3>十份研究笔记全部开源</h3></div>
+          <ul>
+            <li>每份都带命令原文和「待核实」表。<strong>发现哪条错了，直接提 Issue</strong> —— 这类东西越多人挑越好</li>
+          </ul>
+        </div>
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>最后一句</h3></div>
+          <ul>
+            <li>读源码的意义不是把它抄一遍，是<strong>知道每一处复杂在为谁买单</strong> —— 然后决定这笔账你付不付</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">全场基线 <b>583f153</b> · v0.83.0 · 2026-08-02 本地实测 · 研究笔记 P01–P10</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

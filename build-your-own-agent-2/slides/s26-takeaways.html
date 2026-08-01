@@ -1,0 +1,97 @@
+<section class="slide" data-ch="CH7 抄走" data-title="12 条可抄清单：每条带证据与成本">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot orange"></span>CH 7 · 抄走</div>
+    <h1 class="s-title">12 条能直接搬走的，按<span class="hl">成本</span>排序</h1>
+    <div class="s-sub"><b style="color:#e2e8f0">低</b>＝半天落地　<b style="color:#e2e8f0">中</b>＝一到三天　<b style="color:#e2e8f0">高</b>＝一周以上或要持续投入。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="14" fill="#34d399" font-size="9.5" font-weight="600">成本：低 —— 今天下午就能做完</text>
+
+          <rect x="16" y="22" width="668" height="26" rx="4" fill="rgba(6,78,59,.2)"/>
+          <text x="30" y="39" fill="#fff" font-size="9" font-weight="600">① 用空环境跑测试</text>
+          <text x="230" y="39" fill="#cbd5e1" font-size="8.5">79 行 bash 把家目录、git 配置、密钥全断掉 —— <tspan fill="#34d399">投入产出比全场最高</tspan></text>
+
+          <rect x="16" y="52" width="668" height="26" rx="4" fill="rgba(6,78,59,.14)"/>
+          <text x="30" y="69" fill="#fff" font-size="9" font-weight="600">② 真实厂商测试自动降级</text>
+          <text x="230" y="69" fill="#cbd5e1" font-size="8.5">没有 key 就跳过。一份测试文件，既是 CI 空跑，也是有 key 时的真实回归</text>
+
+          <rect x="16" y="82" width="668" height="26" rx="4" fill="rgba(6,78,59,.2)"/>
+          <text x="30" y="99" fill="#fff" font-size="9" font-weight="600">③ 回归测试按 issue 号命名</text>
+          <text x="230" y="99" fill="#cbd5e1" font-size="8.5">单独一个目录，44 个被永久钉死的历史 bug —— 不用纠结分类</text>
+
+          <rect x="16" y="112" width="668" height="26" rx="4" fill="rgba(6,78,59,.14)"/>
+          <text x="30" y="129" fill="#fff" font-size="9" font-weight="600">④ 所有检查串成一条命令</text>
+          <text x="230" y="129" fill="#cbd5e1" font-size="8.5">一个名字四处复用；warning 一律当 error；专门写一句「<tspan fill="#fbbf24">看全量输出，不许 tail</tspan>」给 AI 看</text>
+
+          <rect x="16" y="142" width="668" height="26" rx="4" fill="rgba(6,78,59,.2)"/>
+          <text x="30" y="159" fill="#fff" font-size="9" font-weight="600">⑤ 提交前钩子只干三件事</text>
+          <text x="230" y="159" fill="#cbd5e1" font-size="8.5">拦 lockfile（专门防 agent 自作主张装包）· 跑检查 · <tspan fill="#fbbf24">改完记得重新 stage</tspan></text>
+
+          <rect x="16" y="172" width="668" height="26" rx="4" fill="rgba(6,78,59,.14)"/>
+          <text x="30" y="189" fill="#fff" font-size="9" font-weight="600">⑥ CI 里的 action 全部按 SHA 钉死</text>
+          <text x="230" y="189" fill="#cbd5e1" font-size="8.5">34 处引用零例外；默认零权限，每个任务自己申请</text>
+
+          <rect x="16" y="202" width="668" height="26" rx="4" fill="rgba(6,78,59,.2)"/>
+          <text x="30" y="219" fill="#fff" font-size="9" font-weight="600">⑦ 多包锁同一个版本号</text>
+          <text x="230" y="219" fill="#cbd5e1" font-size="8.5">78 行脚本，版本对不齐就直接失败并告诉你该跑哪条命令；<tspan fill="#fbbf24">脚本自己有测试</tspan></text>
+
+          <text x="16" y="248" fill="#fbbf24" font-size="9.5" font-weight="600">成本：中 —— 要按自己项目改造</text>
+
+          <rect x="16" y="256" width="668" height="26" rx="4" fill="rgba(120,53,15,.2)"/>
+          <text x="30" y="273" fill="#fff" font-size="9" font-weight="600">⑧ 把「假模型」做成正式 provider</text>
+          <text x="230" y="273" fill="#cbd5e1" font-size="8.5">不是 mock —— 它走完整代码路径，只替掉网络那一层。<tspan fill="#fbbf24">塞不进去，说明你的抽象有问题</tspan></text>
+
+          <rect x="16" y="286" width="668" height="26" rx="4" fill="rgba(120,53,15,.14)"/>
+          <text x="30" y="303" fill="#fff" font-size="9" font-weight="600">⑨ 依赖全钉死 + 默认禁装包脚本</text>
+          <text x="230" y="303" fill="#cbd5e1" font-size="8.5">白名单只放行两个包，<tspan fill="#fbbf24">每条写明放行理由</tspan> —— 半年后没人会记得为什么</text>
+
+          <rect x="16" y="316" width="668" height="26" rx="4" fill="rgba(120,53,15,.2)"/>
+          <text x="30" y="333" fill="#fff" font-size="9" font-weight="600">⑩ 本地脚本止步于推 tag，发包交给 CI</text>
+          <text x="230" y="333" fill="#cbd5e1" font-size="8.5">本地不碰令牌；发布幂等可重跑；先发草稿，全绿了才转公开</text>
+
+          <rect x="16" y="346" width="668" height="26" rx="4" fill="rgba(120,53,15,.14)"/>
+          <text x="30" y="363" fill="#fff" font-size="9" font-weight="600">⑪ 把开发规范写成给 AI 看的指令</text>
+          <text x="230" y="363" fill="#cbd5e1" font-size="8.5">禁 git add -A、禁七条危险 git 命令 —— <tspan fill="#fbbf24">因为同一个目录里可能并发跑着好几个 agent</tspan></text>
+
+          <text x="16" y="392" fill="#fb7185" font-size="9.5" font-weight="600">成本：高 —— 但这是唯一能回答「改好了没有」的东西</text>
+
+          <rect x="16" y="400" width="668" height="26" rx="4" fill="rgba(136,19,55,.2)"/>
+          <text x="30" y="417" fill="#fff" font-size="9" font-weight="600">⑫ 把「改了 prompt 有没有变好」做成可测量的数字</text>
+          <text x="330" y="417" fill="#cbd5e1" font-size="8.5">同一批输入跑基线和候选各 N 次，看<tspan fill="#fff">通过率差多少个百分点</tspan></text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
+        <div class="card orange">
+          <div class="card-head"><span class="card-dot"></span><h3>为什么第 ⑪ 条最「元」</h3></div>
+          <ul>
+            <li>pi 自己的开发大量用 agent 完成，那份规范是<strong>它给自己写的 system prompt</strong>；每条规矩背后都是一次真实事故</li>
+            <li>抄那 162 行没意义，<strong>抄「agent 每干一次蠢事就往里加一条」这个机制</strong></li>
+          </ul>
+        </div>
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>第 ⑫ 条的纪律很重要</h3></div>
+          <ul>
+            <li>评测分数低<strong>只当观测，不算测试失败</strong>；硬断言只留给基础设施契约 —— 否则评测会退化成又一个红色的 CI</li>
+          </ul>
+        </div>
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>一句话收口</h3></div>
+          <ul>
+            <li>这 12 条<strong>没有一条是关于模型的</strong>。这正是上一讲那句话的注脚：<em>模型决定上限，harness 决定你能兑现多少</em></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">12 条完整证据（路径:行号）见研究笔记 P10 §7 · <b>583f153</b></span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

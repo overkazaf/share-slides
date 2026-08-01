@@ -12,7 +12,7 @@ FONT = ('<link rel="preconnect" href="https://fonts.googleapis.com">\n'
         '  <link href="https://fonts.googleapis.com/css2?'
         'family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">')
 
-TITLE = "如何打造自己的 Agent · Chapter 1 · Getting Started"
+TITLE = "如何打造自己的 Agent · Chapter 2 · 解剖 pi"
 
 
 def build():
