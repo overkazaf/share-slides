@@ -1,0 +1,89 @@
+<section class="slide" data-ch="CH3 原理" data-title="这些名词到底差在哪：一张对照表">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot violet"></span>CH 3 · 原理 · 术语对照</div>
+    <h1 class="s-title">这些名词，<span class="hl-v">差别到底在哪</span></h1>
+    <div class="s-sub">上一页说了它们怎么套在一起。这一页把每个拆开：<b style="color:#e2e8f0">它解决什么 · 它管不到什么 · 最常见的误用</b> —— 一行一个，看完再没人能用名词唬住你。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="figure plain">
+      <svg viewBox="0 0 1160 452" xmlns="http://www.w3.org/2000/svg">
+        <text x="16" y="12" fill="#64748b" font-size="8.5">名词</text>
+        <text x="196" y="12" fill="#34d399" font-size="8.5">它解决什么</text>
+        <text x="576" y="12" fill="#fbbf24" font-size="8.5">它管不到什么</text>
+        <text x="836" y="12" fill="#fb7185" font-size="8.5">最常见的误用</text>
+        <path d="M 16 18 L 1144 18" stroke="#334155" stroke-width="1"/>
+
+        <text x="16" y="38" fill="#22d3ee" font-size="10.5" font-weight="700">prompt</text>
+        <text x="196" y="38" fill="#cbd5e1" font-size="9.5">告诉它这次要干什么</text>
+        <text x="576" y="38" fill="#94a3b8" font-size="9.5">它记不记得、能不能动手</text>
+        <text x="836" y="38" fill="#94a3b8" font-size="9.5">把整本规范塞进去，指望它每条都遵守</text>
+
+        <text x="16" y="70" fill="#22d3ee" font-size="10.5" font-weight="700">context</text>
+        <text x="196" y="70" fill="#cbd5e1" font-size="9.5">这一轮摆上桌的<tspan fill="#fff">全部</tspan>：prompt + 历史 + 工具说明 + SKILL 目录</text>
+        <text x="576" y="70" fill="#94a3b8" font-size="9.5">关掉窗口之后的事</text>
+        <text x="836" y="70" fill="#94a3b8" font-size="9.5">以为窗口大就能全塞进去</text>
+
+        <text x="16" y="102" fill="#a78bfa" font-size="10.5" font-weight="700">context engineering</text>
+        <text x="196" y="102" fill="#cbd5e1" font-size="9.5">决定<tspan fill="#fff">摆什么、什么时候收拾</tspan>：裁剪 · 压缩 · 重新排位置</text>
+        <text x="576" y="102" fill="#94a3b8" font-size="9.5">动手那一步怎么做</text>
+        <text x="836" y="102" fill="#94a3b8" font-size="9.5">只会截断，不管留下来的怎么排</text>
+
+        <text x="16" y="134" fill="#a78bfa" font-size="10.5" font-weight="700">memory</text>
+        <text x="196" y="134" fill="#cbd5e1" font-size="9.5">跨会话记住结论，下次不用重查</text>
+        <text x="576" y="134" fill="#94a3b8" font-size="9.5">本轮注意力怎么分配</text>
+        <text x="836" y="134" fill="#94a3b8" font-size="9.5">当垃圾桶：什么都存，检索全是噪音</text>
+
+        <text x="16" y="166" fill="#fbbf24" font-size="10.5" font-weight="700">tools · function calling</text>
+        <text x="196" y="166" fill="#cbd5e1" font-size="9.5">让它<tspan fill="#fff">能动手</tspan>：模型吐结构化调用，你的代码去执行</text>
+        <text x="576" y="166" fill="#94a3b8" font-size="9.5">什么时候该停、能不能碰</text>
+        <text x="836" y="166" fill="#94a3b8" font-size="9.5">一次挂几十个工具，它挑都挑不过来</text>
+
+        <text x="16" y="198" fill="#fbbf24" font-size="10.5" font-weight="700">SKILL</text>
+        <text x="196" y="198" fill="#cbd5e1" font-size="9.5">知识<tspan fill="#fff">用到才展开</tspan>：常驻只放目录，正文按需加载</text>
+        <text x="576" y="198" fill="#94a3b8" font-size="9.5">它会不会照着做</text>
+        <text x="836" y="198" fill="#94a3b8" font-size="9.5">目录那句写不清 → 永远不被触发，还查不出来</text>
+
+        <text x="16" y="230" fill="#34d399" font-size="10.5" font-weight="700">loop engineering</text>
+        <text x="196" y="230" fill="#cbd5e1" font-size="9.5">一步干不完就转圈：<tspan fill="#fff">判停 · 插队 · 出错重来</tspan></text>
+        <text x="576" y="230" fill="#94a3b8" font-size="9.5">走错了怎么退回去</text>
+        <text x="836" y="230" fill="#94a3b8" font-size="9.5">判停交给模型自觉，不设上限</text>
+
+        <text x="16" y="262" fill="#34d399" font-size="10.5" font-weight="700">graph engineering</text>
+        <text x="196" y="262" fill="#cbd5e1" font-size="9.5">往回能退（记录成树）、往前能并（几条路一起走）</text>
+        <text x="576" y="262" fill="#94a3b8" font-size="9.5">已经改了的文件、已经发了的请求</text>
+        <text x="836" y="262" fill="#94a3b8" font-size="9.5">以为"回退一步"能把副作用也撤了</text>
+
+        <text x="16" y="294" fill="#fb923c" font-size="10.5" font-weight="700">MCP</text>
+        <text x="196" y="294" fill="#cbd5e1" font-size="9.5">接外部工具的<tspan fill="#fff">统一插口</tspan>：N×M 变 1×N</text>
+        <text x="576" y="294" fill="#94a3b8" font-size="9.5">权限、判停、上下文预算</text>
+        <text x="836" y="294" fill="#94a3b8" font-size="9.5">把"接上了"当成"能用了"</text>
+
+        <text x="16" y="326" fill="#fb923c" font-size="10.5" font-weight="700">Hook · 扩展点</text>
+        <text x="196" y="326" fill="#cbd5e1" font-size="9.5">在别人的流程中间<tspan fill="#fff">插自己的代码</tspan></text>
+        <text x="576" y="326" fill="#94a3b8" font-size="9.5">它不是隔离，跑在同一个进程里</text>
+        <text x="836" y="326" fill="#94a3b8" font-size="9.5">拿 hook 当权限系统用</text>
+
+        <text x="16" y="358" fill="#fb7185" font-size="10.5" font-weight="700">workflow</text>
+        <text x="196" y="358" fill="#cbd5e1" font-size="9.5"><tspan fill="#fff">路线你写死</tspan>，模型只负责填格子</text>
+        <text x="576" y="358" fill="#94a3b8" font-size="9.5">你没写过的岔路</text>
+        <text x="836" y="358" fill="#94a3b8" font-size="9.5">明明能写死，偏要让模型每次现想</text>
+
+        <text x="16" y="390" fill="#fb7185" font-size="10.5" font-weight="700">多 agent</text>
+        <text x="196" y="390" fill="#cbd5e1" font-size="9.5">几个圈一起转，各看各的资料<tspan fill="#94a3b8">（真收益是不互相带偏）</tspan></text>
+        <text x="576" y="390" fill="#94a3b8" font-size="9.5">它不会让事情变快、变便宜</text>
+        <text x="836" y="390" fill="#94a3b8" font-size="9.5">为并行而并行，一个 agent 约 4 倍、多 agent 约 15 倍 token</text>
+
+        <path d="M 16 404 L 1144 404" stroke="#1e293b" stroke-width="1"/>
+        <text x="16" y="426" fill="#e2e8f0" font-size="11">一句话分清这几组：<tspan fill="#22d3ee" font-weight="700">context 管「带什么上路」</tspan>　·　<tspan fill="#34d399" font-weight="700">loop / graph 管「怎么走」</tspan>　·　<tspan fill="#fbbf24" font-weight="700">tools / SKILL 管「能干什么」</tspan></text>
+        <text x="16" y="446" fill="#94a3b8" font-size="11"><tspan fill="#fb923c" font-weight="700">MCP / Hook 管「怎么接进来」</tspan>　·　<tspan fill="#fb7185" font-weight="700">workflow / 多 agent 管「几个一起怎么排」</tspan>　·　带 engineering 的那两个，是<tspan fill="#fff">工程手法</tspan>，不是新组件。</text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">口径 · Anthropic《Building Effective AI Agents》与 context engineering 系列 · MCP 规范 · pi / oh-my-pi 源码　|　每条的一手取证见 research/</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

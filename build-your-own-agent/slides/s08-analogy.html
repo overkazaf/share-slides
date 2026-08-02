@@ -8,48 +8,73 @@
   <div class="s-body">
     <div class="figure plain">
       <svg viewBox="0 0 1160 448" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="ar-an" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#a78bfa"/></marker>
+          <marker id="ar-an-e" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#34d399"/></marker>
+          <marker id="ar-an-o" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#fb923c"/></marker>
+        </defs>
         <!-- 阶梯 -->
-        <text x="16" y="20" fill="#64748b" font-size="9">从小到大 · 每一格都是「上一格解决不了的问题」</text>
+        <text x="16" y="16" fill="#64748b" font-size="9">它们不是并列的十个名词 —— 是一层套一层：<tspan fill="#94a3b8">里面那圈决定「能不能干成」，外面那圈决定「能不能长期用」</tspan></text>
 
-        <rect x="16" y="30" width="196" height="56" rx="7" fill="rgba(8,51,68,.4)" stroke="#22d3ee" stroke-width="1.3"/>
-        <text x="32" y="52" fill="#fff" font-size="11.5" font-weight="700">prompt</text>
-        <text x="32" y="70" fill="#94a3b8" font-size="9">你说一句，它答一句</text>
+        <!-- 最外：harness -->
+        <rect x="16" y="24" width="1128" height="158" rx="10" fill="none" stroke="#e2e8f0" stroke-width="1.4" stroke-dasharray="7,5"/>
+        <text x="30" y="42" fill="#e2e8f0" font-size="10" font-weight="700">harness · 把下面这些装进一台机器，并决定它们怎么配合</text>
 
-        <rect x="228" y="30" width="196" height="56" rx="7" fill="rgba(76,29,149,.35)" stroke="#a78bfa" stroke-width="1.3"/>
-        <text x="244" y="52" fill="#fff" font-size="11.5" font-weight="700">context</text>
-        <text x="244" y="70" fill="#94a3b8" font-size="9">一次能带多少东西上路</text>
+        <!-- memory -->
+        <rect x="32" y="56" width="140" height="102" rx="8" fill="rgba(76,29,149,.32)" stroke="#a78bfa" stroke-width="1.3"/>
+        <text x="46" y="78" fill="#a78bfa" font-size="10.5" font-weight="700">memory</text>
+        <text x="46" y="98" fill="#cbd5e1" font-size="8.5">跨会话记着</text>
+        <text x="46" y="113" fill="#cbd5e1" font-size="8.5">上次的结论</text>
+        <text x="46" y="140" fill="#64748b" font-size="8">下次开工时</text>
+        <text x="46" y="152" fill="#64748b" font-size="8">再倒进桌子</text>
+        <path d="M 176 107 L 202 107" stroke="#a78bfa" stroke-width="1.3" marker-end="url(#ar-an)"/>
 
-        <rect x="440" y="30" width="196" height="56" rx="7" fill="rgba(76,29,149,.35)" stroke="#a78bfa" stroke-width="1.3"/>
-        <text x="456" y="52" fill="#fff" font-size="11.5" font-weight="700">memory</text>
-        <text x="456" y="70" fill="#94a3b8" font-size="9">这次说完，下次还记得</text>
+        <!-- context -->
+        <rect x="206" y="56" width="252" height="102" rx="8" fill="rgba(34,211,238,.14)" stroke="#22d3ee" stroke-width="1.4"/>
+        <text x="220" y="78" fill="#22d3ee" font-size="10.5" font-weight="700">context · 这一轮摆上桌的东西</text>
+        <rect x="220" y="88" width="106" height="26" rx="5" fill="rgba(2,6,23,.6)" stroke="#334155" stroke-width="1"/>
+        <text x="273" y="105" fill="#fff" font-size="9" text-anchor="middle">prompt 你这句话</text>
+        <rect x="334" y="88" width="110" height="26" rx="5" fill="rgba(2,6,23,.6)" stroke="#334155" stroke-width="1"/>
+        <text x="389" y="105" fill="#cbd5e1" font-size="9" text-anchor="middle">之前的对话</text>
+        <rect x="220" y="120" width="106" height="26" rx="5" fill="rgba(2,6,23,.6)" stroke="#334155" stroke-width="1"/>
+        <text x="273" y="137" fill="#cbd5e1" font-size="9" text-anchor="middle">工具说明书</text>
+        <rect x="334" y="120" width="110" height="26" rx="5" fill="rgba(251,191,36,.16)" stroke="#fbbf24" stroke-width="1"/>
+        <text x="389" y="137" fill="#fbbf24" font-size="9" text-anchor="middle">SKILL 目录</text>
+        <path d="M 462 107 L 490 107" stroke="#34d399" stroke-width="1.3" marker-end="url(#ar-an-e)"/>
 
-        <rect x="652" y="30" width="196" height="56" rx="7" fill="rgba(6,78,59,.4)" stroke="#34d399" stroke-width="1.3"/>
-        <text x="668" y="52" fill="#fff" font-size="11.5" font-weight="700">loop</text>
-        <text x="668" y="70" fill="#94a3b8" font-size="9">一步不够，就转起来</text>
+        <!-- loop -->
+        <rect x="494" y="56" width="286" height="102" rx="8" fill="rgba(6,78,59,.3)" stroke="#34d399" stroke-width="1.6"/>
+        <text x="508" y="78" fill="#34d399" font-size="10.5" font-weight="700">loop · 拿这桌东西转圈</text>
+        <text x="508" y="98" fill="#cbd5e1" font-size="9">模型看一眼 → 决定下一步 → <tspan fill="#fff">调工具</tspan> → 结果回桌上</text>
+        <rect x="508" y="108" width="128" height="38" rx="5" fill="rgba(120,53,15,.34)" stroke="#fbbf24" stroke-width="1.1"/>
+        <text x="572" y="124" fill="#fbbf24" font-size="9" text-anchor="middle" font-weight="700">tools · function calling</text>
+        <text x="572" y="139" fill="#94a3b8" font-size="8" text-anchor="middle">循环里"动手"那一步</text>
+        <rect x="644" y="108" width="122" height="38" rx="5" fill="rgba(2,6,23,.6)" stroke="#334155" stroke-width="1"/>
+        <text x="705" y="124" fill="#e2e8f0" font-size="9" text-anchor="middle">什么时候算干完</text>
+        <text x="705" y="139" fill="#94a3b8" font-size="8" text-anchor="middle">判停：你定，不是它定</text>
+        <path d="M 636 160 L 332 160" stroke="#34d399" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#ar-an-e)"/>
+        <text x="484" y="174" fill="#64748b" font-size="8" text-anchor="middle">每转一圈，结果都回灌进 context —— 所以桌子会越堆越满</text>
 
-        <rect x="864" y="30" width="196" height="56" rx="7" fill="rgba(6,78,59,.4)" stroke="#34d399" stroke-width="1.3"/>
-        <text x="880" y="52" fill="#fff" font-size="11.5" font-weight="700">graph</text>
-        <text x="880" y="70" fill="#94a3b8" font-size="9">走错能退，多路能并</text>
+        <!-- graph -->
+        <rect x="792" y="56" width="150" height="102" rx="8" fill="rgba(8,51,68,.34)" stroke="#22d3ee" stroke-width="1.3"/>
+        <text x="806" y="78" fill="#22d3ee" font-size="10.5" font-weight="700">graph</text>
+        <text x="806" y="98" fill="#cbd5e1" font-size="8.5">给这个圈加两件事：</text>
+        <text x="806" y="116" fill="#fff" font-size="8.5">走错了能退回去</text>
+        <text x="806" y="132" fill="#fff" font-size="8.5">几条路能同时走</text>
+        <text x="806" y="152" fill="#64748b" font-size="8">管的是「怎么走」</text>
 
-        <rect x="16" y="100" width="196" height="56" rx="7" fill="rgba(120,53,15,.32)" stroke="#fbbf24" stroke-width="1.3"/>
-        <text x="32" y="122" fill="#fff" font-size="11.5" font-weight="700">tools · function calling</text>
-        <text x="32" y="140" fill="#94a3b8" font-size="9">光会说不行，得能动手</text>
+        <!-- workflow / 多 agent -->
+        <rect x="954" y="56" width="176" height="102" rx="8" fill="rgba(136,19,55,.3)" stroke="#fb7185" stroke-width="1.3"/>
+        <text x="968" y="78" fill="#fb7185" font-size="10.5" font-weight="700">workflow / 多 agent</text>
+        <text x="968" y="98" fill="#cbd5e1" font-size="8.5">一个圈不够用时，</text>
+        <text x="968" y="114" fill="#cbd5e1" font-size="8.5">把<tspan fill="#fff">好几个圈</tspan>串起来</text>
+        <text x="968" y="134" fill="#94a3b8" font-size="8.5">谁先谁后、谁只出主意</text>
+        <text x="968" y="152" fill="#64748b" font-size="8">管的是「几个一起怎么排」</text>
 
-        <rect x="228" y="100" width="196" height="56" rx="7" fill="rgba(120,53,15,.32)" stroke="#fbbf24" stroke-width="1.3"/>
-        <text x="244" y="122" fill="#fff" font-size="11.5" font-weight="700">SKILL</text>
-        <text x="244" y="140" fill="#94a3b8" font-size="9">用到才翻的那本手册</text>
-
-        <rect x="440" y="100" width="196" height="56" rx="7" fill="rgba(124,45,18,.32)" stroke="#fb923c" stroke-width="1.3"/>
-        <text x="456" y="122" fill="#fff" font-size="11.5" font-weight="700">MCP · Hook · 扩展</text>
-        <text x="456" y="140" fill="#94a3b8" font-size="9">接别人的东西、插自己的手</text>
-
-        <rect x="652" y="100" width="196" height="56" rx="7" fill="rgba(136,19,55,.35)" stroke="#fb7185" stroke-width="1.3"/>
-        <text x="668" y="122" fill="#fff" font-size="11.5" font-weight="700">workflow / 多 agent</text>
-        <text x="668" y="140" fill="#94a3b8" font-size="9">几个凑一起，怎么编排</text>
-
-        <rect x="864" y="100" width="196" height="56" rx="7" fill="rgba(2,6,23,.7)" stroke="#e2e8f0" stroke-width="1.6"/>
-        <text x="880" y="122" fill="#fff" font-size="11.5" font-weight="700">harness</text>
-        <text x="880" y="140" fill="#cbd5e1" font-size="9">把上面全部装进一台机器</text>
+        <!-- MCP / Hook 插口 -->
+        <path d="M 572 46 L 572 56" stroke="#fb923c" stroke-width="1.2" marker-end="url(#ar-an-o)"/>
+        <path d="M 389 46 L 389 56" stroke="#fb923c" stroke-width="1.2" marker-end="url(#ar-an-o)"/>
+        <text x="620" y="44" fill="#fb923c" font-size="9">MCP · Hook · 扩展点 —— 往<tspan fill="#fff">工具</tspan>和<tspan fill="#fff">这张桌子</tspan>上插东西的插口</text>
 
         <!-- 类比 -->
         <path d="M 16 182 L 1144 182" stroke="#1e293b" stroke-width="1"/>
