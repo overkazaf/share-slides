@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""把 script/*.md 编成一个自包含的提词器页面 prompter.html。
+"""把 script/*.md 编成分页版提词器 prompter-paged.html（一次一页）。
+
+单页版（推荐上台用）在 prompter_onepage.py → prompter.html。
 
 用法：python3 prompter.py && open prompter.html
 
@@ -16,7 +18,7 @@ import re
 
 ROOT = pathlib.Path(__file__).parent
 SCRIPT = ROOT / "script"
-OUT = ROOT / "prompter.html"
+OUT = ROOT / "prompter-paged.html"
 
 SEC_RE = re.compile(r"^## +P(\d+) +·? *(.*)$")
 # 讲稿里的小节标题，如 **怎么讲**：
