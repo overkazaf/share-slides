@@ -2,91 +2,91 @@
   <div class="s-head">
     <div class="s-kicker"><span class="dot emerald"></span>CH 7 · 工程文化与收口</div>
     <h1 class="s-title">能抄的<span class="hl-e">五条</span>　／　别抄的<span class="hl-r">六条</span></h1>
-    <div class="s-sub">左边每条都有仓库坐标和成本估算；右边每条都注明<b style="color:#e2e8f0">它在解什么问题</b> —— 你没有那个问题，就别付那个代价。</div>
+    <div class="s-sub">左边五条：<b style="color:#e2e8f0">明天就能动手，附成本</b>。右边六条：<b style="color:#e2e8f0">先看它在解什么问题</b> —— 你没有那个问题，就别付那个代价。</div>
   </div>
 
   <div class="s-body">
     <div class="cols c64">
       <div class="figure">
         <svg viewBox="0 0 700 505" xmlns="http://www.w3.org/2000/svg">
-          <text x="16" y="18" fill="#34d399" font-size="10" font-weight="600">✅ 能抄的五条 —— 可操作、有坐标、成本可估</text>
+          <text x="16" y="18" fill="#34d399" font-size="10" font-weight="600">✅ 能抄的五条 —— 每条都是「明天就能开始做」</text>
 
           <rect x="16" y="28" width="668" height="90" rx="6" fill="rgba(6,78,59,.18)" stroke="#34d399" stroke-width="1"/>
-          <text x="30" y="47" fill="#34d399" font-size="10.5" font-weight="600">① 把 AGENTS.md 写成带故障史的执行契约，而不是风格指南</text>
-          <text x="30" y="66" fill="#cbd5e1" font-size="8.5">第一段先消歧义（「用户说 agent 时指仓库里的哪个东西」）+ 包结构表 + 默认工作区</text>
-          <text x="30" y="81" fill="#cbd5e1" font-size="8.5">规则一律 NEVER / MUST，<tspan fill="#fff">每条禁令必配替代物</tspan>；API 选择用「操作 | 用什么 | 不要用什么」对照表</text>
-          <text x="30" y="96" fill="#cbd5e1" font-size="8.5">每条非显然的规则<tspan fill="#fff">挂 issue 号</tspan>，并配一个活体执法者（omp --smoke-test 接进 ci:test:smoke）</text>
-          <text x="30" y="112" fill="#64748b" font-size="8">AGENTS.md:5,7,35-41,51,68-81　·　成本：一天写初版，之后每次事故补一行　·　投入产出比最高的一条</text>
+          <text x="30" y="47" fill="#34d399" font-size="10.5" font-weight="600">① AGENTS.md 写成规矩，不写成品味</text>
+          <text x="30" y="66" fill="#cbd5e1" font-size="8.5"><tspan fill="#fff">怎么做</tspan>：只写「不许用什么，改用什么」。每条禁令必须配一个替代物，否则等于没说。</text>
+          <text x="30" y="81" fill="#cbd5e1" font-size="8.5"><tspan fill="#fff">关键一步</tspan>：每条不显然的规矩后面挂上当初出事的 issue 号 —— 让人知道这不是洁癖。</text>
+          <text x="30" y="96" fill="#cbd5e1" font-size="8.5"><tspan fill="#fff">为什么有效</tspan>：agent 领会不了你的品味，但一条明确的禁令它会照做。能自动查的就接进 CI。</text>
+          <text x="30" y="112" fill="#64748b" font-size="8">AGENTS.md:5,7,35-41,51,68-81　·　成本：一天写初版，以后每出一次事故补一行　·　性价比最高的一条</text>
 
           <rect x="16" y="122" width="668" height="90" rx="6" fill="rgba(6,78,59,.18)" stroke="#34d399" stroke-width="1"/>
-          <text x="30" y="141" fill="#34d399" font-size="10.5" font-weight="600">② 给你的 agent 建一个编辑精度基准，哪怕只有 20 个 case</text>
-          <text x="30" y="160" fill="#cbd5e1" font-size="8.5">从<tspan fill="#fff">你自己的代码库</tspan>取源文件，做平凡 AST 变异 —— 测的是定位与落刀精度，不是推理能力</text>
-          <text x="30" y="175" fill="#cbd5e1" font-size="8.5">四档难度只控制<tspan fill="#fff">上下文难度</tspan>：给行号 / 给函数名 / 长文件+相似块不给提示 / 近似重复区</text>
-          <text x="30" y="190" fill="#cbd5e1" font-size="8.5">逐字节判分 + formattedEquivalent 区分「改错」与「缩进不对」；<tspan fill="#fff">结果签进仓库</tspan>，换模型就重跑</text>
-          <text x="30" y="206" fill="#64748b" font-size="8">generate.ts:1-24　·　verify.ts:1-23　·　成本：一个周末；单语言单变异的最小版本 200 行足够</text>
+          <text x="30" y="141" fill="#34d399" font-size="10.5" font-weight="600">② 做一个「它改代码改得准不准」的小题库，20 道就够</text>
+          <text x="30" y="160" fill="#cbd5e1" font-size="8.5"><tspan fill="#fff">怎么做</tspan>：从你自己的代码库拿真文件，程序化地改动一处，再看 agent 能不能改回同一处。</text>
+          <text x="30" y="175" fill="#cbd5e1" font-size="8.5"><tspan fill="#fff">判分</tspan>：逐字节比对，但把「改错了」和「只是缩进不同」分成两类 —— 否则数字没法看。</text>
+          <text x="30" y="190" fill="#cbd5e1" font-size="8.5"><tspan fill="#fff">为什么有效</tspan>：它测的是<tspan fill="#fff">落刀准不准</tspan>，不是聪不聪明。换模型时，你要看的就是这个数。</text>
+          <text x="30" y="206" fill="#64748b" font-size="8">generate.ts:1-24　·　verify.ts:1-23　·　成本：一个周末；只测一种语言一种改动，200 行就够</text>
 
           <rect x="16" y="216" width="668" height="90" rx="6" fill="rgba(6,78,59,.18)" stroke="#34d399" stroke-width="1"/>
-          <text x="30" y="235" fill="#34d399" font-size="10.5" font-weight="600">③ 用契约测试取代覆盖率测试，并明令禁止 source-grep</text>
-          <text x="30" y="254" fill="#cbd5e1" font-size="8.5">每个新测试要能<tspan fill="#fff">一句话说出它守护的那一个外部可观察契约</tspan>，说不出就别加这个测试</text>
-          <text x="30" y="269" fill="#cbd5e1" font-size="8.5">禁止断言源码文本；结构性不变量用<tspan fill="#fff">类型测试或 lint 规则</tspan>守，不要用字符串扫描</text>
-          <text x="30" y="284" fill="#cbd5e1" font-size="8.5">测试必须「全量套件安全」：不做文件级长期改写 env / platform，用 spyOn + restoreAllMocks</text>
-          <text x="30" y="300" fill="#64748b" font-size="8">AGENTS.md:239-250　·　适用于任何项目，与 agent 无关 —— 这是纯粹的软件工程收益</text>
+          <text x="30" y="235" fill="#34d399" font-size="10.5" font-weight="600">③ 不追覆盖率，改追「这条测试守的是哪个承诺」</text>
+          <text x="30" y="254" fill="#cbd5e1" font-size="8.5"><tspan fill="#fff">规矩一句话</tspan>：写不出这条测试守护的那个对外承诺，就不要写这条测试。</text>
+          <text x="30" y="269" fill="#cbd5e1" font-size="8.5"><tspan fill="#fff">配一条硬禁令</tspan>：不许拿字符串去扫源码当断言 —— 那种测试只会在重构时挡路。</text>
+          <text x="30" y="284" fill="#cbd5e1" font-size="8.5"><tspan fill="#fff">为什么有效</tspan>：覆盖率鼓励多写；承诺清单鼓励少写但写对。<tspan fill="#fff">这条跟 agent 无关，纯软件工程收益。</tspan></text>
+          <text x="30" y="300" fill="#64748b" font-size="8">AGENTS.md:239-250　·　成本：只是一条 review 规矩，任何项目今天就能加</text>
 
           <rect x="16" y="310" width="668" height="90" rx="6" fill="rgba(6,78,59,.18)" stroke="#34d399" stroke-width="1"/>
-          <text x="30" y="329" fill="#34d399" font-size="10.5" font-weight="600">④ CI 编排写成有测试的程序，魔数旁边写清它是怎么测出来的</text>
-          <text x="30" y="348" fill="#cbd5e1" font-size="8.5">分片逻辑离开 YAML，进一个能 --dry-run 本地跑的脚本，<tspan fill="#fff">脚本自己也有单测</tspan></text>
-          <text x="30" y="363" fill="#cbd5e1" font-size="8.5">chunkSize=5/10/不切 不是拍脑袋：注释里记着「256MB 堆下 10 文件约 50% abort，5 文件 0/20」</text>
-          <text x="30" y="378" fill="#cbd5e1" font-size="8.5">附赠一个坑：验动态库加载<tspan fill="#fff">别用 -e</tspan>，bun -e 'require("./x.node")' 对损坏 addon 也 exit 0</text>
+          <text x="30" y="329" fill="#34d399" font-size="10.5" font-weight="600">④ CI 里的逻辑搬出 YAML，做成本地能跑、自己也有测试的脚本</text>
+          <text x="30" y="348" fill="#cbd5e1" font-size="8.5"><tspan fill="#fff">怎么做</tspan>：分片、重试这类逻辑写成脚本，支持 --dry-run，脚本本身也有单测。</text>
+          <text x="30" y="363" fill="#cbd5e1" font-size="8.5"><tspan fill="#fff">再加一条</tspan>：所有魔数旁边写清它是怎么量出来的。例：为什么一批切 5 个文件？</text>
+          <text x="30" y="378" fill="#cbd5e1" font-size="8.5">注释里记着「256MB 堆下，一批 10 个约一半会崩；一批 5 个，跑 20 次 0 次崩」。</text>
           <text x="30" y="394" fill="#64748b" font-size="8">scripts/ci-test-ts.ts:31-127　·　ci.yml:206-220　·　成本：把已有 YAML 逻辑搬一次家</text>
 
           <rect x="16" y="404" width="668" height="90" rx="6" fill="rgba(6,78,59,.18)" stroke="#34d399" stroke-width="1"/>
-          <text x="30" y="423" fill="#34d399" font-size="10.5" font-weight="600">⑤ 让文档同时服务人和 agent —— 一份来源，两个消费者</text>
-          <text x="30" y="442" fill="#cbd5e1" font-size="8.5">建一个 docs/ 并规定它是<tspan fill="#fff">唯一权威</tspan>；AGENTS.md / CLAUDE.md 里不写架构描述，只放索引表</text>
-          <text x="30" y="457" fill="#cbd5e1" font-size="8.5">每篇 doc 顶部列出对应的实现文件路径，让 agent 的检索路径和人的阅读路径重合</text>
-          <text x="30" y="472" fill="#cbd5e1" font-size="8.5">于是<tspan fill="#fff">文档不更新，会立刻被 agent 的错误暴露出来</tspan> —— 不需要抄编译期注入那一步</text>
+          <text x="30" y="423" fill="#34d399" font-size="10.5" font-weight="600">⑤ 文档只留一份，人和 agent 读同一份</text>
+          <text x="30" y="442" fill="#cbd5e1" font-size="8.5"><tspan fill="#fff">怎么做</tspan>：docs/ 是唯一权威；AGENTS.md 里<tspan fill="#fff">不复述架构，只放一张索引表</tspan>。</text>
+          <text x="30" y="457" fill="#cbd5e1" font-size="8.5">每篇文档顶部列出它对应的实现文件路径，让 agent 的检索路径和人的阅读路径重合。</text>
+          <text x="30" y="472" fill="#cbd5e1" font-size="8.5"><tspan fill="#fff">为什么有效</tspan>：文档一过期，agent 立刻开始犯错 —— <tspan fill="#fff">等于给文档装了个自动报警器</tspan>。</text>
           <text x="30" y="488" fill="#64748b" font-size="8">DEVELOPMENT.md:3-10,61-81　·　docs-index.ts:1-13　·　成本：一次目录整理 + 一条 review 规矩</text>
         </svg>
       </div>
 
       <div class="figure">
         <svg viewBox="0 0 440 495" xmlns="http://www.w3.org/2000/svg">
-          <text x="16" y="18" fill="#fb7185" font-size="10" font-weight="600">❌ 别抄的六条 —— 它在解你没有的问题</text>
+          <text x="16" y="18" fill="#fb7185" font-size="10" font-weight="600">❌ 别抄的六条 —— 先看它在解什么问题</text>
 
           <rect x="16" y="28" width="408" height="72" rx="6" fill="rgba(136,19,55,.18)" stroke="#fb7185" stroke-width="1"/>
-          <text x="30" y="46" fill="#fb7185" font-size="9.5" font-weight="600">① 自建 Kata microVM + k3s + ARC 的 CI 集群</text>
-          <text x="30" y="63" fill="#cbd5e1" font-size="8">32 vCPU / 125 GiB 裸金属 + KVM + k3s + Kata 3.31 + bazel-remote</text>
-          <text x="30" y="77" fill="#cbd5e1" font-size="8">解的是「8 平台交叉编译 Rust 且不让 PR 代码碰共享缓存」</text>
-          <text x="30" y="93" fill="#64748b" font-size="8">没有 native 代码，GitHub 托管 runner 完全够　·　infra/docs/README.md:70-84</text>
+          <text x="30" y="46" fill="#fb7185" font-size="9.5" font-weight="600">① 自建一整套 CI 集群</text>
+          <text x="30" y="63" fill="#cbd5e1" font-size="8"><tspan fill="#fff">它在解</tspan>：把 Rust 编到 8 个平台，还不让 PR 代码碰共享缓存</text>
+          <text x="30" y="77" fill="#cbd5e1" font-size="8"><tspan fill="#fff">你多半没这问题</tspan>：没有 native 代码，托管 runner 完全够</text>
+          <text x="30" y="93" fill="#64748b" font-size="8">代价：32 vCPU / 125 GiB 裸金属自己养　·　infra/docs/README.md:70-84</text>
 
           <rect x="16" y="104" width="408" height="72" rx="6" fill="rgba(136,19,55,.18)" stroke="#fb7185" stroke-width="1"/>
-          <text x="30" y="122" fill="#fb7185" font-size="9.5" font-weight="600">② Bazel + zig 交叉编译 + 双 Rust nightly</text>
-          <text x="30" y="139" fill="#cbd5e1" font-size="8">MODULE.bazel.lock 3.6 MB、自研 zig 缓存补丁、Windows 要拉 ~3 GiB SDK</text>
-          <text x="30" y="153" fill="#cbd5e1" font-size="8">分发体积 <tspan fill="#fff">138–285 MiB / 平台</tspan>，而核心包只有 111 KiB</text>
-          <text x="30" y="169" fill="#64748b" font-size="8">收益只在多目标交叉编译 + 远程缓存兑现；单目标用 cargo 就好</text>
+          <text x="30" y="122" fill="#fb7185" font-size="9.5" font-weight="600">② Bazel + zig 那套交叉编译</text>
+          <text x="30" y="139" fill="#cbd5e1" font-size="8"><tspan fill="#fff">它在解</tspan>：多平台产物 + 远程缓存复用</text>
+          <text x="30" y="153" fill="#cbd5e1" font-size="8"><tspan fill="#fff">代价</tspan>：每平台分发 <tspan fill="#fff">138–285 MiB</tspan>，而核心包只有 111 KiB</text>
+          <text x="30" y="169" fill="#64748b" font-size="8">只编一个平台？<tspan fill="#94a3b8">cargo 就够，别开这个头</tspan></text>
 
           <rect x="16" y="180" width="408" height="72" rx="6" fill="rgba(136,19,55,.18)" stroke="#fb7185" stroke-width="1"/>
-          <text x="30" y="198" fill="#fb7185" font-size="9.5" font-weight="600">③ 122 篇 / 27,931 行的 docs 体量</text>
-          <text x="30" y="215" fill="#cbd5e1" font-size="8">这个体量是 agent 时代的产物（文档是 agent 的检索语料）</text>
-          <text x="30" y="229" fill="#cbd5e1" font-size="8">普通项目照抄，只会造出一片<tspan fill="#fff">无人维护的文档坟场</tspan></text>
-          <text x="30" y="245" fill="#64748b" font-size="8">抄「唯一权威 + AGENTS.md 只做索引」的结构，不要抄篇数</text>
+          <text x="30" y="198" fill="#fb7185" font-size="9.5" font-weight="600">③ 122 篇文档这个<tspan fill="#fff">量</tspan></text>
+          <text x="30" y="215" fill="#cbd5e1" font-size="8"><tspan fill="#fff">为什么这么多</tspan>：文档是喂给 agent 检索的语料，不只给人看</text>
+          <text x="30" y="229" fill="#cbd5e1" font-size="8"><tspan fill="#fff">照抄的下场</tspan>：一片没人维护的<tspan fill="#fff">文档坟场</tspan></text>
+          <text x="30" y="245" fill="#64748b" font-size="8">抄左边第 ⑤ 条那个<tspan fill="#94a3b8">结构</tspan>，不要抄篇数</text>
 
           <rect x="16" y="256" width="408" height="72" rx="6" fill="rgba(136,19,55,.18)" stroke="#fb7185" stroke-width="1"/>
-          <text x="30" y="274" fill="#fb7185" font-size="9.5" font-weight="600">④ 1,930 个测试文件 / 53 万行 TS 测试</text>
-          <text x="30" y="291" fill="#cbd5e1" font-size="8">coding-agent 一个包就占 1,207 个</text>
-          <text x="30" y="305" fill="#cbd5e1" font-size="8">是 17 个大版本累积 + 多 provider 组合爆炸的结果，不是目标</text>
-          <text x="30" y="321" fill="#64748b" font-size="8">抄测试哲学（AGENTS.md:239-250），不要抄数量</text>
+          <text x="30" y="274" fill="#fb7185" font-size="9.5" font-weight="600">④ 53 万行测试这个<tspan fill="#fff">量</tspan></text>
+          <text x="30" y="291" fill="#cbd5e1" font-size="8"><tspan fill="#fff">它是怎么来的</tspan>：17 个大版本累积 + 多 provider 组合爆炸</text>
+          <text x="30" y="305" fill="#cbd5e1" font-size="8"><tspan fill="#fff">也就是说</tspan>：这是结果，不是目标 —— 没人立过这个 KPI</text>
+          <text x="30" y="321" fill="#64748b" font-size="8">抄左边第 ③ 条那套<tspan fill="#94a3b8">判据</tspan>，不要抄数量</text>
 
           <rect x="16" y="332" width="408" height="72" rx="6" fill="rgba(136,19,55,.18)" stroke="#fb7185" stroke-width="1"/>
-          <text x="30" y="350" fill="#fb7185" font-size="9.5" font-weight="600">⑤ mnemopi 的向量检索实现</text>
-          <text x="30" y="367" fill="#cbd5e1" font-size="8">从不建 vec0 虚表：<tspan fill="#fff">无索引，O(N) 全表扫 + 10,000 行硬上限</tspan></text>
-          <text x="30" y="381" fill="#cbd5e1" font-size="8">向量以 JSON 文本持久化，规模上会先撞墙</text>
+          <text x="30" y="350" fill="#fb7185" font-size="9.5" font-weight="600">⑤ 它那个「向量检索」的实现</text>
+          <text x="30" y="367" fill="#cbd5e1" font-size="8"><tspan fill="#fff">实情</tspan>：压根没建索引 —— 每次查询<tspan fill="#fff">全表扫</tspan>，还封死一万行</text>
+          <text x="30" y="381" fill="#cbd5e1" font-size="8">向量存成 JSON 文本。<tspan fill="#fff">数据一多，先撞墙的是它</tspan></text>
           <text x="30" y="397" fill="#64748b" font-size="8">helpers.ts:405-419　·　vector-index.ts:43-76　·　schema.ts:274-281</text>
 
           <rect x="16" y="408" width="408" height="72" rx="6" fill="rgba(136,19,55,.28)" stroke="#fb7185" stroke-width="1.4"/>
-          <text x="30" y="426" fill="#fb7185" font-size="9.5" font-weight="600">⑥ stats 面板的绑定方式（读码推断，未实跑）</text>
-          <text x="30" y="443" fill="#cbd5e1" font-size="8">Bun.serve({ port }) <tspan fill="#fff">未传 hostname</tspan>，CORS 为 "*"；按 Bun 默认应绑 0.0.0.0</text>
-          <text x="30" y="457" fill="#cbd5e1" font-size="8">而同一份代码的注释自称 "the dashboard is a localhost tool"</text>
-          <text x="30" y="473" fill="#64748b" font-size="8">packages/stats/src/server.ts:304　·　同 LAN 可读 token / 成本 / 项目路径</text>
+          <text x="30" y="426" fill="#fb7185" font-size="9.5" font-weight="600">⑥ stats 面板的监听方式　<tspan fill="#94a3b8" font-size="8">读码推断，未实跑</tspan></text>
+          <text x="30" y="443" fill="#cbd5e1" font-size="8">注释自称 "a localhost tool"，但代码<tspan fill="#fff">没传 hostname</tspan></text>
+          <text x="30" y="457" fill="#cbd5e1" font-size="8">按默认行为应绑 0.0.0.0，CORS 还是 "*" —— <tspan fill="#fff">同 LAN 就能读</tspan></text>
+          <text x="30" y="473" fill="#64748b" font-size="8">读到的是 token 用量 / 成本 / 项目路径　·　stats/src/server.ts:304</text>
         </svg>
       </div>
     </div>
