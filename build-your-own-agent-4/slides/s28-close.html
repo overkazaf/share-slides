@@ -1,0 +1,76 @@
+<section class="slide" data-ch="CH7 代价与规划" data-title="四讲收口：通用层开源之后，壁垒到底在哪">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot orange"></span>四讲 · 收口</div>
+    <h1 class="s-title">通用层已经做完并开源了 —— <span class="hl-a">剩下的那层只能内行自己焊</span></h1>
+    <div class="s-sub">这不是「AI 让人人都能创业」的鸡汤。是一个具体判断，而且这四讲把它<b style="color:#e2e8f0">拆成了可核对的四段</b>。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="figure plain">
+      <svg viewBox="0 0 1160 452" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="cl-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#fb923c"/>
+          </marker>
+        </defs>
+
+        <text x="16" y="16" fill="#fb923c" font-size="10.5" font-weight="700">四讲各收一句</text>
+
+        <rect x="16" y="26" width="1128" height="28" rx="4" fill="rgba(8,51,68,.24)"/>
+        <text x="32" y="45" fill="#22d3ee" font-size="9.5" font-weight="600">第一讲 · 地图</text>
+        <text x="150" y="45" fill="#cbd5e1" font-size="9">造一个能干活的 agent 要六样，<tspan fill="#fff">六样都是壳的事 —— 换模型，一样都省不掉</tspan></text>
+
+        <rect x="16" y="58" width="1128" height="28" rx="4" fill="rgba(6,78,59,.24)"/>
+        <text x="32" y="77" fill="#34d399" font-size="9.5" font-weight="600">第二讲 · 下限</text>
+        <text x="150" y="77" fill="#cbd5e1" font-size="9">教科书循环 6 行，真实产品 121 + 517 行 —— <tspan fill="#fff">多出来的九成在处理「跑到一半，世界变了」</tspan></text>
+
+        <rect x="16" y="90" width="1128" height="28" rx="4" fill="rgba(136,19,55,.24)"/>
+        <text x="32" y="109" fill="#fb7185" font-size="9.5" font-weight="600">第三讲 · 上限</text>
+        <text x="150" y="109" fill="#cbd5e1" font-size="9">同一份代码基座加到一百五十万行 —— <tspan fill="#fff">它的价值不在做了什么，在把每个决定的代价都摊开给你看了</tspan></text>
+
+        <rect x="16" y="122" width="1128" height="28" rx="4" fill="rgba(120,53,15,.26)"/>
+        <text x="32" y="141" fill="#fbbf24" font-size="9.5" font-weight="600">第四讲 · 落地</text>
+        <text x="150" y="141" fill="#cbd5e1" font-size="9">一个人两万四千行（公开史 5 天，另有一个没进 git 的前身）—— <tspan fill="#fff">挤干水分之后，配置到不了的地方只有四条；落后的地方有十条</tspan></text>
+
+        <path d="M 580 156 L 580 172" stroke="#fb923c" stroke-width="1.4" marker-end="url(#cl-ar)"/>
+
+        <rect x="16" y="176" width="1128" height="74" rx="7" fill="rgba(251,146,60,.2)" stroke="#fb923c" stroke-width="1.5"/>
+        <text x="580" y="200" fill="#fb923c" font-size="12.5" font-weight="700" text-anchor="middle">所以，一个人现在到底能干什么，不能干什么</text>
+        <text x="580" y="224" fill="#e2e8f0" font-size="10" text-anchor="middle">能干的：<tspan fill="#fff">把你这行的流程焊成代码</tspan>　—— 那 397 KB 的 skill、那 7 个领域原语、那五条判据表，大厂堆不出来</text>
+        <text x="580" y="242" fill="#94a3b8" font-size="9.5" text-anchor="middle">干不了的：<tspan fill="#fff">重试、会话树、并发调度、quirk 表、中断模型、真沙箱、CI、评测集</tspan> —— 这八样是团队按年堆出来的，一个人短期堆不出来</text>
+
+        <path d="M 16 264 L 1144 264" stroke="#1e293b" stroke-width="1"/>
+        <text x="16" y="286" fill="#22d3ee" font-size="10" font-weight="700">如果你也要造一个 —— 从这四讲里能直接抄走的方法，其实只有三条</text>
+
+        <rect x="16" y="296" width="368" height="86" rx="7" fill="rgba(8,51,68,.24)" stroke="#22d3ee" stroke-width="1.2"/>
+        <text x="34" y="318" fill="#22d3ee" font-size="10" font-weight="700">① 先挑那条流程，别先挑技术</text>
+        <text x="34" y="340" fill="#cbd5e1" font-size="8.5">挑你每天卡住、干得最烦、</text>
+        <text x="34" y="357" fill="#cbd5e1" font-size="8.5">而且<tspan fill="#fff">错了一眼能看出来</tspan>的那条</text>
+        <text x="34" y="375" fill="#64748b" font-size="8">「错了一眼能看出来」是硬条件 —— 没有它你没法判断有没有进步</text>
+
+        <rect x="396" y="296" width="368" height="86" rx="7" fill="rgba(6,78,59,.24)" stroke="#34d399" stroke-width="1.2"/>
+        <text x="414" y="318" fill="#34d399" font-size="10" font-weight="700">② 内核抄现成的，力气花在边界上</text>
+        <text x="414" y="340" fill="#cbd5e1" font-size="8.5">循环三家一模一样，抄就行</text>
+        <text x="414" y="357" fill="#cbd5e1" font-size="8.5">真正花时间的是<tspan fill="#fff">闸门、预算、可观测</tspan></text>
+        <text x="414" y="375" fill="#64748b" font-size="8">这一讲的样本把 23% 的代码花在了「看得清」上，不是在循环上</text>
+
+        <rect x="776" y="296" width="368" height="86" rx="7" fill="rgba(136,19,55,.24)" stroke="#fb7185" stroke-width="1.2"/>
+        <text x="794" y="318" fill="#fb7185" font-size="10" font-weight="700">③ 先造评测，再造功能</text>
+        <text x="794" y="340" fill="#cbd5e1" font-size="8.5">这一讲的样本正好演示了<tspan fill="#fff">不这么做的下场</tspan>：</text>
+        <text x="794" y="357" fill="#cbd5e1" font-size="8.5">四个场景全都<tspan fill="#fff">没有成功率数字</tspan></text>
+        <text x="794" y="375" fill="#64748b" font-size="8">所以只能说「路径被写成了可执行的步骤」，不能说「被证明了有效」</text>
+
+        <rect x="16" y="392" width="1128" height="30" rx="5" fill="rgba(2,6,23,.6)" stroke="#334155" stroke-width="1"/>
+        <text x="30" y="412" fill="#cbd5e1" font-size="9.5">这一讲的方法本身也可以抄：<tspan fill="#fff">钉一个 commit、所有数字自己跑命令、每条断言留路径行号、讲自家项目时先花一整页拆自己的台。</tspan></text>
+
+        <text x="16" y="442" fill="#94a3b8" font-size="9.5">六份研究笔记全部开源，每份带命令原文和「待核实」表。<tspan fill="#fff">发现哪条错了，直接提 Issue</tspan> —— 这类东西越多人挑越好。</text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">github.com/overkazaf/share-slides · 本讲研究笔记 R01–R06 · 取证基线 <b>926e615</b> · 2026-07-31 · 全程只读代码，未执行二进制</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

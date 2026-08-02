@@ -99,4 +99,6 @@
 
 **已验死、可放心讲的**：
 - FORK.md 从未存在于 `can1357/oh-my-pi`（全史 16,613 commit，`git log --all -- FORK.md` 零命中）
-- stats 面板 `Bun.serve({port})` 未传 hostname，默认绑 `0.0.0.0`，且 CORS `*`（`packages/stats/src/server.ts:304`）
+
+**降级过的一条**（原先误列为「已验死」）：
+- stats 面板 `Bun.serve({port})` 未传 hostname、CORS `*` 是读码所见（`packages/stats/src/server.ts:304`，`[A]`）；但「因此绑 `0.0.0.0`」依赖 Bun 的默认 hostname 行为，本机无 `bun`、未实跑验证，只能标 `[B]`。上台前若要讲这条，先跑 `omp stats` 再 `lsof -nP -iTCP:3847 -sTCP:LISTEN` 实证

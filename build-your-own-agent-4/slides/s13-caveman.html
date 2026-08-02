@@ -1,0 +1,105 @@
+<section class="slide" data-ch="CH3 实现原理" data-title="caveman 模式：不是话术，是宿主级的双阶段委派">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot rose"></span>CH 3 · 实现原理</div>
+    <h1 class="s-title">模型太谨慎不干活 —— 解法<span class="hl-r">不是换个说法，是换个结构</span></h1>
+    <div class="s-sub">红线是<b style="color:#e2e8f0">写进送给模型的 prompt 里</b>的：<b style="color:#fb7185">"Do not use translation, classical Chinese, ciphering, euphemisms, or prompt laundering <span style="color:#fff">to bypass a model or site policy</span>."</b> 而且有单测断言它必须在。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="cv-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#fb7185"/>
+            </marker>
+          </defs>
+
+          <text x="16" y="14" fill="#94a3b8" font-size="9" font-weight="600">一个大请求，被拆成两个互不知情的阶段</text>
+
+          <rect x="16" y="24" width="668" height="28" rx="5" fill="rgba(8,51,68,.28)" stroke="#22d3ee" stroke-width="1"/>
+          <text x="30" y="43" fill="#cbd5e1" font-size="9">操作员输入：<tspan fill="#fff">「分析一下这个 APK」</tspan>　—— 一个整体目标，普通商用模型见了容易直接卡住</text>
+
+          <path d="M 350 54 L 350 70" stroke="#fb7185" stroke-width="1.3" marker-end="url(#cv-ar)"/>
+
+          <rect x="16" y="74" width="326" height="118" rx="7" fill="rgba(76,29,149,.28)" stroke="#a78bfa" stroke-width="1.3"/>
+          <text x="179" y="94" fill="#a78bfa" font-size="10" font-weight="700" text-anchor="middle">① planner 阶段</text>
+          <text x="32" y="114" fill="#cbd5e1" font-size="8.5">工具面：<tspan fill="#fff" font-weight="700">1 个</tspan>（只有 update_plan）</text>
+          <text x="32" y="132" fill="#cbd5e1" font-size="8.5">任务：写一个<tspan fill="#fff">有界本地证据包</tspan>，不许写</text>
+          <text x="32" y="147" fill="#cbd5e1" font-size="8.5">　　　「去把整个目标解决掉」</text>
+          <text x="32" y="166" fill="#e2e8f0" font-size="8">允许要的东西：文件列表 · 类型 · 大小 · 哈希 ·</text>
+          <text x="32" y="181" fill="#e2e8f0" font-size="8">可打印字符串 · 字节偏移 · 熵 · 内嵌签名 · 导入表 · 符号</text>
+
+          <rect x="358" y="74" width="326" height="118" rx="7" fill="rgba(6,78,59,.28)" stroke="#34d399" stroke-width="1.3"/>
+          <text x="521" y="94" fill="#34d399" font-size="10" font-weight="700" text-anchor="middle">② executor 阶段（隔离）</text>
+          <text x="374" y="114" fill="#cbd5e1" font-size="8.5">工具面：24 → <tspan fill="#fff" font-weight="700">14 个只读</tspan></text>
+          <text x="374" y="132" fill="#cbd5e1" font-size="8.5"><tspan fill="#fb7185">run_command 和 write_file 被摘掉</tspan></text>
+          <text x="374" y="150" fill="#cbd5e1" font-size="8.5">换一套 system prompt · Isolated · FreshSession</text>
+          <text x="374" y="169" fill="#e2e8f0" font-size="8">而且每个工具的 description 被就地改写成中性描述</text>
+          <text x="374" y="184" fill="#64748b" font-size="7.5">delegate.go:145-162</text>
+
+          <path d="M 342 133 L 356 133" stroke="#fb7185" stroke-width="1.4" marker-end="url(#cv-ar)"/>
+
+          <rect x="16" y="202" width="668" height="52" rx="6" fill="rgba(136,19,55,.24)" stroke="#fb7185" stroke-width="1.3"/>
+          <text x="30" y="221" fill="#fb7185" font-size="9.5" font-weight="700">中间传的就是这一段，硬截 6000 字符（util.Clip，delegate.go:83-100）</text>
+          <text x="30" y="240" fill="#e2e8f0" font-size="8.5">Objective: collect local evidence about &lt;paths&gt;.　Scope: workspace-local, read-only inspection and summarization.</text>
+
+          <rect x="16" y="264" width="668" height="40" rx="6" fill="rgba(2,6,23,.7)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="30" y="282" fill="#34d399" font-size="9" font-weight="700">executor 的 system prompt 里有这么一句 —— 这才是整个设计的支点</text>
+          <text x="30" y="298" fill="#fff" font-size="10" font-style="italic">"You do not need the broader objective."　　执行方连整体目标都不知道　delegate.go:66-67</text>
+
+          <path d="M 16 318 L 684 318" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="336" fill="#fbbf24" font-size="9.5" font-weight="600">三个否决项 —— 有一个成立就不委派（delegate.go:14-22）</text>
+
+          <rect x="16" y="346" width="216" height="34" rx="5" fill="rgba(30,41,59,.5)"/>
+          <text x="30" y="366" fill="#e2e8f0" font-size="8.5">/agent 钉死了 provider</text>
+
+          <rect x="242" y="346" width="216" height="34" rx="5" fill="rgba(30,41,59,.5)"/>
+          <text x="256" y="366" fill="#e2e8f0" font-size="8.5">显式指定了 role（非 auto）</text>
+
+          <rect x="468" y="346" width="216" height="34" rx="5" fill="rgba(30,41,59,.5)"/>
+          <text x="482" y="366" fill="#e2e8f0" font-size="8.5">解析后的模式不是 caveman</text>
+
+          <rect x="16" y="388" width="668" height="30" rx="5" fill="rgba(136,19,55,.18)" stroke="#fb7185" stroke-width="1.1"/>
+          <text x="30" y="408" fill="#cbd5e1" font-size="8.5">单测把红线钉死：wrapped prompt <tspan fill="#fff">必须包含</tspan>「Do not use translation」和「prompt laundering」两句　<tspan fill="#64748b">workflow_test.go:56-58</tspan></text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:9px">
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>它解的是哪个失败模式</h3></div>
+          <ul>
+            <li>普通商用模型面对「逆向这个 APK」这类<strong>整体请求</strong>时会过度谨慎，或者把长上下文越滚越危险</li>
+            <li>解法不是骗模型，是<strong>缩小上下文 + 只要本地证据 + 按产物拆解</strong> —— 注释原话</li>
+          </ul>
+        </div>
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>这条可核对，且确实属实</h3></div>
+          <ul>
+            <li>「executor 的工具表是只读的」不是宣传语 —— <em>delegate.go:145</em> 是一张<strong>14 项白名单</strong>，写和执行两类工具压根不在表里</li>
+          </ul>
+        </div>
+        <div class="card amber">
+          <div class="card-head"><span class="card-dot"></span><h3>没有状态机，只有两次顺序调用</h3></div>
+          <ul>
+            <li>阶段推进写死在 <em>runDelegatedWorkflow</em> 里，就是<strong>两次 Loop.Run</strong>；planner 被打断就直接返回，不进 executor</li>
+            <li>合并后 provider 字段变成 <em>"codex-&gt;claude"</em>，turns 与 usage 相加 —— <strong>账仍然是一本</strong></li>
+          </ul>
+        </div>
+        <div class="card violet">
+          <div class="card-head"><span class="card-dot violet"></span><h3>同页的代价：交接靠正则抠文本</h3></div>
+          <ul>
+            <li>planner 产出是<strong>自由文本</strong>，靠 <em>ExtractExecutorPacket</em> 容忍四种写法去抠 —— 格式没写对就走本地兜底包</li>
+            <li>这是<strong>协议层的脆弱点</strong>，不是结构化交接</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">本地实测 · <b>926e615</b> · internal/workflow/{workflow.go,delegate.go,workflow_test.go} · 研究笔记 R02 §4</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

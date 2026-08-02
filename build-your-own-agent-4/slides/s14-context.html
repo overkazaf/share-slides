@@ -1,0 +1,78 @@
+<section class="slide" data-ch="CH3 实现原理" data-title="上下文：三道闸，而逆向最要命的是第三道">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot violet"></span>CH 3 · 实现原理</div>
+    <h1 class="s-title">上下文有<span class="hl-v">三道闸</span> —— 逆向最要命的是<span class="hl">工具输出那道</span></h1>
+    <div class="s-sub">注释写得很直白：<b style="color:#e2e8f0">objdump -d / strings 这类命令就是会吐兆字节</b>，原样倒进 transcript 等于一次性烧掉整个窗口。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="14" fill="#94a3b8" font-size="9" font-weight="600">三道闸，按「离模型的远近」排列</text>
+
+          <rect x="16" y="24" width="668" height="106" rx="7" fill="rgba(251,146,60,.22)" stroke="#fb923c" stroke-width="1.4"/>
+          <text x="30" y="44" fill="#fb923c" font-size="10" font-weight="700">闸三 · 工具输出预算（最靠外，也最管用）　internal/tools/output.go</text>
+          <text x="30" y="64" fill="#e2e8f0" font-size="9">默认上限 <tspan fill="#fff" font-weight="700">24,000 字符</tspan>；超了按 <tspan fill="#fff" font-weight="700">头 60% / 尾 40%</tspan> 切，全文落到 &lt;sessionDir&gt;/artifacts/</text>
+          <text x="30" y="82" fill="#cbd5e1" font-size="8.5">模型拿到的是「头 + 尾 + 文件路径」—— 它想看中间，自己去读那个文件</text>
+          <text x="30" y="103" fill="#94a3b8" font-size="8">// Reverse engineering commands are exactly the kind that emit megabytes (`objdump -d`, `strings` on a fat binary),</text>
+          <text x="30" y="119" fill="#94a3b8" font-size="8">// and a raw dump into the transcript costs the whole context window.　　output.go:3-7</text>
+
+          <rect x="16" y="140" width="668" height="100" rx="7" fill="rgba(76,29,149,.26)" stroke="#a78bfa" stroke-width="1.3"/>
+          <text x="30" y="160" fill="#a78bfa" font-size="10" font-weight="700">闸二 · 机械压缩（每回合自动跑，两遍，先便宜的）　internal/core/compaction.go</text>
+          <text x="30" y="180" fill="#e2e8f0" font-size="8.5">第一遍：把<tspan fill="#fff">老 tool result 的正文省略掉</tspan>（超 400 字符才算候选）—— 逆向会话的大头就在这里</text>
+          <text x="30" y="198" fill="#e2e8f0" font-size="8.5">第二遍：整段最老的对话<tspan fill="#fff">丢掉</tspan>，换成一条 compaction marker</text>
+          <text x="30" y="218" fill="#cbd5e1" font-size="8.5">预算 <tspan fill="#fff">48,000 token</tspan>（"塞得进 deepseek-chat 的 64k"）· 最近 8 条优先保留 · <tspan fill="#fff">最后一轮是硬底，永远不动</tspan></text>
+          <text x="30" y="234" fill="#94a3b8" font-size="8">两遍都守同一条不变量：<tspan fill="#fff">带 tool call 的 assistant 消息，永远不和它的结果分开</tspan></text>
+
+          <rect x="16" y="250" width="668" height="70" rx="7" fill="rgba(136,19,55,.22)" stroke="#fb7185" stroke-width="1.3"/>
+          <text x="30" y="270" fill="#fb7185" font-size="10" font-weight="700">闸一 · 模型压缩（手动 /compact，摧毁式）　agentloop.go:138-184</text>
+          <text x="30" y="290" fill="#e2e8f0" font-size="8.5">整段会话丢给模型总结，替换成一条 <tspan fill="#fff">[session summary — earlier turns compacted]</tspan></text>
+          <text x="30" y="309" fill="#cbd5e1" font-size="8.5">注释直说 <tspan fill="#fff" font-style="italic">Destructive by design: the detail lives on in the JSONL</tspan> —— 内存里没了，盘上还在</text>
+
+          <path d="M 16 334 L 684 334" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="352" fill="#fbbf24" font-size="9.5" font-weight="600">两个「不体面但诚实」的实现细节</text>
+
+          <rect x="16" y="362" width="326" height="56" rx="6" fill="rgba(2,6,23,.65)" stroke="#334155" stroke-width="1"/>
+          <text x="30" y="380" fill="#e2e8f0" font-size="9" font-weight="600">token 估算没有 tokenizer</text>
+          <text x="30" y="398" fill="#cbd5e1" font-size="8.5">拉丁 4 字符/token、中日韩 1.5 字符/token</text>
+          <text x="30" y="413" fill="#94a3b8" font-size="8">每条消息再 +4 的信封开销。够用，但别当精确值</text>
+
+          <rect x="358" y="362" width="326" height="56" rx="6" fill="rgba(2,6,23,.65)" stroke="#334155" stroke-width="1"/>
+          <text x="372" y="380" fill="#e2e8f0" font-size="9" font-weight="600">marker 自己的 token 是实测不是估算</text>
+          <text x="372" y="398" fill="#cbd5e1" font-size="8.5">注释：<tspan font-style="italic">otherwise the budget is quietly overshot</tspan></text>
+          <text x="372" y="413" fill="#94a3b8" font-size="8">压缩用的标记自己也占额度 —— 这个坑踩过才会写</text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:9px">
+        <div class="card violet">
+          <div class="card-head"><span class="card-dot violet"></span><h3>会话是只追加的 JSONL</h3></div>
+          <ul>
+            <li>每行一条 <em>{Type, Timestamp, Data}</em>，三种类型：session / message / event。<em>O_APPEND</em> + mutex，文件名带 UTC 时间戳</li>
+          </ul>
+        </div>
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>恢复路径处理得很硬核</h3></div>
+          <ul>
+            <li>解析失败的行<strong>静默跳过</strong>，注释：<em>「会话被写到一半杀掉时，末行截断是预期内的」</em></li>
+            <li><em>repair()</em> 双向修剪：<strong>有 call 无 result 就摘掉 call，有 result 无 call 就丢掉 result</strong> —— 两种都会被 provider 拒收</li>
+          </ul>
+        </div>
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>同页的代价：三道闸都是「丢信息」</h3></div>
+          <ul>
+            <li>省略掉的 tool result、丢掉的老对话、被 head/tail 切走的中段 —— <strong>模型都看不见了</strong></li>
+            <li>逆向恰恰是<strong>两小时前那个不起眼的字符串突然变关键</strong>的场景。这里没有语义索引，只有<strong>「你自己记得去读那个 artifact 文件」</strong></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">本地实测 · <b>926e615</b> · internal/core/compaction.go · internal/tools/output.go · internal/core/session.go · 研究笔记 R02 §6</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

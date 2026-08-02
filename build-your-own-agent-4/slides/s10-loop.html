@@ -1,0 +1,99 @@
+<section class="slide" data-ch="CH3 实现原理" data-title="内核：一个 241 行的函数就是全部控制流">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot emerald"></span>CH 3 · 实现原理</div>
+    <h1 class="s-title">整个控制流就是<span class="hl">一个函数</span> —— 骨架和教科书一模一样</h1>
+    <div class="s-sub">`AgentLoop.Run` <b style="color:#e2e8f0">241 行</b>（<b style="color:#e2e8f0">agentloop.go:265-505</b>）。多出来的部分不在状态机，在<b style="color:#e2e8f0">每一步外面包的那层生产化</b>。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="14" fill="#94a3b8" font-size="9" font-weight="600">经典 6 行 while</text>
+          <rect x="16" y="22" width="316" height="126" rx="6" fill="rgba(2,6,23,.7)" stroke="#334155" stroke-width="1"/>
+          <text x="30" y="40" fill="#64748b" font-size="8.5">while True:</text>
+          <text x="30" y="56" fill="#64748b" font-size="8.5">　resp = llm(messages, tools)</text>
+          <text x="30" y="72" fill="#64748b" font-size="8.5">　messages.append(resp)</text>
+          <text x="30" y="88" fill="#64748b" font-size="8.5">　if not resp.tool_calls: break</text>
+          <text x="30" y="104" fill="#64748b" font-size="8.5">　for c in resp.tool_calls:</text>
+          <text x="30" y="120" fill="#64748b" font-size="8.5">　　messages.append(run_tool(c))</text>
+          <text x="30" y="140" fill="#475569" font-size="8">没有边界、没有预算、没有闸门</text>
+
+          <text x="356" y="14" fill="#34d399" font-size="9" font-weight="600">re-agent · agentloop.go:331-500</text>
+          <rect x="356" y="22" width="328" height="126" rx="6" fill="rgba(6,78,59,.22)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="370" y="40" fill="#cbd5e1" font-size="8.5">for ; turns &lt; maxTurns; turns++ {</text>
+          <text x="370" y="56" fill="#cbd5e1" font-size="8.5">　if ctx.Err() != nil { … }</text>
+          <text x="370" y="72" fill="#cbd5e1" font-size="8.5">　view := CompactHistory(msgs, budget)</text>
+          <text x="370" y="88" fill="#cbd5e1" font-size="8.5">　resp, err := provider.Complete(…)</text>
+          <text x="370" y="104" fill="#cbd5e1" font-size="8.5">　if len(resp.ToolCalls) == 0 { return }</text>
+          <text x="370" y="120" fill="#cbd5e1" font-size="8.5">　for _, call := range resp.ToolCalls { … }</text>
+          <text x="370" y="140" fill="#34d399" font-size="8">同构 —— 差别全在每行外面那层</text>
+
+          <path d="M 16 162 L 684 162" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="180" fill="#fbbf24" font-size="9.5" font-weight="600">那层「生产化」具体是什么 · 逐行对照</text>
+
+          <rect x="16" y="190" width="668" height="24" rx="4" fill="rgba(30,41,59,.5)"/>
+          <text x="28" y="206" fill="#64748b" font-size="8">while True</text>
+          <text x="180" y="206" fill="#e2e8f0" font-size="8.5">有界回合 + 每回合先查 ctx.Err()</text>
+          <text x="600" y="206" fill="#475569" font-size="8">332-336</text>
+
+          <rect x="16" y="218" width="668" height="24" rx="4" fill="rgba(30,41,59,.5)"/>
+          <text x="28" y="234" fill="#64748b" font-size="8">llm(...)</text>
+          <text x="180" y="234" fill="#e2e8f0" font-size="8.5">先按预算裁剪历史；发/收各一条 wire 遥测（模型·端点·耗时·token）</text>
+          <text x="600" y="234" fill="#475569" font-size="8">341-403</text>
+
+          <rect x="16" y="246" width="668" height="24" rx="4" fill="rgba(30,41,59,.5)"/>
+          <text x="28" y="262" fill="#64748b" font-size="8">append(resp)</text>
+          <text x="180" y="262" fill="#e2e8f0" font-size="8.5">内存与 JSONL <tspan fill="#fff">同步双写</tspan></text>
+          <text x="600" y="262" fill="#475569" font-size="8">405-419</text>
+
+          <rect x="16" y="274" width="668" height="24" rx="4" fill="rgba(136,19,55,.28)"/>
+          <text x="28" y="290" fill="#fb7185" font-size="8">run_tool(c)</text>
+          <text x="180" y="290" fill="#e2e8f0" font-size="8.5">审批闸插在 <tspan fill="#fff">tool.Execute 前一行</tspan>；中断也要给每个 call 补一条结果</text>
+          <text x="600" y="290" fill="#475569" font-size="8">428-493</text>
+
+          <rect x="16" y="302" width="668" height="24" rx="4" fill="rgba(30,41,59,.5)"/>
+          <text x="28" y="318" fill="#64748b" font-size="8">（原本没有）</text>
+          <text x="180" y="318" fill="#e2e8f0" font-size="8.5">回合触顶也写一条 max_turns_reached 进 transcript</text>
+          <text x="600" y="318" fill="#475569" font-size="8">500-504</text>
+
+          <rect x="16" y="336" width="668" height="80" rx="6" fill="rgba(136,19,55,.18)" stroke="#fb7185" stroke-width="1.2"/>
+          <text x="30" y="356" fill="#fb7185" font-size="9.5" font-weight="700">最硬的那条不变量 —— 注释自己写死了</text>
+          <text x="30" y="376" fill="#e2e8f0" font-size="8.5">// Every tool call must end up with a result, including on interrupt:</text>
+          <text x="30" y="391" fill="#e2e8f0" font-size="8.5">// providers reject a history where an assistant tool call dangles.</text>
+          <text x="30" y="409" fill="#94a3b8" font-size="8">所以按 ^C 时，没跑的每个 call 也要补一条「Interrupted by operator before this tool ran.」　agentloop.go:425-433</text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:9px">
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>三个停止条件，加一个触顶出口</h3></div>
+          <ul>
+            <li>ctx 被取消 · 回复里没有 tool call · 工具阶段被打断；第四个是 <strong>maxTurns 默认 8</strong>（<em>config.go:25</em>）</li>
+            <li>中断被当成<strong>结果而非失败</strong>：返回 <em>Interrupted:true</em> 且 <strong>err 为 nil</strong></li>
+          </ul>
+        </div>
+        <div class="card amber">
+          <div class="card-head"><span class="card-dot"></span><h3>8 个扩展钩子，不是 40 个</h3></div>
+          <ul>
+            <li>OnEvent / OnProgress / OnPlan / Confirm / OnPhase / OnChunk / OnFrame / Provider.Complete</li>
+            <li>对照：pi <strong>33 个</strong>，omp <strong>25+39 个</strong>。<strong>少一个数量级 —— 这是成本，也是可读性</strong></li>
+          </ul>
+        </div>
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>同页的代价：工具是串行的</h3></div>
+          <ul>
+            <li>分发就是线性查表 <em>findTool</em>，一个一个跑（<em>agentloop.go:439,556-563</em>）—— <strong>没有并行工具调用</strong></li>
+            <li>逆向里 <em>strings</em> 和 <em>entropy</em> 完全可以同时跑，这里跑不了。这是明确的<strong>未做</strong></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">本地实测 · <b>926e615</b> · internal/core/agentloop.go · 640 行 / Run 函数 241 行 · 研究笔记 R02 §2</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

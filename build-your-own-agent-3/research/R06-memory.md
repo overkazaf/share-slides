@@ -12,7 +12,7 @@ oh-my-pi 在「让 agent 别犯错」这件事上装了**三套互不相同、�
 
 | 机制 | 干什么 | 默认 | 成本形态 |
 |---|---|---|---|
-| **TTSR**（Time Traveling Stream Rules） | 流式生成时逐 delta 正则/AST 匹配，命中即 `abort()` → 丢弃半截输出 → 注入规则 → `continue()` 重跑 | **开**（`ttsr.enabled: true`，28 条内置规则）`[A]` `packages/coding-agent/src/config/settings-schema.ts:3060-3065` | 重跑一轮的 token；匹配本身是本地正则/native AST，无模型调用 |
+| **TTSR**（Time Traveling Stream Rules） | 流式生成时逐 delta 正则/AST 匹配，命中即 `abort()` → 丢弃半截输出 → 注入规则 → `continue()` 重跑 | **开**（`ttsr.enabled: true`，27 条内置规则）`[A]` `packages/coding-agent/src/config/settings-schema.ts:3060-3065` | 重跑一轮的 token；匹配本身是本地正则/native AST，无模型调用 |
 | **advisor / watchdog** | 第二个模型（默认走 **slow 强模型链**，不是小模型）看主 agent 的**增量转录**，通过 `advise` 反向注入 `<advisory>` | **关**（`advisor.enabled: false`）`[A]` `packages/coding-agent/src/config/settings-schema.ts:442-444` | 双份模型调用 + 可能打断主流程 |
 | **mnemopi 记忆** | 本地 SQLite（bun:sqlite）三层记忆 + 向量/FTS5 混合召回 | **关**（`memory.backend: off`，四选一 `off/local/hindsight/mnemopi`）`[A]` `packages/coding-agent/src/config/settings-schema.ts:2601-2604` | 召回注入的 prompt token（默认 8 条 / ~5000 token）+ 抽取 LLM 调用 |
 
@@ -377,7 +377,7 @@ You MUST comply with the following instruction:
 
 `[A]` `[B]` 规则就是**带 YAML frontmatter 的 markdown 文件**，来源按 provider 优先级：native(100) → omp-plugins(90) → agents(70) → cursor(50) → windsurf(50) → cline(40) → builtin-defaults(1)，按 `rule.name` 去重（first-wins）（`docs/rulebook-matching-pipeline.md:55-63,154-172`）。目录包括 `<cwd>/.omp/rules/*.md`、`~/.omp/agent/rules/`、`RULES.md`、`.cursor/rules/`、`.windsurf/rules/`、`.clinerules` 等（`docs/rulebook-matching-pipeline.md:67-120`）。
 
-`[A]` 仓库内置 **28 条** 规则：`packages/coding-agent/src/discovery/builtin-rules/*.md`（ts-no-any / ts-import-type / rs-parking-lot / go-range-int / …）。
+`[A]` 仓库内置 **27 条** 规则：`packages/coding-agent/src/discovery/builtin-rules/*.md`（ts-no-any / ts-import-type / rs-parking-lot / go-range-int / …）。
 
 **真实规则示例 1（正则版）**`[A]` `packages/coding-agent/src/discovery/builtin-rules/ts-no-any.md` frontmatter：
 
@@ -536,7 +536,7 @@ const ROLE_PRIORITY_ALIAS: Partial<Record<ModelRole, keyof typeof MODEL_PRIO>> =
 
 ### 5.2 强在哪（有代码支撑的）
 
-1. **prompt 预算解耦**`[A]`。28 条内置规则全文（含 Bad/Good 代码块）如果塞进 system prompt 是数万 token；作为 TTSR 规则它们的常驻成本是 0。
+1. **prompt 预算解耦**`[A]`。27 条内置规则全文（含 Bad/Good 代码块）如果塞进 system prompt 是数万 token；作为 TTSR 规则它们的常驻成本是 0。
 2. **执行边界不依赖模型自觉**`[A]`。正则/AST 匹配是确定性的，模型「没注意到」不是理由；`AdvisorEmissionGuard` 同理，把 prompt 里的软约束变成代码里的硬闸门（`emission-guard.ts:14-16` 原话：*"make the rules load-bearing in code instead of prose"*）。
 3. **规则可测试、可生成、可回放校验**`[A]`。`omp ttsr test/scan`（`commands/ttsr.ts`）+ `/omfg` 生成后回放历史校验（`omfg-rule.ts:346-402`）。system prompt 里的一句 "never use any" 没有这些。
 4. **失败模式分级**`[A]`。同一套规则可以选 `interruptMode: never`（只在 tool result 里挂提醒，零打断）或 `always`（abort+重跑）。仓库自带的两条示例规则都选了 `never`——**作者自己也不敢默认打断**。
@@ -588,7 +588,7 @@ const ROLE_PRIORITY_ALIAS: Partial<Record<ModelRole, keyof typeof MODEL_PRIO>> =
 | "FTS5 三索引 + 触发器同步" | ✅ 准确（`fts_episodes`/`fts_working`/`fts_facts` + `em_*`/`wm_*`/`facts_*` 触发器） | `[A]` `schema.ts:131-167,363-377` |
 | "向量存 `memory_embeddings.embedding_json`" | ✅ 准确，**但要补：没有向量索引**，默认是 native 暴力 top-k + 10000 行上限；sqlite-vec 路径存在却从不建表 | `[A]` `schema.ts:274-281`、`helpers.ts:342-419`、`vector-index.ts:43-76` |
 | "全本地无云" | ⚠️ **需要限定**。embedding 默认本地 fastembed，但代码里有完整的 OpenAI 兼容远程路径且默认 baseUrl 是 openrouter；LLM 路径默认走宿主的 `smol` 角色（在线模型） | `[A]` `embeddings.ts:389-437`、`[B]` `docs/mnemosyne-memory-backend.md:54,71` |
-| "TTSR：在模型写出违规 token 的瞬间打断并回滚重跑" | ✅ 准确，**但要补**：内置 28 条规则**默认全是 `interruptMode: never`**（不打断，只在 tool result 里挂提醒） | `[A]` `builtin-rules/ts-no-any.md`、`ts-redundant-clear-guard.md`、`ttsr-coordinator.ts:250-262` |
+| "TTSR：在模型写出违规 token 的瞬间打断并回滚重跑" | ✅ 准确，**但要补**：内置 27 条规则**默认全是 `interruptMode: never`**（不打断，只在 tool result 里挂提醒） | `[A]` `builtin-rules/ts-no-any.md`、`ts-redundant-clear-guard.md`、`ttsr-coordinator.ts:250-262` |
 | TTSR 生命周期五步（resetBuffer → 匹配 → abort → replaceMessages → continue） | ✅ 准确 | `[A]` `ttsr-coordinator.ts:72-79,399-455` |
 | "非打断命中分两路（perTool 前置 / prose 队列化）" | ✅ 准确 | `[A]` `ttsr-coordinator.ts:124-141,264-296` |
 | "注入抑制以 `ttsr_injection` entry 跨 resume 持久化" | ✅ 准确 | `[B]` `docs/ttsr-injection-lifecycle.md:189-209` |

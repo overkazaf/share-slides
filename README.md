@@ -26,6 +26,47 @@ slides 上只放 [A] 级事实。被打回的、拿不准的，连同"为什么�
 
 ## 目录
 
+### 🛠 [如何打造自己的 Agent · Chapter 4 —— re-agent：把一个行业的规矩写进骨架](./build-your-own-agent-4/)
+
+`2026` · 29 页 · 中文
+
+前三讲拆的都是别人的 harness。这一讲拆一个**从零写的**：面向逆向工程的 `overkazaf/re-agent`（0xAF-Re）。
+
+> **⚠ 利益冲突声明**：本讲主讲人就是 re-agent 的作者。所以对比章的顺序是刻意的 ——
+> **先花一整页拆自己的台（6 条其实只是配置 · 10 条明确落后），再说剩下什么（4 条结构性差异）**。
+
+| 章 | 内容 |
+|---|---|
+| CH1 起手 | 第一讲那份「逆向七道坎」逐条交账：四条已落地 · 两条半 · 一条有洞 |
+| CH2 灵感来源 | pi 给结构 / oh-my-pi 给代价意识 / Claude Code 给 skill 格式；四个不一样的选择，每个给账单 |
+| CH3 实现原理 | 一个函数就是全部控制流 · 包依赖倒置 · planner/executor 双座位 · caveman 隔离委派 · 上下文三道闸 |
+| CH4 功能点 | 52 个命令里约 49 个零 token；24 工具 / 33 skill；知识库把幻觉引用记账 |
+| CH5 三方对比 | 实测矩阵 → **自我拆台** → 剩下四条 |
+| CH6 能干什么 | 端到端案例（正例反例各跑一次）+ 四个能对回 SKILL.md 行号的场景 |
+| CH7 代价与规划 | 安全闸的七个洞；明写的规划只有一句；四讲一起收口 |
+
+**取证基线**：`overkazaf/re-agent`，commit `926e615`（2026-07-31）。
+**取证方式**：**全程只读代码 —— 不执行二进制、不联网、不跑 demo**，所以本讲没有任何性能或成功率数字。
+
+**几条可核查的硬事实**：
+
+- **外部依赖只有 1 个**（`golang.org/x/term`，`go.sum` 4 行）。对照 pi 的 27 个、oh-my-pi 的 664 npm 包 + 912 crate ——
+  **它不是「更小的 pi」，是依赖面积几乎为零的静态单二进制**
+- **最大的包不是内核，是界面**：`internal/ui` 5,608 行，是 `internal/core`（2,086 行）的 **2.7 倍**；入口 `main.go` 只有 17 行
+- **渐进式披露 1 : 47**：skill 目录常驻 8,531 字节，全文 397,723 字节。但**全仓 grep「progressive disclosure」零命中** —— 复刻了机制，没用这个词
+- **caveman 是宿主级双阶段委派**：planner 只给 1 个工具，executor 换 system prompt + 隔离会话 + 工具从 24 剪到 **14 个只读**，证据包硬截 6000 字符；
+  执行方的 prompt 里写着 *"You do not need the broader objective."*，且红线（不许翻译、不许暗语、不许 prompt laundering）**有单测钉死**
+- **零重试**：`grep -rn "retry\|backoff\|MaxRetries"` → **0 命中**；对照 pi 三层、oh-my-pi 默认 `maxRetries=10` + 1,787 行专职恢复类
+- **测试比 0.17×**（pi 0.885×、omp 0.74×），零 CI、零 lint 配置，`mcp` / `types` / `util` 三个包**零测试** —— 而路径包含检查正好住在 `util` 里
+- **一块化石**：`demos/README.md` 至今写着 `bun src/cli.ts`，而 git 全历史**没有任何 `.ts` 文件**
+
+- 📖 [在线阅读](./build-your-own-agent-4/) ·
+  🔍 [研究笔记（6 份）](./build-your-own-agent-4/research/) ·
+  ⚠️ [上台前备忘](./build-your-own-agent-4/NOTES.md) ·
+  🗺 [分镜](./build-your-own-agent-4/OUTLINE.md)
+
+---
+
 ### 🔬 [如何打造自己的 Agent · Chapter 2 —— 解剖 pi：把一个 harness 拆到底](./build-your-own-agent-2/)
 
 `2026` · 27 页 · 中文

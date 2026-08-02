@@ -61,7 +61,7 @@
           <text x="16" y="18" fill="#94a3b8" font-size="10.5" font-weight="600">Ctx 的字段，恰好就是那三样</text>
 
           <rect x="16" y="28" width="408" height="168" rx="6" fill="rgba(2,6,23,.7)" stroke="#334155" stroke-width="1"/>
-          <text x="30" y="50" fill="#cbd5e1" font-size="10.5" font-family="ui-monospace,Menlo,monospace">pub struct Ctx {</text>
+          <text x="30" y="50" fill="#cbd5e1" font-size="10.5" font-family="ui-monospace,Menlo,monospace">struct Ctx {   // 节选</text>
           <text x="30" y="68" fill="#fb923c" font-size="10.5" font-family="ui-monospace,Menlo,monospace">    stdout: Box&lt;dyn Write + Send&gt;,</text>
           <text x="30" y="86" fill="#fb923c" font-size="10.5" font-family="ui-monospace,Menlo,monospace">    stderr: Box&lt;dyn Write + Send&gt;,</text>
           <text x="30" y="104" fill="#fb923c" font-size="10.5" font-family="ui-monospace,Menlo,monospace">    stdin:  Box&lt;dyn Read  + Send&gt;,</text>
@@ -71,6 +71,7 @@
           <text x="30" y="176" fill="#cbd5e1" font-size="10.5" font-family="ui-monospace,Menlo,monospace">}</text>
 
           <text x="16" y="214" fill="#64748b" font-size="8.5">三行 stdio ＝ fd 表 · cwd ＝ 相对路径 · cancel ＝ 信号 · env 是附赠的第四样</text>
+          <text x="16" y="228" fill="#64748b" font-size="8">节选：原定义另有 stdin_fd / stdin_is_search_input / exit_code 三字段</text>
 
           <rect x="16" y="226" width="408" height="140" rx="6" fill="rgba(136,19,55,.24)" stroke="#fb7185" stroke-width="1.4"/>
           <text x="30" y="248" fill="#fb7185" font-size="10.5" font-weight="600">高潮：没装上下文的时候怎么办</text>

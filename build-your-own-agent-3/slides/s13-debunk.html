@@ -1,0 +1,116 @@
+<section class="slide" data-ch="CH2 内核" data-title="打假两则：名字最唬人的两个包，实质都比名字朴素">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot emerald"></span>CH 2 · 内核</div>
+    <h1 class="s-title">名字最唬人的两个包，实质都<span class="hl-r">比名字朴素</span></h1>
+    <div class="s-sub">先写<b style="color:#e2e8f0">常见讲法</b>，再写<b style="color:#e2e8f0">实情</b>；真正有料的那两个，反而没人提。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 505" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="dbk-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#34d399"/>
+            </marker>
+          </defs>
+
+          <text x="16" y="18" fill="#fb7185" font-size="9.5" font-weight="600">常见讲法</text>
+          <text x="316" y="18" fill="#34d399" font-size="9.5" font-weight="600">实情 · 本地代码取证</text>
+
+          <text x="16" y="42" fill="#fff" font-size="11" font-weight="700">metaharness</text>
+          <rect x="16" y="52" width="264" height="96" rx="6" fill="rgba(136,19,55,.16)" stroke="#fb7185" stroke-width="1" stroke-dasharray="4,3"/>
+          <text x="28" y="74" fill="#94a3b8" font-size="8.5">「harness 的 harness」——</text>
+          <text x="28" y="92" fill="#94a3b8" font-size="8.5">一个能包住各种 agent</text>
+          <text x="28" y="110" fill="#94a3b8" font-size="8.5">harness 的抽象层，</text>
+          <text x="28" y="128" fill="#94a3b8" font-size="8.5">属于生产链路的上层。</text>
+          <path d="M 286 100 L 308 100" stroke="#34d399" stroke-width="1.4" marker-end="url(#dbk-ar)"/>
+
+          <rect x="316" y="52" width="368" height="96" rx="6" fill="rgba(6,78,59,.16)" stroke="#34d399" stroke-width="1"/>
+          <text x="328" y="74" fill="#cbd5e1" font-size="8.5">跨 3 种 benchmark 的统一实验管理器 + Harbor runner</text>
+          <text x="328" y="92" fill="#cbd5e1" font-size="8.5">BenchmarkKind = "harbor" | "edit" | "snapcompact"（store.ts:19）</text>
+          <text x="328" y="110" fill="#cbd5e1" font-size="8.5">自己不定义任务、不写 verifier、不评分；归一化分发口只有 3 行</text>
+          <text x="328" y="128" fill="#94a3b8" font-size="8.5">private:true · 版本停在 0.0.1 · 全仓零反向依赖 · 不在生产路径上</text>
+
+          <text x="16" y="180" fill="#fff" font-size="11" font-weight="700">swarm-extension</text>
+          <rect x="16" y="190" width="264" height="132" rx="6" fill="rgba(136,19,55,.16)" stroke="#fb7185" stroke-width="1" stroke-dasharray="4,3"/>
+          <text x="28" y="212" fill="#94a3b8" font-size="8.5">「YAML 声明一张 DAG，</text>
+          <text x="28" y="230" fill="#94a3b8" font-size="8.5">就能编排多 agent；</text>
+          <text x="28" y="248" fill="#94a3b8" font-size="8.5">模型自己能触发，</text>
+          <text x="28" y="266" fill="#94a3b8" font-size="8.5">失败会重试，</text>
+          <text x="28" y="284" fill="#94a3b8" font-size="8.5">中断了还能续跑。」</text>
+          <path d="M 286 256 L 308 256" stroke="#34d399" stroke-width="1.4" marker-end="url(#dbk-ar)"/>
+
+          <rect x="316" y="190" width="368" height="132" rx="6" fill="rgba(6,78,59,.16)" stroke="#34d399" stroke-width="1"/>
+          <text x="328" y="212" fill="#cbd5e1" font-size="8.5">DAG 是真的：Kahn 环检测 + wave 分层（dag.ts:63-146），1,795 行</text>
+          <text x="328" y="230" fill="#cbd5e1" font-size="8.5">并发上限：无 —— Promise.all(wave) 无界，绕过宿主信号量</text>
+          <text x="328" y="248" fill="#cbd5e1" font-size="8.5">重试：零 —— 节点失败不剪枝下游，下一轮照跑</text>
+          <text x="328" y="266" fill="#cbd5e1" font-size="8.5">节点间零数据传递 —— reports_to 只是排序边，靠文件通信</text>
+          <text x="328" y="284" fill="#cbd5e1" font-size="8.5">模型无自主入口 —— 只注册 slash command，registerTool 零调用</text>
+          <text x="328" y="302" fill="#94a3b8" font-size="8.5">dag.ts 的拓扑排序 / 环检测 / wave 构建，零测试覆盖</text>
+
+          <rect x="16" y="336" width="668" height="78" rx="6" fill="rgba(76,29,149,.16)" stroke="#a78bfa" stroke-width="1"/>
+          <text x="30" y="357" fill="#a78bfa" font-size="10" font-weight="600">要讲的不是「它们不行」，是「名字不是证据」</text>
+          <text x="30" y="377" fill="#cbd5e1" font-size="8.5">metaharness 值得抄的不是代码，是它的四层数据模型 experiment → arm → run → trace，和「跑分脚本也要有 schema」的态度。</text>
+          <text x="30" y="397" fill="#cbd5e1" font-size="8.5">swarm 值得记的是边界：模型自主决策与声明式编排在这里被硬切开 —— 不是做得不够，是刻意不做。</text>
+
+          <text x="16" y="444" fill="#cbd5e1" font-size="9.5">判断一个包重不重要，看两样：反向依赖有几个，测试覆盖到哪。</text>
+          <text x="16" y="470" fill="#64748b" font-size="8">口径：结论均为本地代码取证 [A]，README 引用标 [B]。左栏「常见讲法」是按包名望文生义的典型误读，非引自具体文章。</text>
+        </svg>
+      </div>
+
+      <div class="figure">
+        <svg viewBox="0 0 440 495" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="18" fill="#34d399" font-size="10.5" font-weight="600">真正有料的两个，反而不显山露水</text>
+          <text x="16" y="34" fill="#94a3b8" font-size="8.5">packages/coding-agent/src/registry · irc</text>
+
+          <rect x="16" y="46" width="408" height="172" rx="6" fill="rgba(6,78,59,.14)" stroke="#34d399" stroke-width="1"/>
+          <text x="28" y="66" fill="#34d399" font-size="10" font-weight="600">AgentRegistry</text>
+          <text x="28" y="81" fill="#64748b" font-size="8">registry/agent-registry.ts:17-23 · 217 行</text>
+          <text x="28" y="100" fill="#cbd5e1" font-size="8.5">进程内所有 agent（主会话 + 每个子代理）登记成一张表</text>
+
+          <rect x="28" y="110" width="92" height="34" rx="5" fill="rgba(6,78,59,.28)" stroke="#34d399" stroke-width="1"/>
+          <text x="36" y="125" fill="#34d399" font-size="8.5" font-weight="600">running</text>
+          <text x="36" y="138" fill="#94a3b8" font-size="8">一个 turn 在飞</text>
+
+          <rect x="128" y="110" width="92" height="34" rx="5" fill="rgba(8,51,68,.32)" stroke="#22d3ee" stroke-width="1"/>
+          <text x="136" y="125" fill="#22d3ee" font-size="8.5" font-weight="600">idle</text>
+          <text x="136" y="138" fill="#94a3b8" font-size="8">会话还在内存</text>
+
+          <rect x="228" y="110" width="92" height="34" rx="5" fill="rgba(120,53,15,.3)" stroke="#fbbf24" stroke-width="1"/>
+          <text x="236" y="125" fill="#fbbf24" font-size="8.5" font-weight="600">parked</text>
+          <text x="236" y="138" fill="#94a3b8" font-size="8">销毁但可复活</text>
+
+          <rect x="328" y="110" width="92" height="34" rx="5" fill="rgba(136,19,55,.28)" stroke="#fb7185" stroke-width="1"/>
+          <text x="336" y="125" fill="#fb7185" font-size="8.5" font-weight="600">aborted</text>
+          <text x="336" y="138" fill="#94a3b8" font-size="8">硬杀，终态</text>
+
+          <text x="28" y="166" fill="#cbd5e1" font-size="8.5">AgentLifecycleManager（455 行）：idle 超 TTL → park → 按需 revive</text>
+          <text x="28" y="182" fill="#cbd5e1" font-size="8.5">park / revive 的并发按 id 合并，且绑定到确切的 AgentRef</text>
+          <text x="28" y="198" fill="#94a3b8" font-size="8.5">AgentKind = main | sub | advisor（advisor 对花名册隐藏）</text>
+
+          <rect x="16" y="232" width="408" height="140" rx="6" fill="rgba(251,146,60,.16)" stroke="#fb923c" stroke-width="1"/>
+          <text x="28" y="252" fill="#fb923c" font-size="10" font-weight="600">IrcBus</text>
+          <text x="28" y="267" fill="#64748b" font-size="8">irc/bus.ts:1-16 · MAILBOX_CAP = 100</text>
+          <text x="28" y="286" fill="#cbd5e1" font-size="8.5">agent 间邮箱。send 从不阻塞在「对方生成了什么」上。</text>
+          <text x="28" y="306" fill="#cbd5e1" font-size="8.5">parked → 经 AgentLifecycleManager 复活</text>
+          <text x="28" y="322" fill="#cbd5e1" font-size="8.5">idle → 用一个真实 turn 唤醒</text>
+          <text x="28" y="338" fill="#cbd5e1" font-size="8.5">busy → 下一个 step 边界收到非中断 aside</text>
+          <text x="28" y="358" fill="#94a3b8" font-size="8">aside 是惰性 thunk，注入那一刻才求值，过时的可自我撤回</text>
+
+          <text x="16" y="396" fill="#34d399" font-size="9.5" font-weight="600">这就闭合回了第 10 页的主循环</text>
+          <text x="16" y="414" fill="#94a3b8" font-size="8.5">三个 aside 生产者一起注册（agent-session.ts:1140-1147）：</text>
+          <text x="16" y="430" fill="#cbd5e1" font-size="8.5">IRC 消息 · advisor 的评审意见 · 中途 todo 对账</text>
+          <text x="16" y="456" fill="#cbd5e1" font-size="9">上游 pi 完全没有子代理系统 —— 这一块是 omp 净新增。</text>
+          <text x="16" y="478" fill="#64748b" font-size="8">pi 侧 grep subagent | spawnAgent | Task tool 零文件命中，且无 task/ 目录</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src"><b>metaharness/src/store.ts:19 · swarm-extension/src/swarm/dag.ts:63-146 · registry/agent-registry.ts:17-23 · irc/bus.ts:1-16</b> · [A] 本地取证</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

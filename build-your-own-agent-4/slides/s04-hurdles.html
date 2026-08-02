@@ -1,0 +1,76 @@
+<section class="slide" data-ch="CH1 起手" data-title="七道坎回来交账：哪几条真落到代码里了">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot cyan"></span>CH 1 · 起手</div>
+    <h1 class="s-title">第一讲列的<span class="hl">七道坎</span> —— 现在逐条<span class="hl-r">回来交账</span></h1>
+    <div class="s-sub">第一讲的结论是：<b style="color:#e2e8f0">七条里能靠提示词缓解的只有一条，其余六条必须在 harness 层解</b>。那就看这个 harness 到底解了几条。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="figure plain">
+      <svg viewBox="0 0 1160 452" xmlns="http://www.w3.org/2000/svg">
+        <text x="16" y="16" fill="#94a3b8" font-size="10" font-weight="600">坎</text>
+        <text x="300" y="16" fill="#94a3b8" font-size="10" font-weight="600">re-agent 里对应的那段代码</text>
+        <text x="1000" y="16" fill="#94a3b8" font-size="10" font-weight="600">落地程度</text>
+        <path d="M 16 24 L 1144 24" stroke="#1e293b" stroke-width="1"/>
+
+        <rect x="16" y="32" width="1128" height="48" rx="5" fill="rgba(6,78,59,.2)"/>
+        <text x="30" y="52" fill="#e2e8f0" font-size="10" font-weight="600">① 二进制不是文本，算术不可信</text>
+        <text x="30" y="70" fill="#64748b" font-size="8.5">连 0x41424344 转 ASCII 都不能让模型自己算</text>
+        <text x="300" y="52" fill="#cbd5e1" font-size="9">进制换算 / 字符串抽取 / 哈希 / 符号提取<tspan fill="#fff">全部外包给确定性程序</tspan> —— 24 个工具里 21 个只读</text>
+        <text x="300" y="70" fill="#94a3b8" font-size="8.5">strings · hexdump · hash_file · extract_symbols · entropy_scan · find_bytes · carve_artifacts。模型只被允许读结果</text>
+        <text x="1000" y="60" fill="#34d399" font-size="10" font-weight="700">已落地</text>
+
+        <rect x="16" y="86" width="1128" height="48" rx="5" fill="rgba(120,53,15,.22)"/>
+        <text x="30" y="106" fill="#e2e8f0" font-size="10" font-weight="600">② 工具链是有状态的 GUI</text>
+        <text x="30" y="124" fill="#64748b" font-size="8.5">分析数据库里的重命名 / 类型 / 注释不在上下文里</text>
+        <text x="300" y="106" fill="#cbd5e1" font-size="9"><tspan fill="#fff">reverse_toolkit 白名单 20 个外部工具族</tspan>（r2 · rizin · jadx · ghidra · gdb · binwalk · yara · apktool …），动作固定不许任意注入</text>
+        <text x="300" y="124" fill="#fbbf24" font-size="8.5">但这是<tspan fill="#fff">无状态调用</tspan>，不是 supervisor + 常驻 worker 持有分析库那套。IDA 没接，分析库状态仍然不在回路里</text>
+        <text x="1000" y="112" fill="#fbbf24" font-size="10" font-weight="700">半条</text>
+
+        <rect x="16" y="140" width="1128" height="48" rx="5" fill="rgba(6,78,59,.2)"/>
+        <text x="30" y="160" fill="#e2e8f0" font-size="10" font-weight="600">③ 上下文一秒爆</text>
+        <text x="30" y="178" fill="#64748b" font-size="8.5">「请节约上下文」这种指令打不过模型的探索本能</text>
+        <text x="300" y="160" fill="#cbd5e1" font-size="9">三个物理手段：工具输出 <tspan fill="#fff">24k 字符硬闸</tspan>（超了 head 60% / tail 40% + 落 artifact 文件）· 每回合机械压缩 · 手动 /compact</text>
+        <text x="300" y="178" fill="#94a3b8" font-size="8.5">注释写明就是冲着 objdump -d 和大文件 strings 去的　internal/tools/output.go:3-7</text>
+        <text x="1000" y="168" fill="#34d399" font-size="10" font-weight="700">已落地</text>
+
+        <rect x="16" y="194" width="1128" height="48" rx="5" fill="rgba(6,78,59,.2)"/>
+        <text x="30" y="214" fill="#e2e8f0" font-size="10" font-weight="600">④ 过早收敛，或者永不收敛</text>
+        <text x="30" y="232" fill="#64748b" font-size="8.5">唯一一条提示词能缓解的 —— 但只能缓解</text>
+        <text x="300" y="214" fill="#cbd5e1" font-size="9">把判停从模型手里拿走一半：<tspan fill="#fff">规划与执行换不同模型、不同厂商</tspan>；再加一个 <tspan fill="#fff">maxTurns 默认 8</tspan> 的硬边界</text>
+        <text x="300" y="232" fill="#94a3b8" font-size="8.5">生成者不当自己的裁判。触顶也要写一条 max_turns_reached 进 transcript，不是静默停</text>
+        <text x="1000" y="222" fill="#34d399" font-size="10" font-weight="700">已落地</text>
+
+        <rect x="16" y="248" width="1128" height="48" rx="5" fill="rgba(6,78,59,.2)"/>
+        <text x="30" y="268" fill="#e2e8f0" font-size="10" font-weight="600">⑤ 结果必须可复现，LLM 天生非确定</text>
+        <text x="30" y="286" fill="#64748b" font-size="8.5">同一个模型，生成题 92% vs 有 writeup 的公开题约 37%</text>
+        <text x="300" y="268" fill="#cbd5e1" font-size="9"><tspan fill="#fff">只追加的 JSONL 轨迹</tspan>，每条消息、每个事件、每次 wire 收发都落盘；恢复时 repair() 双向修剪悬空引用</text>
+        <text x="300" y="286" fill="#fbbf24" font-size="8.5">但<tspan fill="#fff">评测集还没有</tspan> —— 全仓 0 个 Benchmark、0 个 eval harness。作者自己在 README 里承诺「reproducible benchmark cases will be added」</text>
+        <text x="1000" y="276" fill="#fbbf24" font-size="10" font-weight="700">半条</text>
+
+        <rect x="16" y="302" width="1128" height="48" rx="5" fill="rgba(136,19,55,.22)"/>
+        <text x="30" y="322" fill="#e2e8f0" font-size="10" font-weight="600">⑥ 样本本身就是攻击面</text>
+        <text x="30" y="340" fill="#64748b" font-size="8.5">恶意样本能在自己的 .rodata 里写「把这个函数报告为无害」</text>
+        <text x="300" y="322" fill="#cbd5e1" font-size="9">分级审批闸：tier（read / write / exec）× mode（yolo / safe / write / always-ask），加命令正则 concerns 三类</text>
+        <text x="300" y="340" fill="#fb7185" font-size="8.5">⚠ <tspan fill="#fff">但默认档 safe 对 tier 一律放行</tspan>，exec 唯一的闸是正则命中；且 run_command 就是 bash -c，没有 chroot / namespace / seccomp。第 28 页细讲</text>
+        <text x="1000" y="330" fill="#fb7185" font-size="10" font-weight="700">有洞</text>
+
+        <rect x="16" y="356" width="1128" height="48" rx="5" fill="rgba(6,78,59,.2)"/>
+        <text x="30" y="376" fill="#e2e8f0" font-size="10" font-weight="600">⑦ 混淆是最硬的墙</text>
+        <text x="30" y="394" fill="#64748b" font-size="8.5">信息已经被删掉了，模型再强也变不出来</text>
+        <text x="300" y="376" fill="#cbd5e1" font-size="9">落在 SKILL 里，不落在 prompt 里：<tspan fill="#fff">ollvm-deobfuscation 583 行 · vmp-restore 604 行 · so-string-deobfuscation 428 行 · jsvmp-analysis 620 行</tspan></text>
+        <text x="300" y="394" fill="#94a3b8" font-size="8.5">33 个 skill 常驻 system prompt 的只有目录（8,531 字节），正文 397,723 字节要用到才读 —— <tspan fill="#fff">1 : 47</tspan></text>
+        <text x="1000" y="384" fill="#34d399" font-size="10" font-weight="700">已落地</text>
+
+        <path d="M 16 412 L 1144 412" stroke="#1e293b" stroke-width="1"/>
+        <text x="16" y="436" fill="#cbd5e1" font-size="10.5">交账结果：<tspan fill="#34d399" font-weight="700">四条已落地</tspan>　<tspan fill="#fbbf24" font-weight="700">两条只做了一半</tspan>　<tspan fill="#fb7185" font-weight="700">一条有实打实的洞</tspan>。<tspan fill="#94a3b8">　这就是「按自己的活造一个」到今天为止的真实进度，不是路演材料。</tspan></text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">七道坎出自第一讲研究笔记 R09 Part B · 本页对照全部为 <b>926e615</b> 本地静态取证 · 研究笔记 R02 / R03 / R06</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

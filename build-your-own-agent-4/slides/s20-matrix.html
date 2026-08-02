@@ -1,0 +1,108 @@
+<section class="slide" data-ch="CH5 三方对比" data-title="三方对比矩阵：全部实测，口径写在页脚">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot slate"></span>CH 5 · 与 pi / oh-my-pi 的区别</div>
+    <h1 class="s-title">三个都在本机，<span class="hl">同一批命令量一遍</span></h1>
+    <div class="s-sub">pi 与 oh-my-pi 的数复用第二、三讲的实测并抽查复核，<b style="color:#e2e8f0">来源均已标注</b>。commit 数三家口径不同，<b style="color:#fb7185">不可横比，本页不列</b>。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="figure plain">
+      <svg viewBox="0 0 1160 452" xmlns="http://www.w3.org/2000/svg">
+        <text x="16" y="18" fill="#94a3b8" font-size="10" font-weight="600">维度</text>
+        <text x="300" y="18" fill="#fbbf24" font-size="10.5" font-weight="700">re-agent</text>
+        <text x="600" y="18" fill="#34d399" font-size="10.5" font-weight="700">pi（第二讲）</text>
+        <text x="880" y="18" fill="#fb7185" font-size="10.5" font-weight="700">oh-my-pi（第三讲）</text>
+        <path d="M 16 26 L 1144 26" stroke="#334155" stroke-width="1.2"/>
+
+        <text x="16" y="48" fill="#e2e8f0" font-size="9.5">语言 / 分发</text>
+        <text x="300" y="48" fill="#fff" font-size="9">Go · 静态单二进制 · 交叉编译 4 平台</text>
+        <text x="600" y="48" fill="#cbd5e1" font-size="9">TypeScript · npm 为主</text>
+        <text x="880" y="48" fill="#cbd5e1" font-size="9">TS + Rust + Python · npm + 原生 addon</text>
+
+        <rect x="16" y="56" width="1128" height="22" rx="3" fill="rgba(30,41,59,.45)"/>
+        <text x="16" y="71" fill="#e2e8f0" font-size="9.5">源码行数（非测试）</text>
+        <text x="300" y="71" fill="#fff" font-size="9">20,672 · 58 文件</text>
+        <text x="600" y="71" fill="#cbd5e1" font-size="9">112,232 · 495 文件</text>
+        <text x="880" y="71" fill="#cbd5e1" font-size="9">TS 723,921 + 自研 Rust 83,443 + Py 83,434</text>
+
+        <text x="16" y="94" fill="#e2e8f0" font-size="9.5"><tspan fill="#22d3ee" font-weight="700">直接外部依赖</tspan></text>
+        <text x="300" y="94" fill="#22d3ee" font-size="10" font-weight="700">1 个</text>
+        <text x="600" y="94" fill="#cbd5e1" font-size="9">27 个</text>
+        <text x="880" y="94" fill="#cbd5e1" font-size="9">664 个 npm 包 + 912 个 crate</text>
+
+        <rect x="16" y="102" width="1128" height="22" rx="3" fill="rgba(136,19,55,.24)"/>
+        <text x="16" y="117" fill="#e2e8f0" font-size="9.5"><tspan fill="#fb7185" font-weight="700">测试 / 源码</tspan></text>
+        <text x="300" y="117" fill="#fb7185" font-size="10" font-weight="700">0.17×</text>
+        <text x="600" y="117" fill="#cbd5e1" font-size="9">0.885×</text>
+        <text x="880" y="117" fill="#cbd5e1" font-size="9">0.74×　　<tspan fill="#fb7185">← 这一格 re-agent 差一个量级，不能洗</tspan></text>
+
+        <text x="16" y="140" fill="#e2e8f0" font-size="9.5">主循环形状</text>
+        <text x="300" y="140" fill="#fff" font-size="9">单层 for，Run 函数 241 行</text>
+        <text x="600" y="140" fill="#cbd5e1" font-size="9">双层 while</text>
+        <text x="880" y="140" fill="#cbd5e1" font-size="9">双层 while（近乎逐字继承 pi），全文件 2,869 行</text>
+
+        <rect x="16" y="148" width="1128" height="22" rx="3" fill="rgba(136,19,55,.24)"/>
+        <text x="16" y="163" fill="#e2e8f0" font-size="9.5"><tspan fill="#fb7185" font-weight="700">迭代上限</tspan></text>
+        <text x="300" y="163" fill="#fb7185" font-size="9" font-weight="700">有，默认 8　← 真实 RE 任务很容易撞顶</text>
+        <text x="600" y="163" fill="#cbd5e1" font-size="9">无</text>
+        <text x="880" y="163" fill="#cbd5e1" font-size="9">无</text>
+
+        <rect x="16" y="176" width="1128" height="22" rx="3" fill="rgba(136,19,55,.24)"/>
+        <text x="16" y="191" fill="#e2e8f0" font-size="9.5"><tspan fill="#fb7185" font-weight="700">重试策略</tspan></text>
+        <text x="300" y="191" fill="#fb7185" font-size="9" font-weight="700">完全没有（grep retry/backoff → 0 命中）</text>
+        <text x="600" y="191" fill="#cbd5e1" font-size="9">三层：HTTP / 语义 / 产品</text>
+        <text x="880" y="191" fill="#cbd5e1" font-size="9">两层 + 1,787 行专职 TurnRecovery，默认 maxRetries=10</text>
+
+        <text x="16" y="214" fill="#e2e8f0" font-size="9.5">一次请求用几个模型</text>
+        <text x="300" y="214" fill="#fff" font-size="9">一 turn 一个，但一次请求可跨两家厂商</text>
+        <text x="600" y="214" fill="#cbd5e1" font-size="9">一 turn 一个，turn 间可换</text>
+        <text x="880" y="214" fill="#cbd5e1" font-size="9">10 个 model role，含端侧 ONNX 小模型</text>
+
+        <rect x="16" y="222" width="1128" height="22" rx="3" fill="rgba(30,41,59,.45)"/>
+        <text x="16" y="237" fill="#e2e8f0" font-size="9.5">provider 数 / 模型清单来源</text>
+        <text x="300" y="237" fill="#fff" font-size="9">5 类后端 · 手写 JSON，无发现机制</text>
+        <text x="600" y="237" fill="#cbd5e1" font-size="9">38 个 → 10 种 wire API · 构建期快照</text>
+        <text x="880" y="237" fill="#cbd5e1" font-size="9">63 provider / 4,106 条模型记录 · 生成，明令禁止手改</text>
+
+        <text x="16" y="260" fill="#e2e8f0" font-size="9.5"><tspan fill="#a78bfa" font-weight="700">自动压缩</tspan></text>
+        <text x="300" y="260" fill="#a78bfa" font-size="9" font-weight="700">纯机械两趟，一个 token 都不花</text>
+        <text x="600" y="260" fill="#cbd5e1" font-size="9">调模型摘要 + 切点吸附</text>
+        <text x="880" y="260" fill="#cbd5e1" font-size="9">snapcompact：把历史画成点阵 PNG 让视觉模型读回来</text>
+
+        <rect x="16" y="268" width="1128" height="22" rx="3" fill="rgba(30,41,59,.45)"/>
+        <text x="16" y="283" fill="#e2e8f0" font-size="9.5">基线 system prompt</text>
+        <text x="300" y="283" fill="#fff" font-size="9">≈2,850 token（含 33 条 skill 目录）</text>
+        <text x="600" y="283" fill="#cbd5e1" font-size="9">630 token（裸态 4 工具）</text>
+        <text x="880" y="283" fill="#cbd5e1" font-size="9">≈4,900 token + 69 个条件注入片段</text>
+
+        <rect x="16" y="296" width="1128" height="22" rx="3" fill="rgba(136,19,55,.24)"/>
+        <text x="16" y="311" fill="#e2e8f0" font-size="9.5"><tspan fill="#fb7185" font-weight="700">会话结构</tspan></text>
+        <text x="300" y="311" fill="#fb7185" font-size="9" font-weight="700">线性，无分叉无回退</text>
+        <text x="600" y="311" fill="#cbd5e1" font-size="9">树 + 3 版迁移 + 3 种可插拔存储（含 SQLite WAL）</text>
+        <text x="880" y="311" fill="#cbd5e1" font-size="9">树 + 5 种分叉回退机制</text>
+
+        <text x="16" y="334" fill="#e2e8f0" font-size="9.5">扩展点</text>
+        <text x="300" y="334" fill="#fff" font-size="9">全仓 <tspan font-weight="700">1 个 interface</tspan>（types.Provider）+ 8 个回调</text>
+        <text x="600" y="334" fill="#cbd5e1" font-size="9">33 个钩子</text>
+        <text x="880" y="334" fill="#cbd5e1" font-size="9">25+39 钩子 + 5 类扩展点 + 14×17 能力矩阵</text>
+
+        <rect x="16" y="342" width="1128" height="22" rx="3" fill="rgba(30,41,59,.45)"/>
+        <text x="16" y="357" fill="#e2e8f0" font-size="9.5">工具数 / 权限</text>
+        <text x="300" y="357" fill="#fff" font-size="9">24（真正的领域原语只有 7 个）· tier×mode</text>
+        <text x="600" y="357" fill="#cbd5e1" font-size="9">写 7 个默认给 4 个 · 无权限弹窗、无路径沙箱</text>
+        <text x="880" y="357" fill="#cbd5e1" font-size="8.5">29+2，xd:// 常驻 15 个 · tier×mode + 每工具 allow/deny</text>
+
+        <path d="M 16 372 L 1144 372" stroke="#334155" stroke-width="1.2"/>
+        <text x="16" y="394" fill="#fbbf24" font-size="10" font-weight="700">这张表最该被记住的一格，不是「小」</text>
+        <text x="16" y="416" fill="#e2e8f0" font-size="10">源码是 pi 的 <tspan fill="#fff" font-weight="700">18.4%</tspan>、是 omp TypeScript 部分的 <tspan fill="#fff" font-weight="700">2.9%</tspan> —— 但真正拉开的是那一格：<tspan fill="#22d3ee" font-weight="700">直接外部依赖 1 : 27 : 664+912</tspan>。</text>
+        <text x="16" y="438" fill="#94a3b8" font-size="9.5">它不是「更小的 pi」，是<tspan fill="#fff">依赖面积几乎为零的静态单二进制</tspan>。这个差别只在一个场景里真的重要：<tspan fill="#fff">scp 到一台离线的、不归你管的分析机</tspan>。</text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">re-agent <b>926e615</b> 现场点算 · pi/omp 引用第二讲 P01–P10 与第三讲 R01–R09 并抽查复核 · 三家 commit 数口径不同故不列 · 研究笔记 R04 §1</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

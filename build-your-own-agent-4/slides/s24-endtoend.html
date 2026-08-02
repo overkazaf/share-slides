@@ -1,0 +1,94 @@
+<section class="slide" data-ch="CH6 能干什么" data-title="端到端：一句话进去，正例反例各跑一次出来">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot emerald"></span>CH 6 · 能干什么</div>
+    <h1 class="s-title">最值钱的不是它解出来了 —— 是它<span class="hl">反例也跑了一次</span></h1>
+    <div class="s-sub">结论从「我读源码读出来是 X」降级成「<b style="color:#e2e8f0">我观察到了 X</b>」。这一步是逆向和猜谜的分界线。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="figure plain">
+      <svg viewBox="0 0 1160 452" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="e2-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#34d399"/>
+          </marker>
+        </defs>
+
+        <rect x="16" y="14" width="1128" height="34" rx="6" fill="rgba(8,51,68,.26)" stroke="#22d3ee" stroke-width="1.1"/>
+        <text x="30" y="36" fill="#cbd5e1" font-size="9.5">操作员输入的<tspan fill="#fff">全部内容</tspan>：<tspan fill="#22d3ee" font-style="italic">"Recover the expected token from chall.js, verify it by actually running the checker, and explain how the check works."</tspan></text>
+
+        <path d="M 580 50 L 580 62" stroke="#34d399" stroke-width="1.3" marker-end="url(#e2-ar)"/>
+
+        <rect x="16" y="66" width="360" height="118" rx="7" fill="rgba(76,29,149,.26)" stroke="#a78bfa" stroke-width="1.2"/>
+        <text x="30" y="86" fill="#a78bfa" font-size="10" font-weight="700">① planner（codex）先落 4 步</text>
+        <text x="30" y="106" fill="#cbd5e1" font-size="8.5">PLAN 0/4 · via codex</text>
+        <text x="30" y="123" fill="#e2e8f0" font-size="8.5">1　定位 chall.js，判定运行时与校验接口</text>
+        <text x="30" y="139" fill="#e2e8f0" font-size="8.5">2　逆出校验逻辑，推导预期 token</text>
+        <text x="30" y="155" fill="#e2e8f0" font-size="8.5">3　用推出来的 token 真跑一次 checker</text>
+        <text x="30" y="171" fill="#e2e8f0" font-size="8.5">4　把校验方式写成简短解题笔记</text>
+
+        <rect x="392" y="66" width="452" height="118" rx="7" fill="rgba(6,78,59,.26)" stroke="#34d399" stroke-width="1.2"/>
+        <text x="406" y="86" fill="#34d399" font-size="10" font-weight="700">② executor 逐条执行 —— 七条都是受策略约束的真实工具调用</text>
+        <text x="406" y="105" fill="#cbd5e1" font-size="8.5">1　rg --files</text>
+        <text x="560" y="105" fill="#64748b" font-size="8">盘点工作区</text>
+        <text x="406" y="121" fill="#cbd5e1" font-size="8.5">2　file chall.js　　3　node -v</text>
+        <text x="560" y="121" fill="#64748b" font-size="8">判类型 · <tspan fill="#94a3b8">不假设环境存在</tspan></text>
+        <text x="406" y="137" fill="#cbd5e1" font-size="8.5">4　sed -n '1,240p' chall.js</text>
+        <text x="560" y="137" fill="#64748b" font-size="8">读校验逻辑</text>
+        <text x="406" y="153" fill="#fbbf24" font-size="8.5">5　sha256sum chall.js &amp;&amp; wc -c chall.js</text>
+        <text x="620" y="153" fill="#fbbf24" font-size="8">钉住本次检查的<tspan fill="#fff">确切字节</tspan></text>
+        <text x="406" y="169" fill="#34d399" font-size="8.5">6　node chall.js '0xaf{warmup_deck}'　→ accepted, exit=0</text>
+        <text x="406" y="182" fill="#fb7185" font-size="8.5">7　node chall.js 'wrong'　　　　　　　 → rejected, exit=1</text>
+
+        <rect x="860" y="66" width="284" height="118" rx="7" fill="rgba(136,19,55,.24)" stroke="#fb7185" stroke-width="1.3"/>
+        <text x="874" y="86" fill="#fb7185" font-size="10" font-weight="700">这个案例的全部说服力</text>
+        <text x="874" y="108" fill="#e2e8f0" font-size="9">第 6 步是<tspan fill="#fff">正例</tspan>，第 7 步是<tspan fill="#fff">反例</tspan></text>
+        <text x="874" y="128" fill="#cbd5e1" font-size="8.5">它没停在「我读出来是 X」，</text>
+        <text x="874" y="144" fill="#cbd5e1" font-size="8.5">而是<tspan fill="#fff">两边都跑一次</tspan></text>
+        <text x="874" y="166" fill="#94a3b8" font-size="8">加上第 5 步的 sha256 —— 这三步合起来</text>
+        <text x="874" y="180" fill="#94a3b8" font-size="8">才让这条结论<tspan fill="#fff">别人能原样重放</tspan></text>
+
+        <rect x="16" y="196" width="828" height="104" rx="7" fill="rgba(2,6,23,.75)" stroke="#334155" stroke-width="1.1"/>
+        <text x="30" y="216" fill="#e2e8f0" font-size="9.5" font-weight="600">③ 答案带着证据一起给出</text>
+        <text x="30" y="236" fill="#cbd5e1" font-size="8.5">Recovered token:　0xaf{warmup_deck}</text>
+        <text x="30" y="252" fill="#cbd5e1" font-size="8.5">Verification run:　node chall.js '0xaf{warmup_deck}' → accepted, exit=0</text>
+        <text x="30" y="272" fill="#94a3b8" font-size="8.5">How it works: chall.js:3 存了一个整数数组，每个字节和 0x2a 异或。解出来就是那个 token。脚本再把 process.argv[2] 与解出的字符串直接比较 ——</text>
+        <text x="30" y="286" fill="#94a3b8" font-size="8.5">完全相等打印 accepted 并 exit 0，否则 rejected 并 exit 1。</text>
+
+        <rect x="860" y="196" width="284" height="104" rx="7" fill="rgba(120,53,15,.24)" stroke="#fbbf24" stroke-width="1.2"/>
+        <text x="874" y="216" fill="#fbbf24" font-size="9.5" font-weight="600">回合页脚（原样）</text>
+        <text x="874" y="240" fill="#e2e8f0" font-size="8.5">via codex · role auto · turns 1</text>
+        <text x="874" y="258" fill="#e2e8f0" font-size="8.5">took 1m34s</text>
+        <text x="874" y="276" fill="#e2e8f0" font-size="8.5">in 162k　out 2.2k</text>
+        <text x="874" y="292" fill="#e2e8f0" font-size="8.5">think 895　cache 122k</text>
+
+        <path d="M 16 312 L 1144 312" stroke="#1e293b" stroke-width="1"/>
+        <text x="16" y="332" fill="#fb7185" font-size="10" font-weight="700">必须同页说清的三件事 —— 这一页的取证等级是本讲最低的</text>
+
+        <rect x="16" y="342" width="368" height="62" rx="6" fill="rgba(136,19,55,.2)" stroke="#fb7185" stroke-width="1.1"/>
+        <text x="30" y="361" fill="#fb7185" font-size="9" font-weight="600">① transcript 不在仓库里</text>
+        <text x="30" y="379" fill="#cbd5e1" font-size="8.5">README 说这一轮的 plan / 命令 / 耗时 / 答案</text>
+        <text x="30" y="395" fill="#cbd5e1" font-size="8.5">都是从 session 记录抄出来的，但<tspan fill="#fff">记录本身没提交</tspan> —— 无法复核</text>
+
+        <rect x="396" y="342" width="368" height="62" rx="6" fill="rgba(120,53,15,.22)" stroke="#fbbf24" stroke-width="1.1"/>
+        <text x="410" y="361" fill="#fbbf24" font-size="9" font-weight="600">② 它自己写了复现免责声明</text>
+        <text x="410" y="379" fill="#cbd5e1" font-size="8.5">这一轮需要真的 planner 和 executor；</text>
+        <text x="410" y="395" fill="#e2e8f0" font-size="8.5"><tspan fill="#fff">--smoke 和 mock provider 只验线路，跑不出这个结果</tspan></text>
+
+        <rect x="776" y="342" width="368" height="62" rx="6" fill="rgba(6,78,59,.22)" stroke="#34d399" stroke-width="1.1"/>
+        <text x="790" y="361" fill="#34d399" font-size="9" font-weight="600">③ 但 A 版是可以零成本自己验的</text>
+        <text x="790" y="379" fill="#cbd5e1" font-size="8.5">同一道题还有一条<tspan fill="#fff">完全不用模型</tspan>的解法：</text>
+        <text x="790" y="395" fill="#e2e8f0" font-size="8.5">/read chall.js → ! 直接跑 node 一行 XOR → 得同一个 token</text>
+
+        <rect x="16" y="414" width="1128" height="30" rx="5" fill="rgba(2,6,23,.6)" stroke="#334155" stroke-width="1"/>
+        <text x="30" y="434" fill="#cbd5e1" font-size="9.5">把这套搬到真样本，README 给了映射：<tspan fill="#fff">/scan 定性 → /hex &lt;file&gt; 0x20 读文件头 → /carve 抠内嵌载荷 → /r2 &lt;file&gt; 上反汇编器</tspan>　<tspan fill="#94a3b8">前三步零 token。</tspan></text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">README.md:232-339（doc-claimed，标 [B]）· 案例 A 与命令映射为 [A] 逐字引用 · 本讲未执行二进制 · 研究笔记 R05 §2</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

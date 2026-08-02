@@ -1,0 +1,95 @@
+<section class="slide" data-ch="CH5 三方对比" data-title="自我拆台：六条其实只是配置，十条明确落后">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot rose"></span>CH 5 · 与 pi / oh-my-pi 的区别</div>
+    <h1 class="s-title">先拆自己的台：<span class="hl-r">这六条别当卖点讲</span></h1>
+    <div class="s-sub">判据只有一条：<b style="color:#e2e8f0">把 pi 或 omp 拿来，只允许改配置、写 SKILL.md、装现成扩展 —— 能不能得到同样的东西？</b> 能，就不算差异。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="14" fill="#fbbf24" font-size="9.5" font-weight="700">🟡 只是配置 / 皮肤（6 条）</text>
+
+          <rect x="16" y="22" width="668" height="42" rx="5" fill="rgba(120,53,15,.2)"/>
+          <text x="30" y="39" fill="#e2e8f0" font-size="9" font-weight="600">C1　「33 个 RE skill」</text>
+          <text x="30" y="56" fill="#94a3b8" font-size="8.5">pi <tspan fill="#fff">原生就有 skills</tspan>，omp 还会主动去扫别家的 skill 目录，机制一模一样。有价值的是那 397 KB <tspan fill="#fff">内容</tspan>，不是机制</text>
+
+          <rect x="16" y="68" width="668" height="42" rx="5" fill="rgba(120,53,15,.2)"/>
+          <text x="30" y="85" fill="#e2e8f0" font-size="9" font-weight="600">C2　「RE 专用 system prompt + 三个 role prompt」</text>
+          <text x="30" y="102" fill="#94a3b8" font-size="8.5">四个 md 加起来 5,222 字节。pi 一行配置就能整体替换；omp 的 system prompt 本来就是 <tspan fill="#fff">69 个 md 片段</tspan>拼的</text>
+
+          <rect x="16" y="114" width="668" height="52" rx="5" fill="rgba(120,53,15,.2)"/>
+          <text x="30" y="131" fill="#e2e8f0" font-size="9" font-weight="600">C3　「24 个工具，比 pi 的 7 个多」　—— 这个数字对比毫无意义</text>
+          <text x="30" y="148" fill="#94a3b8" font-size="8.5">24 个里 10 个是通用文件/命令工具，5 个是基础设施工具，1 个是 hook 模板生成器，reverse_toolkit 本质是<tspan fill="#fff">参数白名单化的 shell 调度器</tspan>。</text>
+          <text x="30" y="161" fill="#fb7185" font-size="8.5">真正的领域原语只有 <tspan fill="#fff">7 个</tspan>：entropy · find_bytes · carve · decode · triage · mitigations · apk_inspect</text>
+
+          <rect x="16" y="170" width="668" height="42" rx="5" fill="rgba(120,53,15,.2)"/>
+          <text x="30" y="187" fill="#e2e8f0" font-size="9" font-weight="600">C4　「planner / executor 双模型」</text>
+          <text x="30" y="204" fill="#94a3b8" font-size="8.5">概念上就是两次调用加一个 prompt 契约。<tspan fill="#fff">omp 有 10 个 model role</tspan>，含专用小模型和端侧 ONNX —— 双座位是弱化版</text>
+
+          <rect x="16" y="216" width="668" height="52" rx="5" fill="rgba(136,19,55,.24)" stroke="#fb7185" stroke-width="1.1"/>
+          <text x="30" y="233" fill="#fb7185" font-size="9" font-weight="600">C5　「tier × mode 分级审批闸」　—— 这条最该拆</text>
+          <text x="30" y="250" fill="#94a3b8" font-size="8.5">omp 有<tspan fill="#fff">形状几乎一模一样</tspan>的 {read,write,exec} × {always-ask,write,yolo}，还加每工具 allow/deny/prompt。</text>
+          <text x="30" y="263" fill="#94a3b8" font-size="8.5">pi 的 permission-gate.ts 只有 34 行且是<tspan fill="#fff">官方现成 example</tspan>。这是收敛设计，<tspan fill="#fff">不是发明</tspan></text>
+
+          <rect x="16" y="272" width="668" height="34" rx="5" fill="rgba(120,53,15,.2)"/>
+          <text x="30" y="289" fill="#e2e8f0" font-size="9" font-weight="600">C6　「有 MCP」</text>
+          <text x="30" y="302" fill="#94a3b8" font-size="8.5">omp 有，且做得更细（xd:// 挂载 + 把工具描述当敌意输入截断到 200 字符）。<tspan fill="#fff">相对 pi 有，相对 omp 是平手</tspan></text>
+
+          <path d="M 16 316 L 684 316" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="336" fill="#fb7185" font-size="9.5" font-weight="700">🔵 而这些地方是明确落后的（挑五条最要命的）</text>
+
+          <rect x="16" y="344" width="220" height="34" rx="4" fill="rgba(136,19,55,.24)"/>
+          <text x="28" y="360" fill="#fff" font-size="8.5" font-weight="600">零重试</text>
+          <text x="28" y="373" fill="#94a3b8" font-size="7.5">429/5xx/超时 → 整个 turn 丢弃</text>
+
+          <rect x="242" y="344" width="220" height="34" rx="4" fill="rgba(136,19,55,.24)"/>
+          <text x="254" y="360" fill="#fff" font-size="8.5" font-weight="600">maxTurns 只有 8</text>
+          <text x="254" y="373" fill="#94a3b8" font-size="7.5">另两家根本没有迭代上限</text>
+
+          <rect x="468" y="344" width="216" height="34" rx="4" fill="rgba(136,19,55,.24)"/>
+          <text x="480" y="360" fill="#fff" font-size="8.5" font-weight="600">会话线性，无树无回退</text>
+          <text x="480" y="373" fill="#94a3b8" font-size="7.5">pi 有树 + SQLite；omp 有 5 种分叉</text>
+
+          <rect x="16" y="382" width="220" height="34" rx="4" fill="rgba(136,19,55,.24)"/>
+          <text x="28" y="398" fill="#fff" font-size="8.5" font-weight="600">工具严格串行</text>
+          <text x="28" y="411" fill="#94a3b8" font-size="7.5">omp 有 per-tool 并发调度 + 写屏障</text>
+
+          <rect x="242" y="382" width="442" height="34" rx="4" fill="rgba(136,19,55,.3)" stroke="#fb7185" stroke-width="1.1"/>
+          <text x="254" y="398" fill="#fff" font-size="8.5" font-weight="600">role=auto 的关键词路由 —— 全仓最脆的一段</text>
+          <text x="254" y="411" fill="#fb7185" font-size="7.5">29 个关键词 substring 匹配。举个反例：<tspan fill="#fff">「我不想执行任何命令」会被路由到 executor</tspan></text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:9px">
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>作者的那句自我叙事，也被拆了</h3></div>
+          <ul>
+            <li>原话：<em>「几乎每一条差异都是『读二进制 vs 改代码』这句话的推论」</em></li>
+            <li>逐条核过之后：<strong>大约只有三分之一的差异真的从那句话推得出来</strong>；另外三分之二是<strong>「一个人 5 天」对「团队 246 天 / 82 天」的工程成熟度差</strong>，跟领域无关</li>
+          </ul>
+        </div>
+        <div class="card amber">
+          <div class="card-head"><span class="card-dot"></span><h3>安全那条也别吹</h3></div>
+          <ul>
+            <li>三家<strong>都没有操作系统级隔离</strong>。re-agent 确实多一个 pi/omp 都没有的工作区路径收敛，但只覆盖结构化工具</li>
+            <li>而且实际生效的沙箱，很大程度上是<strong>默认 provider 也就是 Codex CLI 自带的 <em>--sandbox read-only</em></strong> —— 别人的功劳</li>
+          </ul>
+        </div>
+        <div class="card cyan">
+          <div class="card-head"><span class="card-dot cyan"></span><h3>为什么要花一整页拆自己</h3></div>
+          <ul>
+            <li>因为下一页那四条<strong>才是真的</strong>。不先把水分挤干，四条真的也会被当成吹的</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">三仓本地对照 · <b>926e615</b> / pi / oh-my-pi · 判据与逐条证据见研究笔记 R04 §2（🟡 6 条 · 🔵 10 条）</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

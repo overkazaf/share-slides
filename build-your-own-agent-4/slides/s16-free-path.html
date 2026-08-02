@@ -1,0 +1,90 @@
+<section class="slide" data-ch="CH4 功能点" data-title="廉价路：52 个命令里 49 个不花 token">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot orange"></span>CH 4 · 功能点</div>
+    <h1 class="s-title">52 个命令里，<span class="hl-a">大约 49 个一个 token 都不花</span></h1>
+    <div class="s-sub">帮助里归为 direct tools 的有 <b style="color:#e2e8f0">16 条</b>，其中 <b style="color:#e2e8f0">11 条走 runDirectTool</b> —— 直接调工具函数，<b style="color:#e2e8f0">完全绕过 agent loop</b>。你只在真想让它「想一下」的时候才付钱。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="14" fill="#94a3b8" font-size="9" font-weight="600">这些「零 token」的命令，背后到底算了什么</text>
+
+          <rect x="16" y="24" width="668" height="88" rx="7" fill="rgba(251,146,60,.2)" stroke="#fb923c" stroke-width="1.3"/>
+          <text x="30" y="44" fill="#fb923c" font-size="10" font-weight="700">/decode —— 8 个模式，核心是一个五项加权的打分函数（decode.go:281-306）</text>
+          <text x="30" y="63" fill="#e2e8f0" font-size="8.5">score = 可打印比例</text>
+          <text x="30" y="79" fill="#cbd5e1" font-size="8.5">　　　+ 1.0　命中 \b(flag|ctf|password|secret|token)\b</text>
+          <text x="30" y="95" fill="#cbd5e1" font-size="8.5">　　　+ 1.2　命中 [a-z]{3,}\{[^}]{2,}\}　← <tspan fill="#fff">flag 的花括号形状</tspan>　　+ 0.5 命中 https?://　　+ 0.3 全部可打印</text>
+          <text x="30" y="107" fill="#94a3b8" font-size="7.5">xor_bruteforce 穷举 256 个单字节 key，按这个分数排序取前 8。auto 顺序：base64 → base64url → hex → url → rot13 → 单字节 XOR　decode.go:264-306</text>
+
+          <rect x="16" y="122" width="326" height="82" rx="6" fill="rgba(76,29,149,.24)" stroke="#a78bfa" stroke-width="1.2"/>
+          <text x="30" y="142" fill="#a78bfa" font-size="9.5" font-weight="700">/carve —— 13 个魔数，逐个 bytes.Index 扫</text>
+          <text x="30" y="160" fill="#cbd5e1" font-size="8">ELF · MZ · DEX · ZIP · PNG · JPEG · GIF · PDF · gzip</text>
+          <text x="30" y="175" fill="#cbd5e1" font-size="8">SQLite · Mach-O(LE/BE) · WASM</text>
+          <text x="30" y="192" fill="#e2e8f0" font-size="8">切片规则：第 i 个命中切到第 i+1 个的 offset，末尾切到文件尾</text>
+
+          <rect x="358" y="122" width="326" height="82" rx="6" fill="rgba(6,78,59,.24)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="372" y="142" fill="#34d399" font-size="9.5" font-weight="700">/apk —— 7 类加壳 + 8 类框架识别</text>
+          <text x="372" y="160" fill="#cbd5e1" font-size="8">加壳：360 加固 · 腾讯乐固 · Bangcle · 爱加密 · SecNeo</text>
+          <text x="372" y="175" fill="#cbd5e1" font-size="8">　　　网易易盾 · DexGuard/ProGuard</text>
+          <text x="372" y="192" fill="#e2e8f0" font-size="7.5">框架：RN · Flutter · Unity · Cordova · Xamarin · Cocos2d · UniApp · 小程序</text>
+
+          <rect x="16" y="214" width="668" height="76" rx="6" fill="rgba(120,53,15,.22)" stroke="#fbbf24" stroke-width="1.2"/>
+          <text x="30" y="234" fill="#fbbf24" font-size="9.5" font-weight="700">/mitigations —— 不依赖 checksec，并联四个外部命令再正则打分</text>
+          <text x="30" y="252" fill="#cbd5e1" font-size="8.5">file -b　·　nm/readelf/objdump/otool 四路全试取符号　·　readelf -h -l -d -s　·　otool -hv -l -Iv</text>
+          <text x="30" y="268" fill="#cbd5e1" font-size="8.5">判 stripped / PIE / NX / canary / RELRO，外加 <tspan fill="#fff">17 个危险导入符号</tspan>全词匹配（gets · strcpy · sprintf · system · execve · mprotect …）</text>
+          <text x="30" y="284" fill="#fb7185" font-size="8.5">输出结尾固定写死一句：<tspan fill="#fff" font-style="italic">"Treat unknown as a prompt for deeper tool-specific analysis, not as absence."</tspan>　—— 把「没证据」和「没有」明确分开</text>
+
+          <path d="M 16 302 L 684 302" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="320" fill="#22d3ee" font-size="9.5" font-weight="600">为什么这条路值得单独设计 —— 逆向的前二十分钟根本不需要模型</text>
+
+          <rect x="16" y="330" width="216" height="46" rx="5" fill="rgba(8,51,68,.22)"/>
+          <text x="30" y="349" fill="#e2e8f0" font-size="9">这是什么文件？多大？熵多少？</text>
+          <text x="30" y="366" fill="#94a3b8" font-size="8">/scan · /entropy —— 确定性程序秒答</text>
+
+          <rect x="242" y="330" width="216" height="46" rx="5" fill="rgba(8,51,68,.22)"/>
+          <text x="256" y="349" fill="#e2e8f0" font-size="9">里面藏了别的文件吗？</text>
+          <text x="256" y="366" fill="#94a3b8" font-size="8">/carve —— 13 个魔数扫一遍就知道</text>
+
+          <rect x="468" y="330" width="216" height="46" rx="5" fill="rgba(8,51,68,.22)"/>
+          <text x="482" y="349" fill="#e2e8f0" font-size="9">这段乱码是 base64 还是 XOR？</text>
+          <text x="482" y="366" fill="#94a3b8" font-size="8">/decode auto —— 打分排序直接给答案</text>
+
+          <rect x="16" y="386" width="668" height="32" rx="5" fill="rgba(2,6,23,.6)" stroke="#334155" stroke-width="1"/>
+          <text x="30" y="406" fill="#cbd5e1" font-size="9">把这些交给模型，你付的是 token、延迟，还有<tspan fill="#fff">它算错进制的风险</tspan>。<tspan fill="#94a3b8">　第一讲那条「算术全部外包给确定性程序」，落地就是这一屏。</tspan></text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:9px">
+        <div class="card orange">
+          <div class="card-head"><span class="card-dot"></span><h3>一张表同时驱动三件事</h3></div>
+          <ul>
+            <li><em>ui/help.go:23-88</em> 那张 54 行的表，<strong>同时喂给帮助、Tab 补全和命令面板</strong> —— 加命令只改一处，三处不会漂</li>
+          </ul>
+        </div>
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>reverse_toolkit 是白名单动作，不是命令注入</h3></div>
+          <ul>
+            <li><strong>20 个外部工具族</strong>（r2 · rizin · jadx · ghidra · gdb · binwalk · yara · apktool · frida · angr …），<strong>动作固定</strong>：info / sections / symbols / imports / strings / functions / disasm</li>
+            <li><em>angr / unicorn / unidbg / burp / mitmproxy</em> 五个<strong>只产出模板，从不真的起进程</strong>（<em>retool.go:164</em>）</li>
+          </ul>
+        </div>
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>同页的代价：这条路也是审计盲区</h3></div>
+          <ul>
+            <li><em>reverse_toolkit</em> 申请审批时<strong>不带 concerns</strong>（<em>retool.go:838</em>）—— 全仓只有 3 处会填 Concerns，这里不在其中</li>
+            <li>实际后果没有传言那么大：burp 与 mitmproxy 只吐模板；<strong>真会起进程的是 frida</strong>（<em>frida-ls-devices / frida-ps -Uai</em>）—— 它在 <em>--allow-network</em> 关着时照跑</li>
+            <li>零 token 很爽，但<strong>「绕过 loop」也绕过了 loop 上的那道闸</strong></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">本地实测 · <b>926e615</b> · internal/tools/{decode.go,binary.go,retool.go} · internal/ui/help.go · 研究笔记 R03 §1 §3 · R06 §1</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

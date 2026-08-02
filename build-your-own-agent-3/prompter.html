@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>提词器 · 如何打造自己的 Agent（32 页）</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--fs:26px}
+body{background:#05070d;color:#e8edf5;font-family:"PingFang SC","Microsoft YaHei",
+ -apple-system,"JetBrains Mono",monospace;line-height:1.9;-webkit-font-smoothing:antialiased}
+#bar{position:fixed;top:0;left:0;right:0;height:46px;display:flex;align-items:center;gap:14px;
+ padding:0 18px;background:rgba(5,7,13,.94);border-bottom:1px solid #182234;z-index:20;font-size:13px}
+#bar .pg{color:#22d3ee;font-weight:700;font-size:15px;min-width:60px}
+#bar .ttl{color:#94a3b8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+#bar .st{color:#475569;font-size:11px;white-space:nowrap}
+#bar .st b{color:#34d399}
+#bar button{background:#111a2b;color:#94a3b8;border:1px solid #223049;border-radius:6px;
+ padding:4px 10px;font:inherit;font-size:12px;cursor:pointer}
+#bar button:hover{color:#e8edf5;border-color:#34d399}
+#prog{position:fixed;top:46px;left:0;height:2px;background:#22d3ee;z-index:21;width:0;transition:width .2s}
+#wrap{padding:86px 6vw 60vh;max-width:1500px;margin:0 auto}
+.pg-sec{display:none}
+.pg-sec.on{display:block;animation:fade .18s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+h2{font-size:calc(var(--fs) * .82);color:#fff;font-weight:700;margin-bottom:26px;line-height:1.5;
+ border-left:4px solid #22d3ee;padding-left:14px}
+.blk{margin:0 0 34px}
+.blk>.lb{display:inline-block;font-size:12px;letter-spacing:.12em;color:#0b1220;background:#64748b;
+ padding:2px 10px;border-radius:4px;margin-bottom:14px;font-weight:700}
+.blk.cue>.lb{background:#22d3ee}
+.blk.gist>.lb{background:#a78bfa}.blk.say>.lb{background:#34d399}
+.blk.must>.lb{background:#fbbf24}.blk.qa>.lb{background:#fb923c}.blk.next>.lb{background:#22d3ee}
+.blk.cue{margin-bottom:28px}
+.blk.cue ul{margin:0}
+.blk.cue li{font-size:calc(var(--fs) * 1.34);color:#fff;font-weight:600;line-height:1.62;
+ padding-left:30px;margin-bottom:16px;letter-spacing:.01em}
+.blk.cue li::before{content:"—";color:#22d3ee;font-weight:700}
+.blk.cue li b{color:#34d399}
+.blk.cue .cue{color:#fb7185;font-size:.7em;vertical-align:middle}
+.blk.gist p{font-size:calc(var(--fs) * .96);color:#c4b5fd}
+.blk.say p{font-size:var(--fs);color:#f1f5f9;margin-bottom:22px}
+.blk.must,.blk.qa,.blk.next{font-size:calc(var(--fs) * .72);color:#94a3b8}
+.blk.next p{color:#67e8f9}
+p{margin-bottom:14px}
+ul{list-style:none;margin-bottom:14px}
+li{padding-left:20px;position:relative;margin-bottom:9px}
+li::before{content:"▸";position:absolute;left:0;color:#475569}
+li.cont{padding-left:34px;color:#cbd5e1}
+li.cont::before{content:""}
+b{color:#fff;font-weight:700}
+.blk.must b,.blk.qa b{color:#e2e8f0}
+i{font-style:normal;color:#fbbf24}
+code{background:#111a2b;color:#67e8f9;padding:1px 6px;border-radius:4px;font-size:.86em}
+.cue{color:#fb7185;font-weight:700}
+blockquote{border-left:3px solid #334155;padding-left:14px;color:#94a3b8;margin-bottom:14px}
+body.cues .blk.gist,body.cues .blk.say,body.cues .blk.must,body.cues .blk.qa{display:none}
+body.cues .blk.next{font-size:calc(var(--fs) * .78)}
+/* 没写提词块的页面，收起模式下退回显示「怎么讲」 */
+body.cues .pg-sec.nocue .blk.say,body.cues .pg-sec.nocue .blk.gist{display:block}
+#ov{position:fixed;inset:0;background:rgba(3,6,14,.97);z-index:40;display:none;overflow:auto;padding:70px 5vw}
+#ov.on{display:block}
+#ov .g{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+#ov .c{background:#0c1421;border:1px solid #1e293b;border-radius:8px;padding:11px 13px;cursor:pointer;font-size:13px}
+#ov .c:hover{border-color:#34d399}
+#ov .c .n{color:#22d3ee;font-weight:700;margin-right:8px}
+#ov .c .t{color:#cbd5e1}
+#find{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:50;display:none;
+ background:#0c1421;border:1px solid #334155;border-radius:8px;padding:8px 12px}
+#find.on{display:block}
+#find input{background:transparent;border:none;outline:none;color:#e8edf5;font:inherit;font-size:15px;width:340px}
+mark{background:#fbbf24;color:#0b1220;border-radius:2px}
+</style></head><body>
+<div id="bar">
+  <span class="pg" id="pgno">1/32</span>
+  <span class="ttl" id="pgttl"></span>
+  <span class="st" id="st"></span>
+  <button id="btn-prev">‹ 上一页</button>
+  <button id="btn-next">下一页 ›</button>
+  <button id="btn-full">展开全文 F</button>
+  <button id="btn-auto">自动滚 A</button>
+  <button id="btn-ov">总览 O</button>
+</div>
+<div id="prog"></div>
+<div id="find"><input id="findi" placeholder="搜讲稿内容，回车跳转，Esc 关闭"></div>
+<div id="wrap"><section class="pg-sec" data-n="1" data-title="封面 · 把 agent 做到极致，代价是什么"><h2>P1 · 封面 · 把 agent 做到极致，代价是什么</h2><div class="blk cue"><span class="lb">提词</span><ul>
+<li>一分钟内讲完，别恋战</li>
+<li>系列第三讲：地图 → pi 的下限 → omp 的上限 → 第四讲动手</li>
+<li>153 万行 / 16,613 commit，两个数就够</li>
+<li>「代码取证，不是产品测评」要说出口 <span class="cue">[重]</span></li>
+<li>主张：值钱的不是它做了什么，是它把代价摊开了 <span class="cue">[慢]</span></li>
+<li>取证基准那一栏要指一下，为 P3 埋钩子 <span class="cue">[停]</span></li>
+</ul></div><div class="blk gist"><span class="lb">一句话主旨</span><p>这是系列第三讲，拆 oh-my-pi —— 和上一讲的 pi 同一份基座、6.45 倍体量的另一个极端。</p></div><div class="blk say"><span class="lb">怎么讲</span><p>好，我们开始。这是《如何打造自己的 Agent》的第三讲。（停一拍）先花二十秒把位置交代清楚，因为这一系列是有顺序的：第一讲我给了一张地图，就是 harness 的七层——上下文、工具、循环、权限这些，那一讲基本没有具体样本，全是骨架；第二讲我们拆了 <b>pi</b>，一个极简实现，四个工具就能跑起一个能干活的 agent，那一讲证明的是<b>下限</b>——原来做一个 agent 需要的东西比你想的少得多。今天这一讲，我们走到另一头。（指标题）<b>oh-my-pi</b>，仓库里大家叫它 <b>omp</b>，它和 pi 是同一份代码基座，但它是重写级的深度 fork——你看副标题这行，<b>6.45 倍体量</b>。它证明的是<b>上限</b>：一个人，把这张地图上的七层全部点满，会长成什么样。（停一拍）中间这两个数字我念一下就好，不展开：<b>153 万行</b>、<b>全史 16,613 个 commit</b>。这个体量在个人项目里是相当罕见的，CH1 我会把这个数拆开给你看，包括其中有多少不是 TypeScript。（停一拍）然后是这行——「<b>逐包代码取证，不是产品测评</b>」。这句话我请大家记住，它是今天全场的性质。我不是来告诉你这个工具好不好用的，我今天所有的结论都来自我本地把仓库整个 clone 下来，一个包一个包翻出来的。凡是我没有亲自跑过的东西，页面上我都会标出来。（指左下角三块小卡）底下这三块，左边这块是全场的主张，我现在念一遍，后面会反复回来：<b>值钱的不是它做了什么，是它把每个决定的代价都摊开给你看了</b>。这句话的反面是——<b>抄功能会死，抄它「怎么判断该不该做」才活</b>。这是我今天真正想传递的东西，功能清单你自己看 README 就行了，不需要我讲一小时。中间这块是取证基准，HEAD 是 <code>09a7c865</code>，日期 2026-08-01，对比的 pi 也是同一天的 HEAD——<b>这一栏等会儿第三页会变得非常重要</b>，我先在这里点一下。右边这块是落点：今天最后会收在两份清单上，能抄的五条、别抄的六条。至于<b>动手写自己的实现</b>，那是第四讲的事，今天不写代码。</p></div><div class="blk must"><span class="lb">别漏了说</span><ul>
+<li>「第三讲」的位置必须交代——现场一定有人是第一次来，不说清楚，他会以为今天是产品介绍。</li>
+<li>「代码取证，不是产品测评」要说出口，这是全场的免责声明也是全场的价值主张。</li>
+<li>封面上的取证基准 HEAD + 日期要指一下。这是给 P3 认错埋的钩子，P3 的教训正是「结论必须和取证日期绑在一起」。</li>
+<li>「pi 证下限、omp 证上限、你要待的地方在中间」——这句最好在封面就说一次，因为它是全场唯一的价值判断。</li>
+</ul></div><div class="blk qa"><span class="lb">可能被问</span><ul>
+<li>Q：oh-my-pi 是什么？跟 Claude Code、Cursor 那些是一类东西吗？</li>
+<li class='cont'>A：是一类，都是终端里跑的编码 agent。它是 <code>can1357</code> 个人从 <code>earendil-works/pi</code> fork 出来重写的，不是公司产品，没有商业支持。CH1 第一页会把血统讲清楚。</li>
+<li>Q：没听过前两讲，今天能听懂吗？</li>
+<li class='cont'>A：能。今天是样本精讲，不依赖前两讲的具体内容。只有两个词你需要知道：harness 指的是模型之外的那一整套外壳，pi 是这个 fork 的上游。其余我遇到就解释。</li>
+<li>Q：153 万行是怎么统计的？包含依赖和生成代码吗？</li>
+<li class='cont'>A：不含 node_modules，含仓库内的生成物和测试。具体拆分在 CH1 第 07 页，那页有 TS / Rust / Python 的分项，我把口径写在页脚了。</li>
+<li>Q：这个项目现在还活着吗？</li>
+<li class='cont'>A：活着，而且非常活跃——它平均 <b>2.4 天出一个版本号</b>。这个数字待会儿第三页会以另一种方式出现，它既是优点也是我踩坑的原因。</li>
+</ul></div><div class="blk next"><span class="lb">过渡</span><p>那在正式开拆之前，我先花一页说清楚这一讲<b>做什么、更重要的是不做什么</b>。</p></div></section><section class="pg-sec" data-n="2" data-title="关于这一篇：一个人的 fork，凭什么值一整讲"><h2>P2 · 关于这一篇：一个人的 fork，凭什么值一整讲</h2><div class="blk cue"><span class="lb">提词</span><ul>
+<li>三张卡：为什么是它 / 你能带走什么 / 这一讲不做什么</li>
+<li>关键词：<b>同一份基座 ⇒ 可归因</b> <span class="cue">[重]</span></li>
+<li>它把失败也留在仓库里 —— 回滚、issue 号、&quot;这条更慢别切&quot;</li>
+<li>中间卡按可迁移性排，不是按精彩程度</li>
+<li>右卡最重要：不推荐产品 / 不跑分 / 未实跑一律标注 <span class="cue">[慢]</span></li>
+<li>「omp 口味很重，多数人不该用」要原话说出来 <span class="cue">[停]</span></li>
+<li>底下那行是仓库和 discord，笔记全开源</li>
+</ul></div><div class="blk gist"><span class="lb">一句话主旨</span><p>值得花一整讲，是因为它和 pi 同源，所以每一处差异都是一个可归因的工程决定；但它不是推荐给你用的产品。</p></div><div class="blk say"><span class="lb">怎么讲</span><p>（停一拍）先回答一个合理的质疑：一个人写的 fork，凭什么占你们一个小时。（指左边这张青色卡）三个理由。第一，第一讲那张 harness 七层地图，我找了一圈，<b>omp 是我能找到的唯一一个七层全点满的公开样本</b>——上下文管理、工具层、权限、多模型适配、记忆、TUI，它每一层都有自己的、明显不是抄来的做法。第二个理由才是关键，这也是我为什么把它排在 pi 后面讲：<b>它和 pi 是同一份基座</b>。这意味着什么？意味着两边的<b>每一处差异都是一个可归因的工程决定</b>，不是风格差异，不是「这个人喜欢这么写」。上游有的它删了，那是它判断不值；上游没有它加了，那是它判断值。你等于拿到了一份带对照组的实验记录，这在开源项目里是很稀有的。第三个理由——（重）<b>它把失败也留在仓库里</b>。这个我要特别强调，因为大部分项目只留成功：仓库里有回滚记录、有引用具体 issue 编号的注释、CH5 里你会看到一条 benchmark，作者自己测出来 Rust 版本在小 payload 上比原来还慢，他没删这个结果，而是在代码里写了一句规矩——「<b>若更慢，不要切换调用点</b>」。（停一拍）能看到人家怎么面对自己的失败，这比看功能列表有用得多。</p>
+<p>（指中间绿卡）那你今天能带走什么。这四条我是<b>按可迁移性排的，不是按精彩程度排的</b>——也就是说，越靠上的越可能明天就用得上，跟你用什么语言、什么框架关系越小。第一条<b>规则三桶路由</b>，同一份 markdown 规则文件，按 frontmatter 分流到三种不同的执行时机，这个想法脱离 omp 也成立。第二条<b>逐工具并发调度</b>，核心逻辑十三行，你抄完就能用。第三条是个方法而不是代码——<b>把口味问题变成可测问题</b>：编辑工具怎么写更好，这本来是个吵不完的事，他自建了一套 edit benchmark 把它变成有数的事。第四条是那份<b>别抄清单</b>，六项我认为的过度工程，每项我尽量附了代价数字。</p>
+<p>（指右边玫红卡，慢下来）但是——这张卡我讲得最慢，因为它划的是边界。第一，<b>这一讲不做产品推荐</b>。我不劝你换工具。我把话说明白：<b>omp 的口味很重，多数人不该用它</b>。它有大量为作者一个人的工作流做的取舍，你照搬会很难受。今天讲它，是把它当研究样本，不是当推荐位。第二，<b>这一讲不跑分</b>。所有性能数字都只引用仓库里自带的 benchmark 和代码注释——原因很实在，<b>我本机没装 bun</b>，跑不起来。所以凡是我没实跑过的，页面上一律有标注，你看到那个标注就知道那是转述不是实测。这条我宁可讲得难听一点，也不想让你把二手数字当成我验过的。第三，<b>先认错再讲课</b>——下一页就是上一讲的三处更正。（指底下那行小字）另外，这一讲背后的<b>八份研究笔记同步开源</b>，仓库和 discord 都在这行，页面上放不下的细节全在里面。</p></div><div class="blk must"><span class="lb">别漏了说</span><ul>
+<li>「同一份基座 ⇒ 每处差异都可归因」是这一页的核心，也是回答「凭什么讲一个 fork」的正面答案。别只念卡上的字，要把「带对照组的实验」这个比方说出来。</li>
+<li>「omp 口味很重，多数人不该用」必须原话说出口。不说这句，整场会被听成一小时的软文。</li>
+<li>「本机没装 bun，未实跑的一律标注」也必须说出口，而且要在第一次出现 benchmark 数字之前就说。这是本讲诚实度的底线，第一次说清楚，后面每次引用就不用重复道歉。</li>
+<li>中间那张卡要交代「按可迁移性排序」这个排法本身，否则听众会以为你把最精彩的放前面，然后对后面失去注意力。</li>
+</ul></div><div class="blk qa"><span class="lb">可能被问</span><ul>
+<li>Q：既然多数人不该用，那我听这一讲的收益在哪？</li>
+<li class='cont'>A：在于看一个把每条路都走到头的人，是怎么判断该不该走的。你要抄的是判断方法，不是它的选择。这也是全场那句主张的意思。</li>
+<li>Q：八份笔记在哪里？会公开吗？</li>
+<li class='cont'>A：会，仓库地址在页面右下角那行。笔记比 slides 细得多，包含我查证的过程和我放弃的结论。</li>
+<li>Q：没装 bun 为什么不装一个跑一下？</li>
+<li class='cont'>A：老实说，时间不够，而且真要跑出可信的对比需要控制环境，不是装个 runtime 就完事。我选择的是把「未实跑」标清楚，而不是跑一个我自己都不信的数。想一起跑的会后来找我。</li>
+<li>Q：你和这个项目的作者有关系吗？</li>
+<li class='cont'>A：没有。我没跟作者聊过，所有结论都是读代码和 git 历史读出来的。所以我对「他为什么这么做」的推断，你都应该当成推断而不是事实——页面上我尽量用「看起来」「推测」这类词标出来。</li>
+</ul></div><div class="blk next"><span class="lb">过渡</span><p>说了「先认错再讲课」，那就先认错。这一页是我今天最想让大家看的一页。</p></div></section><section class="pg-sec" data-n="3" data-title="上一讲的三处更正：先认错，再讲课"><h2>P3 · 上一讲的三处更正：先认错，再讲课</h2><div class="blk cue"><span class="lb">提词</span><ul>
+<li>这是全场的态度页，慢，不要赶 <span class="cue">[重]</span><span class="cue">[慢]</span></li>
+<li>三处：FORK.md 归属错 / 「点阵图」措辞误导 / BM25 已删</li>
+<li>① 最严重：张冠李戴。全史 16,613 commit，<code>git log --all -- FORK.md</code> <b>零命中</b></li>
+<li>② 不是信息可视化，是<b>缩微胶片</b>：点阵字体印成 PNG，vision 模型 OCR 读回</li>
+<li>② 「零 LLM 调用」限定为零<b>额外</b>调用；帧此后每轮重附，按 vision token 计费</li>
+<li>③ BM25 工具发现已删除，改 <code>xd://</code> 虚拟设备挂载</li>
+<li>根因：依据 v16.3.12 旧笔记，omp <b>2.4 天一个版本号</b></li>
+<li>教训一句话：<b>讲快速演进的项目，取证日期必须和结论绑在一起</b> <span class="cue">[停]</span></li>
+<li>不辩解，不找补，说完就走</li>
+</ul></div><div class="blk gist"><span class="lb">一句话主旨</span><p>上一讲讲 omp 的那一页错了三处，根因是同一个——我用的是旧笔记，而结论没有和取证日期绑在一起。</p></div><div class="blk say"><span class="lb">怎么讲</span><p>（停一拍，不要笑场，正常语速开始）上一讲我有一页讲 omp，那一页，<b>错了三处</b>。今天开讲之前先把它改掉。（停一拍）三处我一条一条说，说错在哪、为什么会错。</p>
+<p>（指第一张卡）第一处，也是最严重的一处。上一讲我说，omp 最值得抄的东西是它的 <b>FORK.md</b>，里面有一套 tier 成本模型——把 fork 相对上游的改动按维护成本分层。我甚至在页脚标了出处，写的是 <code>oh-my-pi/FORK.md</code>。（停一拍）<b>这个文件从来没有存在过。</b> 我这次把仓库 unshallow 拉了全史，一万六千六百一十三个 commit，<code>git log --all -- FORK.md</code>，<b>零命中</b>。它不在 HEAD 里，也不在任何一个历史版本里。那份 tier 模型是真实存在的，但它出自<b>某个私有下游 fork 自己写的维护手册</b>——我当时手上同时开着两个仓库的笔记，把它安到了 omp 头上。这是张冠李戴，属于最不该犯的一类错，因为它不是判断错误，是取证错误。（指卡底那行小字）那套 tier 模型本身我今天仍然认为成立，但今天开始它归属于「某个下游 fork 的做法」，不再挂在 omp 名下。</p>
+<p>（指第二张卡）第二处，措辞误导。上一讲我说 snapcompact 把旧的对话记录「<b>画成点阵图</b>」，还说它零 LLM 调用。（停一拍）方向是对的，但「画成点阵图」这个说法会让人往错的地方想——听着像是信息可视化，像是把内容抽象成图表。<b>不是。</b> 它做的事更接近<b>缩微胶片</b>：把文本用<b>点阵字体直接印成一张 PNG</b>，需要的时候，让 <b>vision 模型 OCR 读回来</b>。信息一个字都没有被抽象掉，只是换了个存储介质。另外「零 LLM 调用」我也得加个限定——是零<b>额外</b>调用，压缩这个动作本身确实不需要再叫一次模型；但那张帧此后每一轮都要重新附在上下文里，是<b>按 vision token 计费</b>的。（指卡底）这个区别不是抠字眼——<b>它直接决定了压缩率该怎么算</b>，CH3 那一章我会拿真实数字回来讲，你会看到压缩率其实并不是这个设计的卖点。</p>
+<p>（指第三张卡）第三处，过时。上一讲我说 omp 默认只给模型 6 个必备工具，其他工具让模型自己用 <b>BM25</b> 检索出来。这个机制<b>已经被删除了</b>，CHANGELOG 里有明确的删除记录，现在改成了 <code>xd://</code> 虚拟设备挂载这套做法。（停一拍）那我为什么会讲一个已经不存在的机制——因为我写上一讲的时候，依据的是我在 <b>v16.3.12</b> 时期做的旧笔记。而这个项目，（重）<b>平均 2.4 天出一个版本号</b>。（停一拍，慢）所以这三处错误，前两处是我自己不细致，第三处不完全是——但它们其实是同一个根因：<b>我的结论没有和取证日期绑在一起</b>。一条关于快速演进项目的结论，脱离了「我是在哪个 commit 上看到的」，它的保质期可能只有几天。这是我这次最大的收获，也是我今天想让大家带走的第一件事：<b>讲快速演进的项目，取证日期必须和结论绑在一起</b>。（指页脚）所以你会看到，今天<b>每一页页脚都标了取证基准 HEAD</b>，就是为了防这件事。这不是仪式感，是我交过学费的。</p>
+<p>（停一拍，收）好，认完了，我们开始讲课。</p></div><div class="blk must"><span class="lb">别漏了说</span><ul>
+<li><b>不要辩解</b>。尤其是第三条，很容易顺嘴说成「这不怪我，它更新太快」——那就把这一页毁了。正确的说法是「根因是我没把日期和结论绑在一起」，把责任收回自己这边。</li>
+<li>三处的<b>性质要分开定性</b>：① 取证错误（最严重）② 措辞误导（结论方向对）③ 已过时（当时对，现在错）。不分开说，听众会以为你上一讲整页都在胡说，反而不利于建立信任。</li>
+<li><code>git log --all -- FORK.md</code> <b>零命中</b>这个动作要说具体——认错要给证据，不然听起来像客套。</li>
+<li>② 里「零 LLM 调用 → 零<b>额外</b>调用 + 按 vision token 计费」这个限定必须补上，它是 CH3 压缩率那两页的前提。</li>
+<li>结尾那句教训要单独停一下再说，别混在第三条里带过去。它是这一页的落点，也是全场页脚都标 HEAD 的理由。</li>
+<li>语气控制：认错页最容易讲成两种失败——一种是自嘲卖惨，一种是快速带过。都不要。就用平常语速，把错在哪说清楚，然后往下走。</li>
+</ul></div><div class="blk qa"><span class="lb">可能被问</span><ul>
+<li>Q：那你上一讲讲 omp 的其他内容，还能信吗？</li>
+<li class='cont'>A：这三条是我这次逐包复查后能确认有问题的。剩下的部分我复查过的都在今天的页面里，会重新给出处；我没复查的，我也不会替它背书。这就是为什么今天每页都标 HEAD——你可以自己去核。</li>
+<li>Q：那份 tier 成本模型到底出自哪个 fork？能给出处吗？</li>
+<li class='cont'>A：是一个私有下游 fork，我不方便点名，也没法给你一个公开链接去核对——所以今天我只把它当成一个「有人这么做过」的做法讲，不作为可核查的证据引用。这是我这次的处理原则：不能核的，降级说。</li>
+<li>Q：snapcompact 用 OCR 读回来，识别错了怎么办？</li>
+<li class='cont'>A：这正是 CH3 的重点。他们为此<b>主动把压缩率降了八倍</b>——从每帧 16.5 万字符降到 1.4 万，换 OCR 的 f1 从 0.351 涨到 0.806。这组数来自仓库里的 eval，写在代码注释里，本机未跑，页面上标了。</li>
+<li>Q：BM25 换成 <code>xd://</code> 之后是变好了还是变差了？</li>
+<li class='cont'>A：我没有两边的实测对比，不敢下判断。我能说的是它换了范式：从「让模型搜工具」变成「把工具挂成虚拟设备让模型浏览」。这一块我笔记里有，但没上页，因为我没有数据支持任何一边。</li>
+<li>Q：你怎么保证今天这一讲不会再犯同样的错？</li>
+<li class='cont'>A：保证不了。今天的页面在 2026-08-01 那个 HEAD 上是对的，一个月后可能又有几条过时。我能做的就是把日期标在每一页上，让你知道该怀疑什么。</li>
+</ul></div><div class="blk next"><span class="lb">过渡</span><p>好，那我们看今天要拆哪些东西——七章，我先把问题链过一遍。</p></div></section><section class="pg-sec" data-n="4" data-title="目录：七章 32 页，从体量一路拆到代价"><h2>P4 · 目录：七章 32 页，从体量一路拆到代价</h2><div class="blk cue"><span class="lb">提词</span><ul>
+<li>一分钟过完，每章只念那行<b>问题</b>，不念标题</li>
+<li>注意布局：<b>左列 CH1/2/3，右列 CH4/5/6</b>，右下 CH7 —— 提醒大家先竖着看左边</li>
+<li>CH3 上下文 = 本场重头（紫）</li>
+<li>CH5 Rust = 最反直觉（橙）</li>
+<li>CH7 = 落点（玫红）</li>
+<li>「前六章拆解，第七章才是落点」 <span class="cue">[重]</span></li>
+<li>时间不够抓 CH3 / CH5 / CH7 <span class="cue">[慢]</span></li>
+<li>按 O 有缩略图总览可跳转</li>
+</ul></div><div class="blk gist"><span class="lb">一句话主旨</span><p>七章是一条问题链，前六章是拆解，第七章才是落点；时间不够就抓 CH3、CH5、CH7。</p></div><div class="blk say"><span class="lb">怎么讲</span><p>（停一拍）这是今天的路线图，七章、三十二页，我一分钟过完。（先指布局）先说一下<b>怎么看这一页</b>——它是两列排的，<b>左边这一列从上往下是 CH1、CH2、CH3，右边这一列是 CH4、CH5、CH6</b>，最后右下角那块玫红的是 CH7。所以是<b>先竖着看完左边，再竖着看右边</b>，别横着读，横着读顺序是乱的。（停一拍）然后我每一章只念那行<b>问题</b>，不念章节标题——因为这七行问题串起来，就是今天的完整叙事。</p>
+<p>CH1，<b>它到底多大？和 pi 是什么关系？谁在写？</b> 这一章解决身份问题，三个数字，包括一个我觉得挺有意思的事实：它在用它自己开发它自己。</p>
+<p>CH2，<b>主循环改了什么？哪些传言是假的？</b> 这一章会有一个反直觉的结论——主循环的骨架其实几乎没变，真正的差距在别的地方。这章末尾我还专门打了两条假。</p>
+<p>CH3（指紫色那块，标着「本场重头」），<b>上下文爆了怎么办？怎么防模型改错行？</b> 这是今天的重头戏，四页。刚才更正页里那个缩微胶片就在这一章，还有一个我认为全场最值得抄的设计——怎么保证模型只能改它真正看过的行。</p>
+<p>CH4，<b>为什么要自建模型库？为什么不信原生 tool calling？</b> 这章有一个数字挺吓人的：五百多个同名模型里，一大半的价格和窗口对不上。</p>
+<p>CH5（指橙色，标着「最反直觉」），<b>一个 TypeScript 写的 agent，为什么要另外写八万行 Rust？真的更快吗？</b> 我标它最反直觉，是因为答案可能跟你想的不一样——包括那条作者自己测出来「更慢」还留在仓库里的 benchmark。</p>
+<p>CH6，<b>规则写进 prompt 照样被违反，还能怎么办？</b> 这章有一条我印象最深的事故记录，一个词被重复了三百多次。</p>
+<p>CH7（指玫红，落点），<b>能抄的五条是什么？哪六条千万别抄？</b> （慢）我要特别说一句：<b>前六章都是拆解，第七章才是落点</b>。如果你今天只想带走可执行的东西，CH7 是那一章。（停一拍）所以——（指副标题）<b>时间不够就抓 CH3、CH5、CH7</b>：CH3 是最能抄的，CH5 是最反直觉的，CH7 是结论。中间几章讲快讲慢我会看现场时间调。（指页脚）最后说一下操作：每章前面有一页扉页，会列这一章的小目录；任何时候按 <b>O</b> 可以打开缩略图总览，直接跳到你想看的那页，会后我把整个 deck 放出来，你们自己翻也行。</p></div><div class="blk must"><span class="lb">别漏了说</span><ul>
+<li><b>两列的阅读顺序必须交代</b>。这一页的 DOM 顺序是 CH1、CH4、CH2、CH5、CH3、CH6、CH7，视觉上是竖读的；不提醒，前排一定有人横着读完问「为什么第二章讲模型」。</li>
+<li>「前六章拆解，第七章才是落点」要重读。这句管着听众的注意力预算，不说，很多人会在 CH5 之后走神，正好错过结论。</li>
+<li>三个优先章 CH3 / CH5 / CH7 要给出<b>各自的理由</b>（最能抄 / 最反直觉 / 是结论），不要只报编号。</li>
+<li>别在这一页剧透具体数字。每章留一个钩子就够了——目录页讲太满，正章会失去张力。</li>
+</ul></div><div class="blk qa"><span class="lb">可能被问</span><ul>
+<li>Q：三十二页一小时讲得完吗？</li>
+<li class='cont'>A：讲得完，但要靠取舍。我准备时就按 CH3 / CH5 / CH7 优先做的，其他章我有压缩版讲法。如果中间提问多，我会主动砍 CH4 和 CH6 的展开。</li>
+<li>Q：能不能先讲 CH7 的结论，再回来看细节？</li>
+<li class='cont'>A：可以，但我不建议。那两份清单单独看只是一堆断言，它值钱的地方在于每一条背后都有一个具体代价数字，那些数字在前六章。你要真赶时间，会后直接翻 CH7 那两页也行。</li>
+<li>Q：为什么章节顺序是体量 → 内核 → 上下文 → 模型 → Rust → 规则？</li>
+<li class='cont'>A：大致是按<b>离用户的距离由远及近</b>排的，先讲它是什么，再从最内核往外走。不是按重要性排的——按重要性排的话 CH3 应该在最前面。</li>
+<li>Q：这套 slides 会公开吗？</li>
+<li class='cont'>A：会，仓库地址在第二页右下角，包括背后那八份研究笔记。</li>
+</ul></div><div class="blk next"><span class="lb">过渡</span><p>那我们从第一章开始——先回答最基础的那个问题：这东西到底多大，它跟 pi 到底是什么关系。</p></div></section><section class="pg-sec" data-n="5" data-title="第 01 章 · 体量与血统"><h2>P5 · 第 01 章 · 体量与血统</h2><div class="blk cue"><span class="lb">提词</span><ul>
+<li>四十秒过，只交代位置</li>
+<li>「不讲设计，只摆尺子」是刻意的 <span class="cue">[重]</span></li>
+<li>七个进度点，第一个亮</li>
+<li>右侧三页：血统 / 153 万行 / 自举回路</li>
+<li>本章目的：先让你相信「真的做到了极致」<span class="cue">[慢]</span></li>
+<li>相信了，后面六章谈代价才有资格 <span class="cue">[停]</span></li>
+</ul></div><div class="blk gist"><span class="lb">一句话主旨</span><p>这一章不讲任何设计，只把尺子摆出来——同一份基座，一个人把它做成了多大、又是从哪儿长出来的。</p></div><div class="blk say"><span class="lb">怎么讲</span><p>刚才目录那页说了，七章，重心在 CH2 内核和 CH7 收口。我们从第一章开始——这一页我走得快，四十秒，因为它本身不承载论点，只告诉大家我们现在站在哪儿。（停一拍）左边这个大大的 01，下面「体量与血统」四个字，是本章的名字。再往下这行加粗的问题——「它到底大到什么程度，又是从哪儿长出来的？」——整章只回答这一句。底下这段小字我不念，我解释一下意图：这一章我<b>刻意不谈任何设计</b>，不讲主循环、不讲上下文压缩、不讲 Rust 热路径，那些全在后面六章。这里只做一件事，就是<b>把尺子摆出来</b>。为什么要先摆尺子？因为这一篇的主张是「omp 的价值不在它做了什么，而在它把每个决定的代价都摊开给你看」——可你要是不先相信这东西真的被做到了极致，后面我说「这个代价它付了、那个代价它付不起」，你会觉得我在夸张。所以第一章的唯一任务，是<b>建立可信度</b>，而且是用可核查的数字建立，不是用形容词。（停一拍）再看这排小圆点，一共七个，第一个是亮的——这是本场的进度条，每章扉页你都会看到它往前走一格，后面我就不再解释了。右边是本章的小目录，三页：06 讲三层血统，一句话剧透——<b>仓库层面它跟 pi 完全独立，血缘只剩 LICENSE 里的两行版权</b>；07 讲体量，153 万行，TS 是上游的六倍半；08 是本章的高潮，也是我个人觉得这次调研最有冲击力的一条——<b>这个仓库有两千多个 commit，署名给的是它自己</b>。底下这个绿框是我给这一章的承诺：读完三页，你不用同意我对 omp 的任何评价，但你会承认它确实站在了一个极端上。</p></div><div class="blk must"><span class="lb">别漏了说</span><ul>
+<li>「这一章不谈设计」要说成是<b>刻意的</b>，不是没准备——防止有人以为你在跳过硬货，硬货全在 CH2 之后。</li>
+<li>七个进度点第一次出现要指一下、交代这个视觉约定，后面六个章扉页就不用再解释。</li>
+<li>要预告 P8 是本章高潮，让听众带着期待往下听——这一章前两页都是数字，容易让人走神。</li>
+<li>口径要提前打预防针：本篇所有数字都在 2026-08-01 那天的 HEAD 上重新点算过，跟上一篇的旧数字对不上是正常的，第 3 页已经先认过错了。</li>
+</ul></div><div class="blk qa"><span class="lb">可能被问</span><ul>
+<li>Q：一整章讲体量，会不会太水？直接讲技术不行吗？</li>
+<li class='cont'>A：如果全场都读过 omp 的代码，可以跳。但只要有人还停留在「哦不就是 pi 加了点功能」，后面所有关于取舍的讨论都会被低估。我宁可花三页把量级立住。</li>
+<li>Q：你这些数字是自己跑的还是从哪儿抄的？</li>
+<li class='cont'>A：全部是本地两个仓库同一天 HEAD、同一套 <code>find</code> + <code>wc -l</code> 命令点算的，命令我写在了 research 笔记里，会后可以自己复跑。有几条我没跑成的（比如需要 bun 才能跑的 benchmark），我会在那一页上明确标「未实跑」。</li>
+</ul></div><div class="blk next"><span class="lb">过渡</span><p>那先从「它是谁的孩子」开始——下一页只有一张血统图，但里面有个特别容易讲错的地方。</p></div></section><section class="pg-sec" data-n="6" data-title="血缘只剩两行版权：omp 与 pi 是两个独立仓库"><h2>P6 · 血缘只剩两行版权：omp 与 pi 是两个独立仓库</h2><div class="blk cue"><span class="lb">提词</span><ul>
+<li>三层：pi → oh-my-pi → 本地 clone</li>
+<li>L1 Mario Zechner，11.2 万行；L2 Can Bölük，72 万行</li>
+<li>①是代码级 fork，不是 Fork 按钮 <span class="cue">[重]</span></li>
+<li>GitHub API <code>fork: false</code></li>
+<li>LICENSE 两行版权并列，一个字没删 <span class="cue">[慢]</span></li>
+<li>本地这份是 clone，没有私有改动</li>
+<li>顺带更正上一篇：FORK.md 全史零命中 <span class="cue">[停]</span></li>
+</ul></div><div class="blk gist"><span class="lb">一句话主旨</span><p>omp 是 pi 的代码级深度 fork，但在 GitHub 层面彻底 detach——「是 fork 又不是 fork」，这两件事必须分开说。</p></div><div class="blk say"><span class="lb">怎么讲</span><p>先看左边这张血统图，从上往下三层，一条直线，但<b>两次复制的性质完全不一样</b>，这是本页唯一要记住的事。（停一拍）最上面 L1，青色框，<code>earendil-works/pi</code>，作者是 Mario Zechner，原来叫 <code>badlogic/pi-mono</code>——第二篇整场讲的就是它，一个极简的 agent 工具包，右边那个数字，<b>11.2 万行 TS 源码</b>。往下这条箭头，旁边那行小字是①：<b>代码级深度 fork —— 仓库层面独立，不是 GitHub 的 Fork 按钮</b>。到了 L2，绿框，<code>can1357/oh-my-pi</code>，作者 Can Bölük，本篇的主角，右边 <b>72 万行 TS 再加 18.5 万行 Rust</b>。再往下 L3，虚线框，是我这次的取证现场——本地那份 clone，<code>git remote -v</code> 指向 can1357，<code>git branch -a</code> 只有 main 和 origin/main，<b>没有任何私有改动</b>，所以我等会儿引的每一个「文件:行号」，都是上游本体的原文，不是我这边改出来的。</p>
+<p>现在讲这页最容易被讲错的地方，就是底下这个玫红框。<b>常见讲法</b>：oh-my-pi 是 pi 的一个 GitHub fork。<b>实情</b>：不是。我去查了 GitHub API，<code>oh-my-pi</code> 这个仓库的 <code>fork</code> 字段是 <b>false</b>，它没有 upstream 指针，你不能从它直接给 pi 提 PR，它有自己的 issue、自己的发布、自己的版本号——现在是 17.2.3，而 pi 那边根 package.json 还是 0.0.3。（停一拍）那为什么我还一直说它是 fork？看右边这一栏，最上面是 LICENSE 的前四行，我念一下：MIT License，空行，<code>Copyright (c) 2025 Mario Zechner</code>，<code>Copyright (c) 2025-2026 Can Bölük</code>。<b>两行并列，不是替换</b>，上游署名一个字都没删。这就是答案——<b>代码层面它是彻头彻尾的 fork，血缘硬得写在版权声明里；GitHub 层面它是彻底 detach 的独立仓库</b>。这两句话不矛盾，它描述的是两个不同的东西：一个是代码从哪儿来，一个是协作关系怎么维系。</p>
+<p>那既然 detach 了，上游更新怎么办？看紫框最后一行——<b>靠人工</b>，仓库里有一篇 <code>docs/porting-from-pi-mono.md</code>，387 行，整篇就讲怎么从 pi-mono 往这边迁移。我提醒一句口径：那篇文档记录的上游同步点是 2026-03-22，而我对比用的 pi 基准是 08-01，所以后面某些「pi 有、omp 无」的东西，有可能是上游三月之后新加的，不是 omp 主动删的——这个不确定性我会在相关页面上标出来。（停一拍）最后是琥珀色那个框，顺带更正上一篇。上一篇我讲过一套 FORK.md 里的三层成本模型，讲得挺起劲——那份文件<b>根本不在 omp 上游仓库里</b>，它出自某个私有下游 fork 维护者自己写的手册。我这次把仓库 unshallow 了，<b>全史 16,613 个 commit，<code>git log --all -- FORK.md</code> 零命中</b>，从来没存在过。第 3 页我已经正式认过错了，这里只是把它挂在血统图旁边，因为搞混的根源就是血统没分清——我当时把 L3 私有 fork 的东西当成了 L2 上游的东西。</p></div><div class="blk must"><span class="lb">别漏了说</span><ul>
+<li>「是 fork 又不是 fork」必须拆成两句话说清楚：<b>代码级深度重写 = 是 fork；GitHub 层面 <code>fork: false</code> = 不是 fork</b>。只说一半，听众一定会记岔。</li>
+<li>LICENSE 那两行要<b>念出来</b>，不要只指。这是全页唯一的一手硬证据，念出来的说服力比讲十句强。</li>
+<li>「同步靠人工」这条要点到，它是后面所有「omp 为什么敢大改」的前提——没有 upstream 指针，就没有 merge 冲突的顾虑，重写的成本结构完全不同。</li>
+<li>上游同步点 2026-03-22 vs 对比基准 08-01 的口径差要主动说，别等人问。</li>
+<li>更正 FORK.md 时语气要平，别演。已经在第 3 页道过歉了，这里是补一个「为什么会错」的解释。</li>
+</ul></div><div class="blk qa"><span class="lb">可能被问</span><ul>
+<li>Q：<code>fork: false</code> 是怎么查的？会不会是他 fork 完又 detach 了？</li>
+<li class='cont'>A：我查的是 GitHub 仓库 API 的 <code>fork</code> 字段，当前值是 false。GitHub 确实支持申请把 fork 关系解绑，所以历史上有没有 fork 过、后来解绑了，我从 API 现状看不出来，这条我不知道。但对本场的结论没影响——现状就是两个独立仓库。</li>
+<li>Q：既然不是 GitHub fork，那还算「同一份基座」吗？6.45 倍这个对比公平吗？</li>
+<li class='cont'>A：算，而且我认为公平。LICENSE 保留双版权、<code>docs/porting-from-pi-mono.md</code> 整篇讲从 pi-mono 迁移、包结构和主循环骨架还能一一对上——CH2 那页会给你看骨架的对照。它不是「参考了 pi」，是从 pi 的代码长出来的。</li>
+<li>Q：Mario 本人对这个 fork 什么态度？</li>
+<li class='cont'>A：不知道，我没查到公开表态，也没去问。我能看到的只有 LICENSE 里保留的署名，和全史里 Mario 名下的 1,339 个 commit——那是 pi 时期的历史被完整带过来了，说明这不是复制粘贴，是带着 git 历史整体接手的。</li>
+<li>Q：本地这份 clone 会不会已经落后了？</li>
+<li class='cont'>A：会。HEAD 是 09a7c865，2026-08-01。这个项目大概两天半发一个版本号，所以我上台这会儿它多半已经又往前走了几十个 commit。所有数字都以那天为准。</li>
+</ul></div><div class="blk next"><span class="lb">过渡</span><p>血统讲完了，那接下来就是最直白的问题——同一份基座，他到底堆了多少东西进去？下一页只有一张对比图，但那个长条会让你有点不适。</p></div></section><section class="pg-sec" data-n="7" data-title="同一份基座，6.45 倍的体量"><h2>P7 · 同一份基座，6.45 倍的体量</h2><div class="blk cue"><span class="lb">提词</span><ul>
+<li>上半区①：同口径 TS 对比，112,232 vs 723,921</li>
+<li>6.45× 那个方块 <span class="cue">[重]</span></li>
+<li>下半区②：pi 完全没有的几块</li>
+<li>Rust 8.3 万自研 / 9 crate，pi 侧 <b>0 个 .rs 文件</b> <span class="cue">[慢]</span></li>
+<li>vendor 10 万：内嵌 bash + 46 个 uu-*</li>
+<li>Python 8.3 万；测试 53.8 万，测试/源码 0.74</li>
+<li>底部大字：≈ 152.9 万行</li>
+<li>诚实补一刀：行数不等于价值 <span class="cue">[停]</span></li>
+</ul></div><div class="blk gist"><span class="lb">一句话主旨</span><p>TS 源码 72 万 vs 11 万，外加 pi 一行都没有的 18.5 万行 Rust 和 8.3 万行 Python——全仓约 153 万行。</p></div><div class="blk say"><span class="lb">怎么讲</span><p>这一页只有一张图，我讲慢一点，因为它是这一章的证据核心。（停一拍）先看上半区①，标题写着「同一口径下的正面对比」——我强调<b>同一口径</b>：两个仓库取的是同一天的 HEAD，用的是同一条 <code>find</code> 命令，都排除了测试文件、测试目录和 node_modules，omp 侧只数 <code>packages/*/src</code>。这条件我卡得比较死，因为体量对比最容易被人质疑口径。上面这根青色的短条是 pi，<b>112,232 行，495 个文件</b>。下面这根绿色的长条是 omp，<b>723,921 行，1,875 个文件</b>。你们看这两根条的长度差——右边那个方块写着 <b>6.45×</b>。</p>
+<p>（停一拍）6.45 倍意味着什么？我给一个体感。11 万行 TS，是一个熟练的人认真读一两周能通读一遍的规模，pi 那边我第二篇就是这么干的。72 万行，<b>你通读不完</b>。72 万行大概是什么概念——比早期的 Linux 内核还大，跟一个中型商业 IDE 的核心层一个量级。而这不是一个团队十年堆出来的，是一个人在两年多里做的，最近这六十天还保持着<b>日均 155 个 commit</b>。所以当我说「一个人把 agent 做到极致」，6.45 这个数字就是「极致」两个字的定量版本。</p>
+<p>再看下半区②，这几条是<b>上游 pi 完全没有的东西</b>，注意它们跟上面用的是同一个比例尺，所以长度可以直接比。第一条，<b>自研 Rust 8.3 万行，9 个 crate</b>，右边我特意标了一行玫红字——<b>pi 侧：0 行、0 个 <code>.rs</code> 文件</b>。这不是「omp 的 Rust 更多」，是<b>从无到有</b>。这 9 个 crate 里最大的是 <code>pi-shell</code>，四万多行，一个内嵌的 bash；CH5 一整章讲的就是这块。第二条虚线框，<b>vendored 的第三方 Rust 10 万行</b>，49 个 crate——一个 brush（就是那个 bash 实现的上游），加 **46 个 <code>uu-*</code><b>，也就是 uutils 版的 coreutils，<code>cat</code>、<code>sed</code>、<code>sort</code>、<code>find</code>、<code>xargs</code>，一个命令一个 crate，全被搬进了进程里。第三条，</b>Python 8.3 万行<b>，其中三万二是 robomp——下一页的主角；两万九是 snapcompact 的离线研究脚本，CH3 会讲。第四条也是虚线框，</b>TS 测试 53.8 万行<b>，测试对源码的比例是 </b>0.74**。</p>
+<p>（停一拍）最后看底下这条横带，把所有东西加起来——<b>约 152.9 万行</b>，我在标题里就叫它 153 万行。右边还有几个格子：16 个 workspace 包、docs 目录 122 篇 27,931 行、包里 243 个 prompt 的 <code>.md</code> 文件、模型目录 63 个 provider 4,106 个条目、版本号 17.2.3——注意这个版本号 TS 和 Rust 是<b>共用</b>的，一个 <code>Cargo.toml:6</code> 管到底。</p>
+<p>现在我必须诚实地补一刀，不然这页就成了吹牛。<b>行数不等于价值。</b>（停一拍）我给你们三个减分项，都是我自己点算时发现的。第一，<b>测试占了 53.8 万行</b>，那 152.9 万里有三分之一是测试代码——这是好事，但你不能拿它去论证「功能有多复杂」。第二，**catalog 这个包 10.5 万行里，有 8.9 万行是 protoc 生成的 <code>*_pb.ts</code><b>，Cursor 和 Devin 转售商协议的机器产物，手写的其实只有一万六。第三，那 10 万行 vendored Rust </b>不是他写的<b>，是搬进来的第三方。所以如果你只认「一个人亲手写的产品代码」，这个数会缩水不少。（停一拍）但我为什么还是敢把 6.45 倍这个数摆在标题上？因为</b>上半区①那个对比是干净的**——两边同口径、都排除测试、都只数 src，减分项减的是「153 万」这个总数，不是「6.45 倍」这个比值。</p>
+<p>顺带补一条 slide 上没有的，因为我是点算完之后才想到该按同口径比一次的：<b>文档</b>。这页显示的 122 篇是 omp <code>docs/</code> 目录单独的数，跟 pi 不是同一个口径。我重新按全仓 Markdown 数了一遍：<b>omp 493 篇，pi 97 篇，5.08 倍</b>——跟代码的 6.45 倍几乎是同一个量级。而且更狠的是，<b>pi 根本没有 <code>docs/</code> 这个目录</b>。这条我留到 CH7 展开，那里有一整页讲文档。</p></div><div class="blk must"><span class="lb">别漏了说</span><ul>
+<li>「同一口径」四个字要说出口，最好把排除条件念一遍。体量对比页最容易被质疑的就是口径，先自己堵住。</li>
+<li>Rust 那条必须说成<b>从无到有</b>，不是「更多」。指着那行「pi 侧 0 行、0 个 .rs 文件」念。</li>
+<li>6.45 倍要给体感，不要只念数字。「11 万你能通读，72 万你通读不完」是这页最容易被记住的一句。</li>
+<li><b>减分三条必须讲全</b>：测试占三分之一、catalog 8.9 万是生成的、vendor 10 万不是自研。这是本篇诚实度的第一次兑现，后面还有好几处，这里先立住人设。</li>
+<li>立刻补上「减分减的是总数，不是比值」——不然听众会觉得你把自己的论点否掉了。</li>
+<li>README 自称 55k Rust、本地实测 83,443，这个口径差 slide 页脚有写，如果有人盯着看要主动解释。</li>
+<li>文档 493 vs 97 那条是口头补充，slide 上没有，讲的时候要说明「这条是我事后按同口径补算的」。</li>
+</ul></div><div class="blk qa"><span class="lb">可能被问</span><ul>
+<li>Q：72 万行里有多少是 AI 生成的？</li>
+<li class='cont'>A：分不出来。git 元数据里没有这个信息，我也没有可靠的启发式去判。下一页会给一个相关但不等价的数——<b>署名给 bot 账号的 commit 有 2,564 个</b>，注意那是 commit 数不是行数，而且署名给 bot 不等于 AI 独立写成。这两个数不要混着用。</li>
+<li>Q：README 写「~55k lines of Rust core」，你说 8.3 万，谁对？</li>
+<li class='cont'>A：都对，口径不同。我的 83,443 是 <code>crates/pi-*/src</code> 下全部 <code>.rs</code>；README 的 55k 大概率排除了 <code>pi-shell</code> 里的 minimizer 之类，但他没写口径，我没法确认。页脚标了这个差异，本页一律用本地实测值。</li>
+<li>Q：代码多是好事吗？会不会就是没管理好？</li>
+<li class='cont'>A：这个问题很好，而且我不打算替他辩护。行数本身是中性的，但有两个旁证让我倾向于「不是失控」：一是 <code>AGENTS.md</code> 里明写「同一件事有两份实现就是 bug，哪怕两份都能跑」；二是 fix 类 commit 是 feat 类的将近 5 倍，说明项目已经进了稳定期高频修 bug 的阶段，不是在狂加功能。当然这只是旁证。</li>
+<li>Q：为什么要内嵌一整个 bash 和 46 个 coreutils？疯了吗？</li>
+<li class='cont'>A：CH5 一整章讲这个，而且最后那页 benchmark 会给你看一个很诚实的结果——<b>小 payload 上 Rust 版反而慢 0.86 倍</b>，他们自己在文档里写了「若更慢，不要切换调用点」。先记住这块存在，理由等到 CH5。</li>
+<li>Q：Python 那 8.3 万行会随发布分发吗？</li>
+<li class='cont'>A：不确定。snapcompact 那两万九是研究脚本，我没去核 <code>.npmignore</code> 和 package 的 <code>files</code> 字段，所以我在统计里把它单列，没并进「产品代码」。</li>
+</ul></div><div class="blk next"><span class="lb">过渡</span><p>153 万行，日均 155 个 commit，一个人——这个算术其实是对不上的。下一页告诉你缺的那一块从哪儿来。</p></div></section><section class="pg-sec" data-n="8" data-title="omp 的代码，有一部分是 omp 自己写的"><h2>P8 · omp 的代码，有一部分是 omp 自己写的</h2><div class="blk cue"><span class="lb">提词</span><ul>
+<li>上一页的算术对不上，缺的一块在这儿</li>
+<li>左边五步回路：issue → omp 子进程 → 修 → PR → 合并</li>
+<li>橙色虚线回到①：改好的 omp 下一轮接着用 <span class="cue">[重]</span></li>
+<li>右上署名条：8,807 / 2,564 / 1,339 / 其余 403 个身份</li>
+<li>CONTRIBUTING.md:28-32 念原文 <span class="cue">[慢]</span></li>
+<li>「别为自己要做的活开 issue，robomp 会当工单捡走」</li>
+<li>玫红框：不能过度解读，同域同人分不出来 <span class="cue">[停]</span></li>
+<li>代价：机器人写的代码谁来 review</li>
+</ul></div><div class="blk gist"><span class="lb">一句话主旨</span><p>omp 在用 omp 开发 omp——全史 16,613 个 commit 里 2,564 个署名给它自己驱动的机器人，而贡献指南已经开始给这个机器人让路了。</p></div><div class="blk say"><span class="lb">怎么讲</span><p>上一页结尾我说算术对不上——72 万行 TS、18.5 万行 Rust、8.3 万行 Python、日均 155 个 commit，一个人。这一页给缺的那块。（停一拍）标题就是结论：<b>omp 的代码，有一部分是 omp 自己写的。</b></p>
+<p>左边这张图是完整的回路，五步，全部来自 <code>python/robomp/README.md</code> 的前 22 行，我照着走一遍。①有人在 GitHub 开一个 issue，robomp 先把它分类打标签——bug、documentation、question、enhancement、proposal、invalid、duplicate，七类。②它<b>起一个 omp 子进程</b>，注意这行小字：<code>omp --mode rpc</code>，也就是把 omp 当成一个可被程序驱动的服务跑起来，<b>每个 issue 开一个独立的 git worktree</b>。这里有个设计我很欣赏——下面那行：<b>PAT 不给 agent</b>，写回 GitHub 走一个单独的 sidecar 进程。也就是说 agent 有改代码的权限，但没有对外发言的凭证，这是很干净的一刀。③按标签分流：bug 和 documentation 会真的去复现、在新分支上修、跑验证；question 是发一条评论，四小时内没人反对就自动关掉；enhancement 只评论不动手。④开 PR，而且<b>格式是钉死的</b>——正文必须有 <code>## Repro</code>、<code>## Cause</code>、<code>## Fix</code>、<code>## Verification</code> 四段，加一句 <code>Fixes #N</code>。后续如果 issue 下面又有评论，它用 <code>--continue</code> <b>恢复同一个 omp session</b> 接着聊。⑤合并，代码进主干。</p>
+<p>（停一拍）然后看这条橙色的虚线——从⑤绕回①，旁边写着「改好的 omp，下一轮接着用」。<b>这就是自举回路。</b> 这个词我想多说两句，因为它很容易被当成一句噱头。编译器的自举大家都熟：用 C 写第一版 C 编译器，然后用它编译自己。那个回路的意义在于——<b>你对自己的每一次改进，会立刻回到你自己身上</b>。omp 这里是同一个结构：他改进了 omp 的 bug 定位能力，下一个 issue 进来，robomp 用的就是改进后的版本，修得更准；修得更准，就有余力去改更难的地方。（停一拍）这就是上一页那个算术怎么对上的——<b>153 万行不是一个人手敲出来的，是一条回路跑出来的</b>。这也是我为什么把这页放在第一章的最后：前两页讲「多大」，这页讲「怎么可能这么大」。</p>
+<p>再看右边这一栏。最上面这条堆叠柱是<b>全史 16,613 个 commit 的署名构成</b>，我把仓库 unshallow 之后重新数的。绿色最大那块，<code>me@can.ac</code>，Can Bölük 本人，<b>8,807 个，53%</b>。橙色这块，<code>omp@can.ac</code>，也就是 roboomp，<b>2,564 个，15.4%</b>。青色那块，Mario Zechner，<b>1,339 个，8.1%</b>——这就是我上一页说的，pi 时期的历史被完整带过来了。剩下灰色的是<b>另外 403 个提交身份</b>，全史一共 407 个。</p>
+<p>（停一拍）中间这个玫红框是本页最有冲击力的一条，<code>CONTRIBUTING.md</code> 第 28 到 32 行，我念英文原文：<b>「Do not open an issue for work you are about to submit.」</b>——如果你打算自己实现某个改动，<b>不要先为它开 issue</b>。理由在下面：<b>robomp 会把「可行动的 issue」当成工单捡起来，可能并行做同一个修复，浪费算力和维护者时间。</b> （停一拍）我第一次读到这句是真的愣了一下。我们写了这么多年的贡献指南，「先开 issue 讨论再动手」几乎是所有开源项目的第一条规矩，理由是避免重复劳动。这里规矩被<b>反过来</b>了，理由<b>还是</b>避免重复劳动——只不过要避开的那个「重复劳动者」，不是另一个人类贡献者，<b>是项目自己的机器人</b>。协作规则第一次要为 AI 贡献者腾地方，这不是修辞，是白纸黑字的一条硬规矩。</p>
+<p>（停一拍）但这条不能只讲光鲜面，代价必须一起讲，看下面琥珀色那个框——<b>同一份 CONTRIBUTING.md 的另一面</b>，第 38 到 51 行：<b>「AI agents are welcome as tools, not as unattended contributors.」</b> AI agent 欢迎作为工具，但<b>不欢迎作为无人看管的贡献者</b>。具体四条：把 agent 约束在议定范围内、<b>逐个文件审阅它改的东西</b>、亲自跑检查并验证行为、审完才准提 PR。还有更狠的两条——PR 正文<b>必须至少有一句你自己写的话</b>；以及「<code>bun check</code> 通过」<b>本身不算验证</b>。（停一拍）你把这两个框放在一起看，这个项目的立场其实非常清楚：<b>机器可以生产代码，但责任不能转移。</b>「你为这段代码负责，不管它是谁、是什么东西生成的。」</p>
+<p>那问题就来了，也是我留给大家带走的问题：<b>机器人写的这 2,564 个 commit，谁 review 的？</b> 从公开信息看，答案是维护者本人——也就是那个已经写了 8,807 个 commit 的人。这就是自举回路真正的代价：<b>回路能把生产的吞吐放大，但没法把审阅的吞吐放大。</b> 你造得越快，瓶颈就越往 review 挤，最后压在同一个人的注意力上。这个项目的所有取舍——包括后面 CH6 那页 309 次「Stop.」的事故——某种程度上都是这个瓶颈的后果。</p>
+<p>最后一句必须说，看底下这个玫红框——<b>这条不能过度解读</b>。<code>omp@can.ac</code> 和 <code>me@can.ac</code> 是同一个域名、同一个人，git 元数据<b>分不出来</b>哪些是「bot 自主提交并被合并」，哪些是「人用 omp 辅助写完之后署名给了 bot」。所以我能讲的是：<b>2,564 个 commit 署名给了项目自己的 bot 账号</b>；我<b>不能</b>讲：「这些代码是 AI 独立写成的」。这两句话差别很大，请大家引用的时候也用前一句。</p></div><div class="blk must"><span class="lb">别漏了说</span><ul>
+<li>「自举」这个词要展开解释，用编译器自举打比方——不解释的话它听起来像噱头，解释了它就是本章最有分量的一句。</li>
+<li>「PAT 不给 agent，写回走 sidecar」这个细节别跳，它是权限设计的一个漂亮范例，也呼应第一篇「护栏装在执行那一段」。</li>
+<li><code>CONTRIBUTING.md:28-32</code> 要<b>念英文原文再翻译</b>，这是全场引用密度最高的一句，值得慢下来。</li>
+<li><b>代价必须讲</b>：<code>:38-51</code> 那四条硬要求 + 「谁来 review」这个问题。只讲自举不讲代价，这页就变成布道了。</li>
+<li>「回路放大生产，放大不了审阅」这句要说出口——它是本章接到全篇主张（把代价摊开）的接缝。</li>
+<li>最后那个「不能过度解读」的免责一定要念完，别因为时间紧就砍掉。这是本篇诚实底线的一部分。</li>
+<li>数字口径：16,613 是 <b>unshallow 之后的全史</b>，跟 research 笔记里 depth-200 窗口的 10,892 / 2,497 不是一回事，如果有人对着旧笔记问要能立刻分清。</li>
+</ul></div><div class="blk qa"><span class="lb">可能被问</span><ul>
+<li>Q：15.4% 是不是就是说「15% 的代码是 AI 写的」？</li>
+<li class='cont'>A：不是，两个偏差都有。一是 commit 数不等于代码行数，bot 的 commit 平均可能更小也可能更大，我没测；二是署名给 bot 不等于 AI 独立完成，同域同人分不出来。这个数只能读成「署名归属」。</li>
+<li>Q：robomp 修的都是些什么活？是不是格式化机器人？</li>
+<li class='cont'>A：不是。我抽看了它的 commit 标题，长这样：<code>fix(mnemopi): anchored think stripping to leading blocks</code>、<code>fix(coding-agent): clear bash auto-background threshold timer</code>——是真的 bugfix，带具体子系统 scope 的。</li>
+<li>Q：这套东西我能抄吗？我们团队也想让 bot 自动修 issue。</li>
+<li class='cont'>A：机制可以抄，<code>python/robomp</code> 是开源的，三万二千行，里面 issue 分流、worktree 隔离、sidecar 持凭证这几条都值得看。但<b>前提抄不了</b>：这个仓库的所有权和 review 权集中在一个人手上，他能承担「bot 提的 PR 全由我一个人过」这个成本。你们团队多半不能。CH7 那页「别抄的六条」里我会再提这一条。</li>
+<li>Q：那 403 个其他身份是真人吗？</li>
+<li class='cont'>A：不全是。里面至少有五个 bot 账号（<code>oh-my-pi-bot</code>、<code>github-actions<span class="cue">[bot]</span></code>、<code>robomp-bot</code> 之类），也存在同一个人多身份的情况——比如 <code>can1357</code> 和 <code>Can Bölük</code> 就是两条。所以我在 slide 上写的是「提交身份」不是「贡献者」，这个措辞是刻意的。</li>
+<li>Q：question 类 issue「四小时无人反对就自动关闭」，这会不会太粗暴？</li>
+<li class='cont'>A：会，而且我觉得这是个明确的取舍——用一定的误关率换维护者的注意力。这是他自己的仓库、他自己承担后果，我不评价。但如果你抄，这个阈值一定要按你的社区规模重新定。</li>
+</ul></div><div class="blk next"><span class="lb">过渡</span><p>体量、血统、自举回路——尺子摆完了。那接下来的六章就是拆开看：这 153 万行到底堆在了哪儿、每一块换来了什么。下一章从最里面那层开始——内核。</p></div></section><section class="pg-sec" data-n="9" data-title="第 02 章 · 内核"><h2>P9 · 第 02 章 · 内核</h2><div class="blk cue"><span class="lb">提词</span><ul>
+<li>三十秒过，只交代位置</li>
+<li>七个点，第二个亮</li>
+<li>章问题：792 vs 2,869 <span class="cue">[重]</span></li>
+<li>四页：主循环 / 切包 / abort / 打假</li>
+<li>承诺句：不在它怎么想，在外包了多少 <span class="cue">[慢]</span></li>
+</ul></div><div class="blk gist"><span class="lb">一句话主旨</span><p>这一章只盯 <code>packages/agent</code> 这一个包和它旁边那一层，回答一个问题——同一份骨架，为什么一个 792 行、一个 2,869 行。</p></div><div class="blk say"><span class="lb">怎么讲</span><p>上一章讲完体量和血统，我们知道了 omp 是 153 万行、是 pi 的 6.45 倍，也知道了它是本地 clone 不是 GitHub fork。（停一拍）但体量这个数字本身没有意义，它只告诉你&quot;多&quot;，不告诉你&quot;多在哪&quot;。所以从这一章开始，我们钻进去看。左边这个大大的 02，标题就两个字——内核。下面这行加粗的问题是本章的钥匙：<b>同一份骨架，为什么一个 792 行、一个 2,869 行？</b>我先把答案剧透一下，免得大家带着错误的预期听：<b>不是因为 omp 写了一个更复杂的状态机</b>。恰恰相反，骨架那部分几乎一字没改。再往下这行小字是本章的范围——只看 <code>packages/agent</code> 这一个包，和它旁边那一层 <code>coding-agent</code>。整个 omp 有几十个包，这一章我只碰这两个，其它的后面几章再说。看这排小圆点，第一个已经变灰了，第二个是亮的，我们在七章里的第二章。右边是本章四页：第 10 页主循环，讲那个 792 vs 2,869 到底差在哪；第 11 页切包，这是我个人认为整个 omp 最重要的一次架构动作；第 12 页 abort 和错误恢复，这一页有全场最容易被你直接抄走的一段代码；第 13 页打假两则，我要拆两个名字特别唬人的包。最下面这个绿框是我给这一章的承诺，也是我希望大家带走的一句话：<b>内核的差别不在它怎么想，在它把多少决定外包给了宿主。</b>这句话有点抽象，第 10 页我就把它变成一个具体的数字。</p></div><div class="blk must"><span class="lb">别漏了说</span><ul>
+<li>要提前打预防针：&quot;不是更复杂的状态机&quot;——否则听众会带着&quot;omp 一定是重写了个 NB 的状态机&quot;的预期听第 10 页，然后觉得你在讲一件小事。</li>
+<li>范围要交代清楚：这一章只碰 <code>packages/agent</code> 和 <code>packages/coding-agent</code> 两个包，别的包不在这章。免得有人问&quot;那 Rust 那部分呢&quot;——那在 CH5。</li>
+<li>承诺句&quot;外包了多少决定&quot;要念出口，第 10 页的钩子数量、第 11 页的切包、第 12 页的四条信号，其实都是这一句的三种展开。</li>
+</ul></div><div class="blk qa"><span class="lb">可能被问</span><ul>
+<li>Q：这一章的取证基准是哪个版本？</li>
+<li class='cont'>A：omp 是 HEAD <code>09a7c8656</code>，2026-08-01；pi 是同一天的 HEAD。所有行数都是那天数的。有一个口径坑我在后面几页会反复交代：omp 自己文档里记的上游同步点是 3 月 22 号，所以凡是&quot;pi 有 omp 无&quot;的项，我只能说&quot;本次对比基准下未见对应实现&quot;。</li>
+<li>Q：为什么先讲内核，不先讲上下文？</li>
+<li class='cont'>A：因为上下文那些机制（压缩、hashline）全都是挂在循环上的钩子。不先把循环讲清楚，后面讲&quot;压缩在哪一步发生&quot;就没有落点。</li>
+</ul></div><div class="blk next"><span class="lb">过渡</span><p>那我们直接把两边的主循环摆在一起看——你会发现最反直觉的一点是，骨架那部分它一个字都没改。</p></div></section><section class="pg-sec" data-n="10" data-title="主循环：骨架一字没改，钩子从 8 涨到约 40"><h2>P10 · 主循环：骨架一字没改，钩子从 8 涨到约 40</h2><div class="blk cue"><span class="lb">提词</span><ul>
+<li>左边绿虚线框 = 继承来的部分 <span class="cue">[重]</span></li>
+<li>双层 while，连英文注释都一样</li>
+<li>循环里根本没有状态枚举 <span class="cue">[慢]</span></li>
+<li>三个队列：steering / aside / follow-up</li>
+<li>右边点阵：8 → 约 40，一眼看密度</li>
+<li>792 → 2,869，3.6×</li>
+<li>钩子多 ≠ 更强 <span class="cue">[停]</span></li>
+<li>口径：3-22 vs 08-01</li>
+</ul></div><div class="blk gist"><span class="lb">一句话主旨</span><p>pi 和 omp 的主循环是同一副骨架，3.6 倍的行数差全部长在&quot;可插拔点密度&quot;上——8 个钩子涨到约 40 个。</p></div><div class="blk say"><span class="lb">怎么讲</span><p>这是本章第一页硬货，我讲得慢一点。先看左上角这行绿字——<b>&quot;骨架：双层 while —— 这部分是继承，不是重写&quot;</b>。这个绿色虚线框里的东西，是 omp 从 pi 直接继承下来的。（停一拍）看框底下这段代码，<code>while (true)</code> 是外层，里面 <code>while (hasMoreToolCalls || pendingMessages.length &gt; 0)</code> 是内层。外层等排队的 follow-up 消息，内层跑一个 turn。这段在 omp 的 <code>agent-loop.ts</code> 是 1026 到 1030 行，在 pi 的同名文件是 170 到 174 行。<b>结构同构，连上面那行英文注释都几乎一样</b>——原文是 <code>// Outer loop: continues when queued follow-up messages arrive after agent would stop</code>。我特意去逐字比过。所以你要记住的第一件事是：<b>这不是两个不同的设计，这是同一个设计</b>。</p>
+<p>那 792 行到 2,869 行，多出来的两千行长在哪？先说不长在哪。看这一行——<b>&quot;循环里根本没有状态枚举&quot;</b>。很多人一听&quot;主循环&quot;就以为里面是个 <code>switch(state)</code>，不是的。omp 这个循环的&quot;状态&quot;就是十来个局部变量的组合：<code>harmonyRetryAttempt</code>、<code>turnOpen</code>、<code>pausedTurnContinuations</code>……真正带 <code>running / idle / parked / aborted</code> 四态的显式状态机在<b>上一层</b>，在 <code>AgentRegistry</code> 里，那个第 13 页会讲。</p>
+<p>再看绿框里这五格，这是我把内层一圈拆开的样子。① 暂停闸门——每圈先问一句&quot;我是不是该冻住&quot;，注意是<b>冻结不中止</b>，在飞的流跑完再停。② 模型调用——这里已经开始不一样了，pi 是静态 config 一把传进去，omp 是 <code>prepareProviderCall</code> 加一堆&quot;每次现取&quot;的 getter：模型、思考档、service tier、甚至 cwd，都能在跑的过程中改。③ turn_start——这一格特别有意思，pi 是先发 <code>turn_start</code> 再干活，omp 把它<b>延后到 provider 准备成功之后</b>才发，目的是不让 gate-stop 产生一个空 turn。这是那种&quot;你不踩过坑不会想到&quot;的改动。④ 工具批次——逐工具的 shared/exclusive 调度，加一个 steering watcher，这两块下一页和第 12 页各展开一次。⑤ 判停——这里有个反直觉的：<code>stopReason</code> 是 <code>toolUse</code> 要跑工具，是 <code>stop</code> <b>也要跑</b>。为什么？代码注释里写得很清楚，说 <code>stop_reason</code> 是 provider 的元数据，从来不回到线上去，所以它不该拦住继续；开了 interleaved thinking 的 Opus 经常在 <code>end_turn</code> 底下照发工具调用，这是他们对着真实 API 验过的。唯一必须不跑的是 <code>length</code>——被 max_tokens 截断了，那批工具调用是残的，只能补占位让模型重发。</p>
+<p>右边这三个盒子是每轮重新 drain 的三个队列。青色的 steering 是用户插话；橙色的 aside 是非中断消息——IRC 邮箱、advisor 的评审意见、todo 对账；绿色的 follow-up 是唤醒外层 while 的排队消息，<b>外层 while 存在的唯一理由就是它</b>。这里有两处细节值得记：第一，检测必须是<b>非消费性的</b>——<code>hasSteeringMessages</code> 只 peek 不取走，因为如果你 poll 走了消息，而这个 run 马上就要 abort，那条消息就卡死在里面了；第二，aside 是<b>惰性 thunk</b>，注入的那一刻才求值，返回 null 就丢掉——这样&quot;已经被新编辑取代的过时诊断&quot;能在最后一刻自己撤回。这处设计很讲究。</p>
+<p>（停一拍）现在看右半页，这才是这一页的论点。上面这两排点，青色的八个是 pi 的 <code>AgentLoopConfig</code> 全部可选钩子——<code>convertToLlm</code>、<code>transformContext</code>、<code>getApiKey</code>、<code>beforeToolCall</code>、<code>shouldStopAfterTurn</code>、<code>prepareNextTurn</code>、两个取消息的。就这八个。下面绿色的四十个点是 omp 的。我不念名字，我按主题给你分组：队列 6 个、模型和供应商 7 个、工具 6 个、上下文 3 个、可观测 4 个、其它 7 个。你不用记具体哪个，你要看的是这两排点的<b>密度差</b>。</p>
+<p>再看底下这两条横条——<code>agent-loop.ts</code>，pi 792 行，omp 2,869 行，3.6 倍。<b>这两千行不是循环变复杂了，是外挂点变多了。</b>每一个钩子都意味着一句话：&quot;这个决定我不在内核里做，我交给宿主做。&quot;用哪个模型？宿主决定。工具参数要不要改写？宿主决定。这一轮该不该停？宿主返回 <code>{stop: true}</code>。</p>
+<p>最后这两行必须念，这是这一页的诚实度所在：<b>钩子多不等于更强</b>。它是把可变性从内核推到宿主，代价是内核的 API 表面变大、契约变难维护——四十个钩子，每一个都是一份你得永远兼容下去的承诺。pi 只有八个，pi 也能跑 agent。这是取舍，不是优劣。页脚那行灰字是口径：pi 的基准是 08-01，而 omp 文档里记的上游同步点是 3 月 22 号，所以&quot;pi 有 omp 无&quot;的那几项，我只能说本次对比基准下没看到对应实现，<b>不能说 omp 删了</b>。</p></div><div class="blk must"><span class="lb">别漏了说</span><ul>
+<li>&quot;骨架一字没改&quot;必须说到，而且要说是<b>逐行同源、连英文注释都一样</b>——这是本页最反直觉的点，也是最有说服力的证据。</li>
+<li>&quot;循环里没有状态枚举&quot;要单独说一句，破掉&quot;主循环 = 状态机&quot;这个默认假设。</li>
+<li><code>stop</code> 也要跑工具这条，要带上&quot;对着真实 Anthropic API 验过的&quot;这个来源，否则听着像 bug。</li>
+<li>钩子多 ≠ 更强这两行不能省。省了这一页就变成了 omp 吹捧。</li>
+<li>口径那行灰字要念，或者至少要指一下。整场我会念三次，这是第一次。</li>
+<li>40 这个数字要说清是&quot;约 40&quot;，是我按 <code>types.ts:142-526</code> 里可选钩子数出来的，不是官方公布的数。</li>
+</ul></div><div class="blk qa"><span class="lb">可能被问</span><ul>
+<li>Q：pi 那 8 个钩子，omp 都还在吗？</li>
+<li class='cont'>A：不全在。<code>shouldStopAfterTurn</code> 和 <code>prepareNextTurn</code> 这两个在 omp 侧 grep 是零命中——功能被拆掉了：停不停由 <code>beforeModelCall</code> 返回 <code>{stop:true}</code> 承担，换模型换思考档被拆成 <code>getModel</code> / <code>getReasoning</code> / <code>getServiceTier</code> / <code>getCwd</code> 这一组&quot;每次现取&quot;的 getter。所以严格说不是 8 涨到 40，是 8 里保留了 6、拆掉 2，然后新加了三十来个。</li>
+<li>Q：40 个钩子，实际用到几个？</li>
+<li class='cont'>A：这个我没数。我只数了 <code>AgentLoopConfig</code> 上声明了多少个可选字段，没有去统计 <code>AgentSession</code> 实际实现了几个。这是我这次取证的一个缺口，如果要严谨应该补上。</li>
+<li>Q：钩子这么多，性能有影响吗？</li>
+<li class='cont'>A：我没跑过 profile，答不了。直觉上每轮几十次同步函数调用相对一次 LLM 请求可以忽略，但这是直觉不是数据。</li>
+<li>Q：<code>stream.push</code> 换掉 <code>await emit</code> 这件事有什么影响？</li>
+<li class='cont'>A：pi 的事件发射是 <code>await</code> 的，消费者天然被背压串行化；omp 改成同步 push，消费者就得自己排队。<code>AgentSession</code> 因此显式维护了一个 <code>#postPromptTasksPromise</code>，代码注释里写了原因。这是&quot;少一层 async 间接&quot;换来的账。</li>
+<li>Q：我自己写 agent，该照 8 个还是 40 个来？</li>
+<li class='cont'>A：照 8 个甚至更少。这一页想说的恰恰是钩子数量是被需求逼出来的，不是设计出来的。你没有多模型 fallback 的需求，就不该有 <code>getModel</code> 这个钩子。</li>
+</ul></div><div class="blk next"><span class="lb">过渡</span><p>不过话说回来，这两千行只是量变。omp 真正做了一次质变的重构，不在这个文件里，在包的边界上——下一页。</p></div></section><section class="pg-sec" data-n="11" data-title="切包才是真重构：把 harness 踢出内核包"><h2>P11 · 切包才是真重构：把 harness 踢出内核包</h2><div class="blk cue"><span class="lb">提词</span><ul>
+<li>左 pi，右 omp，看红框</li>
+<li>pi：harness/ 8,108 行，住在 agent 包里 <span class="cue">[重]</span></li>
+<li>omp：agent 包无 harness 目录，0 行</li>
+<li>搬到 coding-agent，变成 AgentSession 8,814 行<b>单文件</b></li>
+<li>1,185 → 8,814</li>
+<li>复杂度没消失，换了地方 <span class="cue">[慢]</span></li>
+<li>能抄的是动作，抄不了的是规模</li>
+<li>未跟进 pi 的 SDK 化重构 —— 说&quot;未见&quot;不说&quot;删了&quot; <span class="cue">[停]</span></li>
+</ul></div><div class="blk gist"><span class="lb">一句话主旨</span><p>omp 最本质的架构动作是把 harness 从内核包踢出去，让 <code>packages/agent</code> 变成纯内核；代价是 harness 变成了一个 8,814 行的单文件类。</p></div><div class="blk say"><span class="lb">怎么讲</span><p>第 10 页讲的是同一个文件里多了两千行，那是量变。这一页讲的是包的边界变了，我认为<b>这才是 omp 唯一一次真正意义上的重构</b>。（停一拍）左右两栏，左边 pi，右边 omp，都是 <code>packages/agent/src</code> 这个包。</p>
+<p>先看左边。pi 的 agent 包总共 10,368 行，里面这个玫红色的框——<code>harness/</code>，8,108 行。看清楚这个比例：<b>pi 的 agent 包里，八成是 harness</b>。<code>AgentHarness</code>、session store、tools、prompt，全在这个包里头。剩下那两千行才是循环本体：<code>agent-loop.ts</code> 792、<code>agent.ts</code> 577、<code>types.ts</code> 437、compaction 目录 1,287。</p>
+<p>再看右边。omp 的 agent 包 14,873 行，比 pi 还多四千多行——但注意这个虚线的玫红框：<b>无 harness 目录，0 行</b>。这个包里现在只有循环和循环的配套设施：<code>agent-loop.ts</code> 2,869、<code>agent.ts</code> 1,650、<code>types.ts</code> 862、<code>pause.ts</code> 107、<code>telemetry.ts</code> 2,078、<code>run-collector.ts</code> 631、compaction 目录 5,667（13 个文件，pi 那边是 3 个文件 1,287 行）、还有 <code>append-only-context.ts</code> 348 行。<b>这个包现在是一个可以被别的宿主复用的纯内核。</b></p>
+<p>那 harness 去哪了？看下面这两个盒子。pi 的 <code>coding-agent</code> 是 56,431 行，harness 不在这儿；omp 的 <code>coding-agent</code> 是 398,480 行，七倍。harness 整体搬进来了，变成了 <code>session/agent-session.ts</code>。中间这个紫框是这次重构的一句话总结：<b>pi 的 <code>AgentHarness</code>，1,185 行 → omp 的 <code>AgentSession</code>，8,814 行</b>。</p>
+<p>（停一拍）我要在这儿停一下，因为这个数字得念两遍：<b>8,814 行，一个文件，一个类。</b>右边那个玫红色的&quot;代价&quot;框写的就是这件事——<b>内核干净了，但 harness 的复杂度没有消失，它只是换了个地方待着</b>。这不是批评，这是一个必然的账：你把内核清干净，被清出去的东西总得落到某个地方。omp 选择让它落进一个巨型类，而不是继续拆成一个包。</p>
+<p>底下这三条是我给这一页的三个结论。① 内核包只留循环与配套，好处是可以被别的宿主复用——这不是理论，<code>metaharness</code> 那边就是把它当 type-only import 用的。② 代价刚才说了，8,814 行单文件。③ 这条要小心讲：<b>omp 没有跟进 pi 后来在 <code>packages/agent/src/harness/session/</code> 做的 SDK 化重构</b>。pi 现在有一套 <code>SessionReader</code> / <code>SessionStore</code> / <code>SessionRepository</code> / <code>SessionSearch</code> 的抽象，omp 全仓 grep 那套的核心类型是零命中。但请注意底下这行灰字的措辞——<b>本次对比基准下未见对应实现，不等于 omp 删除</b>。为什么要这么绕？因为 omp 自己的 <code>docs/porting-from-pi-mono.md</code> 记的上游同步点是 2026-03-22，而我对比的 pi 是 08-01 的 HEAD。中间隔了四个多月，pi 这套 SDK 化抽象完全可能是三月之后才有的。代码能告诉我&quot;omp 侧零命中&quot;，但<b>代码告诉不了我这是主动删还是没跟上</b>，那是动机层面的东西。所以我只讲事实，不讲动机。</p>
+<p>最后看右下角这两行，这是我认为这一页最该被带走的：<b>能抄的是这个动作——把&quot;循环&quot;和&quot;产品&quot;分成两个包；抄不了的是它的规模。</b>分包这个动作本身几乎零成本，你今天下午就能做。值钱的不是分包，是<b>&quot;内核里什么都不许放&quot;这条纪律</b>——每次有人想往内核里塞一个便利函数的时候，能不能顶住。omp 顶住了，代价是 8,814 行的 <code>AgentSession</code>。</p></div><div class="blk must"><span class="lb">别漏了说</span><ul>
+<li>&quot;8,814 行单文件&quot;要念两遍，这是本页的记忆点，也是本页的诚实度所在——不能只讲&quot;内核纯化了&quot;这个好听的一半。</li>
+<li>&quot;复杂度没消失，只换了地方&quot;是本页最该被带走的一句判断。</li>
+<li>口径纪律必须现场讲清楚为什么这么措辞，不能只念灰字。这是整场诚实度的招牌动作，第 12 页还会再用一次。</li>
+<li>pi 的 harness 占它 agent 包八成，这个<b>比例</b>比绝对行数更有冲击力，别只念 8,108。</li>
+<li>&quot;分包零成本，纪律才值钱&quot;要说到——否则听众的行动项会变成&quot;我也去分个包&quot;，那没意义。</li>
+</ul></div><div class="blk qa"><span class="lb">可能被问</span><ul>
+<li>Q：8,814 行的单文件类，这不是反模式吗？</li>
+<li class='cont'>A：按常规工程标准是。我没法替他们辩护，也没法证伪——我没有读完那 8,814 行，只统计了行数、看了几个关键方法。但可以说的是：这是个单人主导的项目，单文件对一个人的心智模型可能反而是省事的，代价由后来者付。</li>
+<li>Q：pi 后来做的 SDK 化抽象更好吗？</li>
+<li class='cont'>A：从类型上看更严格——比如它有个 <code>SessionForkSelection</code> 代数，把&quot;全量 / 到某条 entry / 到某条 user 消息之前&quot;三种分叉写成了类型，还会校验目标真的是 user 消息，不是就抛 <code>SessionError</code>。omp 那边这个语义是硬编码成一行 <code>.parentId</code>。我倾向于说 pi 那套在这一点上更有类型，但&quot;更好&quot;要看你是不是需要对外发 SDK。</li>
+<li>Q：omp 为什么不跟进上游？</li>
+<li class='cont'>A：不知道。这正是我刚才说的动机层面，代码判定不了。</li>
+<li>Q：<code>packages/agent</code> 真的被别的东西复用了吗？还是只是理论上可复用？</li>
+<li class='cont'>A：我确认到的是 <code>metaharness</code> 那边把它当 type-only import。真正把它当独立内核跑起来的第二个宿主，我这次没找到。所以&quot;可复用&quot;这个好处，目前更多是结构上的，不是已兑现的。</li>
+</ul></div><div class="blk next"><span class="lb">过渡</span><p>切完包，我们进内核最精细的一块。下一页只讲一件事：当用户在 agent 跑到一半的时候插了一句话，到底该杀谁、不该杀谁。</p></div></section><section class="pg-sec" data-n="12" data-title="abort 不是一个布尔，是四条信号"><h2>P12 · abort 不是一个布尔，是四条信号</h2><div class="blk cue"><span class="lb">提词</span><ul>
+<li>四个盒子从左到右，权限递减 <span class="cue">[重]</span></li>
+<li>外部 signal 杀一切；steering/IRC 只杀 interruptible</li>
+<li>其余工具只收外部 signal —— 这是核心 <span class="cue">[慢]</span></li>
+<li>一句话规则：不硬杀已产生副作用的前台工具</li>
+<li>第五条不叫 abort：PauseGate，冻结不中止</li>
+<li>恢复两层：协议层 vs 策略层</li>
+<li>TurnRecovery 1,787 行；pi 侧「未见」不是「删了」</li>
+<li>右栏 13 行是全场最能抄的一段 <span class="cue">[停]</span></li>
+<li>右栏是「照原码语义整理」，不是逐字原文</li>
+</ul></div><div class="blk gist"><span class="lb">一句话主旨</span><p>abort 被拆成四条独立信号加一道暂停闸门，规则只有一句——排队的用户插话永不硬杀一个已经产生副作用的前台工具；错误恢复则分成协议层和策略层两层。</p></div><div class="blk say"><span class="lb">怎么讲</span><p>这一页在我看来是 omp 内核里最精细的一块，也是最能看出&quot;这些代码是被真实事故打磨过的&quot;一页。（停一拍）先看最上面这四个盒子，从左到右权限递减。</p>
+<p>第一个玫红的，<b>外部 signal</b>——调用方给的 abort，比如你按 Ctrl+C。这条<b>硬杀一切，谁都拦不住</b>。第二个青色的，<b>steering</b>——用户插话。第三个橙色的，<b>IRC</b>——别的 agent 发来的消息。这两条通过 <code>AbortSignal.any</code> 合成一条 <code>interruptibleSignal</code>。第四个绿色的，<b>协作式软信号</b>，通过 <code>ctx.toolCall.steeringSignal</code> 发给每一个工具，它<b>不中止任何东西</b>，只是通知：&quot;有人在等你，你要不要让个路。&quot;比如 bash 收到这个信号可以自动把自己转到后台去跑。</p>
+<p>那这四条怎么分派？看中间这个玫红框，规则就两行。<b>工具如果声明了 <code>interruptible: true</code></b>——这类工具是纯等待型的，比如 <code>hub wait</code>、<code>vibe</code>，它们除了耗时间什么也不做——那它收 <code>interruptibleSignal</code>，可以被 steering 和 IRC 硬杀，因为杀了没有任何损失。<b>其余所有工具，比如 bash，只收外部 signal。</b></p>
+<p>这一句就是本页的心脏，我用大白话再说一遍：<b>你在 agent 跑到一半的时候插一句话，它不会去杀那个正在跑的 bash。</b>为什么？因为 bash 可能已经改了文件、已经发了网络请求、已经产生了副作用。杀掉它，副作用还在，但结果丢了——你的上下文里从此有一个谎：一条 &quot;skipped&quot;，实际上它跑了。代码注释里直接引用了 issue #4752，就是这么被打出来的。所以后面那半句也很重要：<b>工具跑完了就保留真实结果，不因为 abort 落地而伪造成 skipped</b>。</p>
+<p>底下这个绿框是第五条，但它刻意不叫 abort，叫 <code>AgentPauseGate</code>——<b>冻结，不中止</b>。它只在两个动作边界上轮询：模型调用之前、每个工具启动之前。已经在飞的流、已经启动的工具，跑完再停。这个区分很重要：abort 是&quot;别做了&quot;，pause 是&quot;做完这件别接下一件&quot;。</p>
+<p>（停一拍）下半页换话题，讲错误恢复，这里的看点是<b>分层</b>。左边绿框是第一层，在循环内，我叫它协议层，管的是&quot;这一次 HTTP 流本身坏了&quot;。四个例子：GPT-5 的 Harmony 协议泄漏，能救就截断续跑，上限两次，不能救就丢掉半截重新采样，还失败就抛；流中断时有半截 toolCall，只保留 <code>toolcall_end</code> 已经到达的那些；瞬时流错误但工具调用其实是完整的，那就把 <code>stopReason</code> 从 <code>error</code> <b>改写成 <code>toolUse</code></b>，让这轮工具照跑；最后是批次尾扫，谁没产出结果就补一个 skipped，保证 tool_use 和 tool_result 严格配对——这个配对不严格，下一次请求就直接 400。对照 pi，pi 这一层只有一个函数，处理 <code>length</code> 截断。</p>
+<p>右边紫框是第二层，在会话层，<code>TurnRecovery</code>，1,787 行，管的是&quot;这个模型不行，换一个再来&quot;。模型 fallback 链、空回复重试三次、非预期停止三次配四秒超时还带一个分类器、限流退避、&quot;思考循环&quot;重定向、重试成功之后还回头把历史里那条错误消息标成已恢复。注意底下这行灰字的措辞——<b>本次对比基准下，pi 侧未见对应实现</b>。跟上一页一样的谨慎，理由一样，不重复了。</p>
+<p>分层的好处写在这行：<b>循环内不必知道有几个模型可切，会话层不必懂 Harmony 协议是什么。</b>这是个很干净的切法，我觉得比那 1,787 行本身更值钱。</p>
+<p>还有一个小机关值得说：终结信号也复用了 abort。子代理调 <code>yield</code> 提交结果之后，会话层调 <code>agent.abort(TERMINAL_TOOL_RESULT_ABORT_REASON)</code>，主循环认出这个<b>特定的 reason</b> 就把 <code>hasMoreToolCalls</code> 置成 false。等于用一个 Symbol 当带内信令——既停住了循环，又不污染用户的 abort 语义。</p>
+<p>（停一拍）好，现在看右半页，这是<b>全场我最建议你直接抄走的一段</b>。先说清楚一件事：这里显示的十三行，是我<b>照原码语义整理</b>过的，省掉了 telemetry 和错误包装，<b>不是逐字的原文</b>——原文在 <code>agent-loop.ts:2660-2686</code>，回头你自己去看。</p>
+<p>它解决什么问题？我们先说 pi 是怎么做的：pi 有个全局配置 <code>toolExecution</code>，只有两个值，<code>sequential</code> 或者 <code>parallel</code>。而且更狠的是——<b>只要这一批里有任何一个工具声明了 sequential，整批全部串行</b>。你想想这个后果：模型一口气发了五个 read 和一个 write，read 之间完全可以并行，但因为 write 要串行，五个 read 也全被拖成串行。</p>
+<p>omp 的做法是让<b>每个工具自己声明</b>，看上面这两行类型：<code>concurrency</code> 是 <code>&quot;shared&quot; | &quot;exclusive&quot;</code>，还可以是一个函数——<b>按调用参数动态决定</b>。比如同一个 bash 工具，跑 <code>ls</code> 是 shared，跑 <code>rm</code> 是 exclusive。<code>interruptible</code> 也一样能动态决定。</p>
+<p>调度器就是这十三行，一条手写的<b>屏障链</b>。逻辑只有一句：<b>exclusive 的工具要等前面所有人跑完，shared 的工具只等上一个 exclusive。</b>我照着代码念一遍：来一个工具，先看它是不是 exclusive；是的话，<code>start</code> 等于 <code>Promise.all([lastExclusive, ...sharedTasks])</code>——等上一个 exclusive <b>加上</b>它之后所有的 shared；不是的话，<code>start</code> 只等 <code>lastExclusive</code>。然后 <code>start.then</code> 挂上真正的执行。如果是 exclusive，就把自己记成新的 <code>lastExclusive</code>，并且<b>把 sharedTasks 清空</b>——因为后面来的 shared 只需要等我，不需要等我之前那些。</p>
+<p>翻译成一句人话：<b>写文件的工具声明 exclusive，只读的工具声明 shared，同一批工具调用就能既并发、又不互相打架。</b>exclusive 在这里的角色就是<b>批次内的写屏障</b>。十三行，零依赖，不需要任何调度框架，你今天写的那个小 agent 就能用上。这是我这次读整个 omp 最想推荐的一段代码——不是因为它复杂，恰恰因为它简单到你没有理由不抄。</p></div><div class="blk must"><span class="lb">别漏了说</span><ul>
+<li>核心规则那一句必须用大白话再说一遍，并且要说清楚<b>为什么</b>——副作用已经发生，杀掉只会让上下文里留下一条谎。issue #4752 这个出处能加可信度。</li>
+<li>pause 和 abort 的区别要点破：&quot;别做了&quot; vs &quot;做完这件别接下一件&quot;。</li>
+<li>右栏那十三行必须明确说明是&quot;照原码语义整理&quot;，不是逐字原文。这是不能省的口径。</li>
+<li>讲那十三行的时候，一定要<b>先讲 pi 的痛点</b>（一个 sequential 拖垮整批），再讲 omp 的解法。只讲解法听众感受不到价值。</li>
+<li>&quot;按参数动态决定&quot;这个点容易被略过，但它才是这段设计比&quot;给工具打个静态标签&quot;高一档的地方。举 <code>ls</code> vs <code>rm</code> 这个例子。</li>
+<li>两层恢复的分界线那句话（循环内不必知道有几个模型 / 会话层不必懂 Harmony）比 1,787 这个数字重要，别只念数字。</li>
+</ul></div><div class="blk qa"><span class="lb">可能被问</span><ul>
+<li>Q：那我插话之后 bash 还在跑，我不是等很久？</li>
+<li class='cont'>A：是。这就是这个设计的代价——它选择了&quot;不丢副作用&quot;而不是&quot;响应快&quot;。但协作式软信号就是给这种情况留的口子：bash 收到软信号可以自愿把自己转后台，让出前台。所以不是完全没辙，是让工具自己决定怎么让路。</li>
+<li>Q：<code>interruptible</code> 由谁来判断？会不会有人乱标？</li>
+<li class='cont'>A：由工具的实现者标。会不会乱标——会，这就是把可变性外包给宿主的代价，跟第 10 页那四十个钩子是同一笔账。omp 内部标 interruptible 的都是纯等待类工具。</li>
+<li>Q：这十三行有 bug 吗？比如 exclusive 后面又来一个 exclusive？</li>
+<li class='cont'>A：第二个 exclusive 会等 <code>Promise.all([第一个 exclusive, 空的 sharedTasks])</code>，也就是只等第一个，是对的。我没有做穷举的正确性验证，只是读了逻辑觉得成立。如果你要抄，自己写几个 case 测一下，别信我。</li>
+<li>Q：<code>TurnRecovery</code> 那 1,787 行值得抄吗？</li>
+<li class='cont'>A：不值得整体抄，值得抄的是那条分界线。你自己的项目里，&quot;HTTP 流坏了&quot;和&quot;模型不行要换&quot;这两件事分不分开，这个决定是免费的；那 1,787 行是他们支持一堆 provider 才需要的。</li>
+<li>Q：为什么用 abort reason 当带内信令，不加个返回值？</li>
+<li class='cont'>A：pi 那边确实是加返回值的——<code>AgentToolResult.terminate</code> 加 <code>shouldTerminateToolBatch</code>。omp 换成了 abort reason。我猜是因为终结 yield 是由会话层监听事件后触发的，那个位置手里只有 <code>agent.abort()</code> 这一个把手，没有工具返回值的通道。但这是我的猜测，不是代码告诉我的。</li>
+</ul></div><div class="blk next"><span class="lb">过渡</span><p>讲完内核里最精细的一块，这一章最后一页我要换个方向——不讲哪里做得好，讲两个名字听起来最厉害、实际最朴素的包。</p></div></section><section class="pg-sec" data-n="13" data-title="打假两则：名字最唬人的两个包，实质都比名字朴素"><h2>P13 · 打假两则：名字最唬人的两个包，实质都比名字朴素</h2><div class="blk cue"><span class="lb">提词</span><ul>
+<li>左栏&quot;常见讲法&quot;= 望文生义，不是点名批评谁 <span class="cue">[重]</span></li>
+<li>metaharness：跨 3 种 benchmark 的实验管理器 + Harbor runner</li>
+<li>private:true · 0.0.1 · 零反向依赖 · 不在生产路径</li>
+<li>swarm：DAG 是真的（Kahn + wave）</li>
+<li>但：无并发上限 / 零重试 / 零数据传递 / 模型无入口 / dag.ts 零测试</li>
+<li>要讲的不是&quot;它们不行&quot;，是&quot;名字不是证据&quot; <span class="cue">[慢]</span></li>
+<li>真有料的：AgentRegistry 四态 + IrcBus</li>
+<li>闭合回第 10 页的 aside <span class="cue">[停]</span></li>
+</ul></div><div class="blk gist"><span class="lb">一句话主旨</span><p><code>metaharness</code> 不是 harness 的 harness，是 benchmark 实验管理器；<code>swarm-extension</code> 是个没有并发上限、零重试、节点间零数据传递的 YAML DAG；真正有料的是没人提的 <code>AgentRegistry</code> 和 <code>IrcBus</code>。</p></div><div class="blk say"><span class="lb">怎么讲</span><p>这一章最后一页，我换个方向。前三页都在讲 omp 哪里做得细，这一页我要拆两个包——<b>名字听起来最唬人，实际最朴素的两个</b>。（停一拍）</p>
+<p>在开始之前，我必须先声明一件事，这很重要。看左边这一栏，标题叫&quot;常见讲法&quot;。<b>这不是我在引用谁、也不是在点名批评哪篇文章。</b>这一栏写的是<b>按包名望文生义的典型误读</b>——就是任何人第一次在包列表里看到 <code>metaharness</code> 和 <code>swarm-extension</code> 这两个名字，脑子里最可能自动补出来的那个东西。我把它写出来，是因为我自己第一次看到就是这么想的，而且我猜在座有一半人刚才看到标题也是这么想的。所以这一页打的不是别人的假，是<b>打名字的假</b>。</p>
+<p>第一则，<code>metaharness</code>。左边这个虚线框是望文生义版本：harness 的 harness，一个能包住各种 agent harness 的抽象层，属于生产链路的上层。听起来很厉害对吧？（停一拍）右边是实情：它是一个<b>跨三种 benchmark 的统一实验管理器，外加一个 Harbor runner</b>。三种 benchmark 硬编码在 <code>store.ts:19</code> 一行里：<code>harbor | edit | snapcompact</code>。它自己<b>不定义任务、不写 verifier、不评分</b>——评分是各 benchmark 原生产物给的，它只做 adapter 归一化，那个归一化的分发口一共<b>三行 if</b>。所以&quot;meta&quot;的准确含义不是&quot;元 harness&quot;，是 <b>meta-over-harnesses</b>——跨多个 benchmark 的实验管理层。</p>
+<p>怎么知道它不在生产路径上？看这行：<code>private: true</code>，版本停在 <b>0.0.1</b>，全仓库对它的反向依赖是<b>零</b>——除了它自己的 package.json 和根目录一条 dev 脚本，<code>coding-agent</code>、<code>agent</code>、<code>tui</code> 谁都不 import 它。而且它跑起来的前置条件是开发者机器专属的：宿主上要有 pm2 跑的 auth-gateway、要有 harbor CLI、要有 Docker、要有 uv。这是<b>一个人自己的实验台</b>，不是产品的一部分。</p>
+<p>第二则，<code>swarm-extension</code>。左边望文生义版本：YAML 声明一张 DAG 就能编排多 agent，模型自己能触发，失败会重试，中断了还能续跑。（停一拍）右边逐条来。<b>DAG 是真的</b>——Kahn 算法环检测、wave 分层，<code>dag.ts</code> 里写得挺正经，整个包 1,795 行。但接下来四条：<b>并发上限——没有。</b>wave 内部是 <code>Promise.all</code> 全并行，无界；50 个节点就是 50 个并发子会话。而且宿主那个 <code>task.maxConcurrency</code>（默认 32）救不了它，因为那个信号量只在 <code>task</code> 工具的 spawn 路径上 acquire，swarm 是直接调 <code>runSubprocess</code>，绕过去了。<b>重试——零。</b>pipeline、executor、dag 三个文件里没有任何 retry 或 backoff。节点失败也不剪枝下游：per-agent 的 try/catch 把异常转成 <code>exitCode: 1</code> 的合成结果，wave 是启动前一次性算好的，之后不重算，所以依赖全挂的节点照样执行，只是磁盘上没有它要的输入。<b>节点间零数据传递</b>——没有变量插值、没有模板、没有结果回填。那个叫 <code>reports_to</code> 的字段，名字看起来像数据流，实际<b>只是一条排序边</b>。README 自己写得很直白：&quot;It does not pass data between them. Agents communicate through files in the shared workspace.&quot; 也就是说，<b>它们靠往同一个目录里写文件来通信</b>。<b>模型无自主入口</b>——整个包只注册了一个 slash command，<code>registerTool</code> 一次都没调用，尽管扩展 API 是支持的。最后，<code>dag.ts</code> 的拓扑排序、环检测、wave 构建，<b>零测试覆盖</b>——唯一那个测试 mock 掉了 <code>runSubprocess</code>，只断言了一个回归。</p>
+<p>（停一拍）看中间这个紫框，这是本页的主张，我念一下：<b>要讲的不是&quot;它们不行&quot;，是&quot;名字不是证据&quot;。</b>这句话我要展开一下。metaharness 值得抄的不是代码，是它的<b>四层数据模型</b>——experiment → arm → run → trace，还有&quot;跑分脚本也要有 schema&quot;这个态度。它那个统计口径严谨到什么程度？代码注释里写着：所有观测统计只在<b>已判定</b>的 trial 上算，分子分母同一个总体；因为 <code>run.costUsd</code> 包含在飞 trial 的累计花费，早期拿它除以已判定数会<b>严重高估</b>每任务成本。这个意识比代码值钱。swarm 值得记的是<b>边界</b>：模型自主决策和声明式编排在这里被<b>硬切开</b>了——不是做得不够，是刻意不做。</p>
+<p>底下这行是我给的一个通用手艺：<b>判断一个包重不重要，看两样——反向依赖有几个，测试覆盖到哪。</b>这两个指标不需要你读懂代码就能查，五分钟出结论。</p>
+<p>最后看右半页，这才是我想让大家带走的：<b>真正有料的两个，反而不显山露水。</b></p>
+<p>第一个，<code>AgentRegistry</code>，217 行。进程内所有 agent——主会话加每一个子代理——登记成一张表，<b>带真正的状态机</b>：<code>running</code> 是有一个 turn 在飞；<code>idle</code> 是会话还活在内存里等活干，注意<b>干完活的 agent 是 idle，不是被移除</b>；<code>parked</code> 是会话已经销毁了，但 <code>AgentRef</code> 和 sessionFile 留着，<b>可以复活</b>；<code>aborted</code> 是硬杀，终态。配套的 <code>AgentLifecycleManager</code> 455 行，idle 超过 TTL 就 park，需要的时候 revive。park 和 revive 之间的并发被显式 gate 住并按 id 合并，而且每次操作绑定到<b>确切的那个 AgentRef</b>——防止一个旧的 revive 覆盖掉一个新的同 id ref。这种细节只有被并发 bug 咬过才写得出来。</p>
+<p>第二个，<code>IrcBus</code>，agent 之间的邮箱，信箱容量 100。它的关键性质写在文件头注释里：<b>send 从不阻塞在&quot;对方生成了什么&quot;上</b>。收件人 parked 就经 lifecycle manager 复活它，idle 就用一个真实 turn 唤醒它，busy 就在下一个 step 边界给它一条<b>非中断的 aside</b>。</p>
+<p>（停一拍）看到这儿，这一章就闭合了——<b>这个 aside，就是第 10 页右边那个橙色盒子</b>。第 10 页我说 aside 有三个生产者：IRC 消息、advisor 的评审意见、中途 todo 对账，它们一起注册在 <code>agent-session.ts:1140-1147</code>。现在你知道 IRC 那一条是从哪来的了。而且还记得我说 aside 是<b>惰性 thunk</b>吗——注入那一刻才求值，返回 null 就丢掉。放在这个语境下就更好理解了：一条 agent 间的消息在排队等待期间可能已经过时了，惰性求值让它有机会在最后一刻自己撤回。</p>
+<p>最后一行：<b>上游 pi 完全没有子代理系统。</b>这次我 grep 了 <code>subagent</code>、<code>spawnAgent</code>、<code>Task tool</code>，在 pi 的 <code>coding-agent</code> 和 <code>agent</code> 两个包里<b>零文件命中</b>，也没有 <code>task/</code> 目录。所以这一整块大约 430 KB 是 omp 净新增，是&quot;omp vs pi&quot;面积最大的一块。这一条我用的是&quot;零命中&quot;这个事实，不是&quot;omp 加了 pi 没加&quot;这个判断——不过这次方向反了，是 omp 有 pi 无，所以那条口径纪律在这里不构成风险。</p></div><div class="blk must"><span class="lb">别漏了说</span><ul>
+<li>开场那个声明必须完整讲：左栏是<b>按包名望文生义</b>，不是引用谁、不是点名批评。这一页最容易被误解成攻击，一定要先把话说明白。而且要说&quot;我自己第一次也是这么想的&quot;，把姿态放平。</li>
+<li>&quot;meta 的准确含义是 meta-over-harnesses&quot;要说清楚，这是打假的落点，不然只是&quot;它没那么厉害&quot;这种空话。</li>
+<li>swarm 那五条要<b>逐条念</b>，一条都别合并。这一页的说服力全在密度上。</li>
+<li>&quot;DAG 是真的&quot;要先说，再说后面那五条。先给肯定再给否定，这一页才不像抹黑。</li>
+<li>&quot;判断包重不重要看反向依赖和测试覆盖&quot;这条手艺一定要给出来——这是听众唯一能立刻用上的东西。</li>
+<li>右栏闭合回第 10 页那一下要指着页面做，跨页的呼应是这一章结构感的来源。</li>
+<li>metaharness 那个统计口径的注释（只在已判定 trial 上算）如果时间够一定要讲，这是全篇最能体现&quot;研究工具气质&quot;的一段。</li>
+</ul></div><div class="blk qa"><span class="lb">可能被问</span><ul>
+<li>Q：你是不是在黑这个项目？</li>
+<li class='cont'>A：不是。这两个包都是 <code>private</code> 或者 opt-in 的扩展，作者从来没宣传过它们有多强——<b>是名字在暗示，不是作者在承诺</b>。我拆的是名字给人的预期，不是作者的水平。而且同一页我也把 <code>AgentRegistry</code> 和 <code>IrcBus</code> 拎出来夸了，那两个的工程质量明显高一档。</li>
+<li>Q：swarm 没有并发上限，实际会出问题吗？</li>
+<li class='cont'>A：按代码看会——50 个节点就是 50 个并发子会话，每个都是真的 LLM 会话。但我没实跑过，本机没有 bun，所以我只能说代码路径上没有闸门，说不了&quot;实际炸了&quot;。</li>
+<li>Q：那个 <code>omp-swarm</code> 全局 bin，模型能通过 bash 调起来吗？</li>
+<li class='cont'>A：理论上能——它是全局安装的 bin，模型手里有 bash，README 甚至推荐 <code>nohup ... &amp; disown</code> 的用法，那会完全脱离会话生命周期和 abort 信号。但我没找到任何针对它的权限 allow/deny 条目，也没实测过是不是被权限策略拦住。所以这条我标的是存疑，不是结论。这是<b>意外通路，不是设计</b>。</li>
+<li>Q：metaharness 是不是从 <code>packages/terminal-bench</code> 改名来的？</li>
+<li class='cont'>A：我怀疑是——<code>docs/user-facing-packages.md</code> 里还在描述一个 <code>packages/terminal-bench</code>，bin 叫 <code>tb2</code>，但那个目录在当前树里已经不存在了，功能描述跟 <code>metaharness/src/runner.ts</code> 高度重合。但我<b>没有在 git history 里核实过</b>，所以只能算怀疑。</li>
+<li>Q：<code>AgentRegistry</code> 那套 park / revive，对我有用吗？</li>
+<li class='cont'>A：只有当你有很多长期存活的子 agent、内存扛不住的时候才有用。单会话的 agent 完全不需要。这是典型的&quot;规模逼出来的设计&quot;，不是&quot;好设计&quot;。</li>
+<li>Q：pi 完全没有子代理，那 pi 怎么做多 agent？</li>
+<li class='cont'>A：本次基准下我在 pi 里没找到对应实现。至于它是打算不做、还是用别的方式做，我答不了。</li>
+</ul></div><div class="blk next"><span class="lb">过渡</span><p>内核这一章就到这儿——我们看清了循环长什么样、包怎么切、abort 怎么分。但循环每转一圈，上下文就更长一分，这才是所有 agent 真正的天花板。下一章我们钻进 omp 最有争议的一块：上下文压缩。</p></div></section><section class="pg-sec" data-n="14" data-title="第 03 章 · 上下文"><h2>P14 · 第 03 章 · 上下文</h2><div class="blk cue"><span class="lb">提词</span><ul>
+<li>三十秒过，交代位置</li>
+<li>章问题：上下文满了，除了让模型写摘要还能怎么办 <span class="cue">[重]</span></li>
+<li>进度点第三个亮，前两个已灰</li>
+<li>右侧四页：15 缩微胶片 / 16 压缩率 / 17 主动降 / 18 hashline</li>
+<li>三页在纠错，这是刻意的 <span class="cue">[慢]</span></li>
+<li>紫色框：两个设计都不聪明，只是把「模型可能骗你」写成代码约束 <span class="cue">[停]</span></li>
+</ul></div><div class="blk gist"><span class="lb">一句话主旨</span><p>这一章只看两件东西——历史怎么换个载体存下来，文件怎么才不被改错行；而且四页里有三页是在纠正我上一讲讲错的话。</p></div><div class="blk say"><span class="lb">怎么讲</span><p>上一章讲完内核，我们进第三章，上下文。这一页我还是走得快，三十秒，只交代位置。（停一拍）先看左边这行加粗的问题——<b>&quot;上下文满了，除了让模型写摘要，还能怎么办？&quot;</b>——整章就回答它。为什么这个问题值得单开一章？因为几乎所有 agent 框架在这件事上的答案都是同一个：满了就叫模型写个摘要，把摘要塞回去。这条路能走，但它有个很尴尬的性质，我在第 16 页会展开。omp 给了另一条路，而且这条路的取舍非常干净，干净到适合当教材。再往下这段小字我念一半：这一章看两件东西——<b>历史怎么被换个载体存下来</b>，和<b>文件怎么才不被改错行</b>。前三页是第一件事，最后一页是第二件事。然后请注意这句话，我要专门说一下：<b>四页里有三页在纠正上一篇讲错的话</b>。这不是我谦虚，这是本讲的结构性事实——第 3 页那三条更正，其中两条的展开就落在这一章，第 15 页展开&quot;点阵图&quot;那条措辞，第 18 页展开&quot;靠指纹兜底&quot;那条。所以这一章你会反复看到同一个版式：左上角红框写<b>常见讲法</b>，右上角紫框写<b>实情</b>。我讲的时候会真的先把常见讲法念出来，再拆它——因为常见讲法里往往有一半是对的，直接跳到结论你就不知道自己错在哪一半。看这排进度点，第三个亮了，前两个已经变灰。右边是本章四页的清单，编号 15 到 18，每条底下那行小字就是该页的结论，我不逐条念，你们扫一眼。最后念一下底下这个紫框，它是我给这一章的总结论：<b>这一章的两个设计都不聪明，只是把「模型可能骗你」写成了代码约束</b>。snapcompact 是不信模型的摘要，hashline 是不信模型的记忆。就这么两句话。</p></div><div class="blk must"><span class="lb">别漏了说</span><ul>
+<li>&quot;三页在纠错&quot;要说出口，并且和第 3 页的更正卡挂上钩——听众要知道这不是零散的认错，是有结构的展开。</li>
+<li>&quot;常见讲法 / 实情&quot;这个版式要在这里先交代一次，后面三页就不用每次解释版式了。</li>
+<li>那句&quot;把模型可能骗你写成代码约束&quot;是本章的钥匙，预告一次，第 18 页收尾时再说一次。</li>
+</ul></div><div class="blk qa"><span class="lb">可能被问</span><ul>
+<li>Q：上下文压缩不是应该讲 RAG / 向量库吗？</li>
+<li class='cont'>A：那是&quot;找回外部知识&quot;，这一章讲的是&quot;会话历史本身放不下了怎么办&quot;，是两件事。omp 里也有记忆系统，但那在 CH6，而且它的记忆是规则驱动的，不是向量检索。</li>
+<li>Q：为什么只有四页？上下文不是最大的话题吗？</li>
+<li class='cont'>A：是，所以我砍得很狠。四层淘汰策略、token 预算切分、<code>bytes/4</code> 这个默认计数器的坑，全都没上页，在仓库 <code>research/R03-context.md</code> 里。这四页我选的标准是&quot;能纠正一个流行误解&quot;。</li>
+</ul></div><div class="blk next"><span class="lb">过渡</span><p>那我们从最容易被讲错的那个开始——先说一句：上一讲我用了&quot;点阵图&quot;这三个字，方向对，措辞不准。下一页把它改对。</p></div></section><section class="pg-sec" data-n="15" data-title="snapcompact 是缩微胶片，不是点阵图"><h2>P15 · snapcompact 是缩微胶片，不是点阵图</h2><div class="blk cue"><span class="lb">提词</span><ul>
+<li>先念常见讲法：把历史「画成点阵图」</li>
+<li>上一讲就是我这么讲的 <span class="cue">[重]</span></li>
+<li>实情：印刷，不是画图；模型做的是 OCR</li>
+<li>四步：序列化归一化 / 中央凹排版 / Rust 光栅化 / 模型读回</li>
+<li>真点阵字体文件：X.org 5x8、unscii 8x8、Silver 兜底</li>
+<li>名字 = microfiche，注释自称档案管理员翻胶片</li>
+<li>右栏：零 LLM 调用要加限定词——零<i>额外</i>调用 <span class="cue">[慢]</span></li>
+<li>帧此后每轮重附，按 vision token 计费</li>
+<li>三重夹逼：80 帧 → 3MB 预算压到 17 帧</li>
+<li>怎么念才不误导：✓「压缩这一步零额外调用」 ✗「这套方案零成本」 <span class="cue">[停]</span></li>
+</ul></div><div class="blk gist"><span class="lb">一句话主旨</span><p>它不是把历史画成信息图，是用点阵字体把历史<b>印</b>成 PNG，让 vision 模型 OCR 读回——排版印刷，不是可视化。</p></div><div class="blk say"><span class="lb">怎么讲</span><p>先看左上角红框，我把常见讲法原样念一遍：<b>&quot;把丢弃的历史画成点阵图&quot;</b>。这句话里&quot;点阵&quot;两个字是对的，&quot;画成图&quot;是误导的。（停一拍）我得先认个错——<b>上一讲这一页就是我这么讲的</b>。第 3 页那三条更正里的第二条就是它。为什么这个措辞会误导？因为你听到&quot;画成点阵图&quot;，脑子里浮出来的是热力图、散点、色块矩阵，是<b>信息可视化</b>——好像它把一段对话抽象成了某种视觉编码。不是的。看右上角紫框：实际做的事是<b>把历史用点阵字体印成缩微胶片</b>。PNG 上就是一行行逐格印出来的、你我肉眼也能读的文字。模型读回的时候做的是 <b>OCR</b>，不是读图表。所以正确的比喻是排版印刷，不是数据可视化。（停一拍）为什么我要为这三个字较真？因为它直接决定了后面两页怎么算账——如果是可视化，那&quot;压缩率&quot;就是个信息论问题；既然是印刷，压缩率就变成了一个很土的问题：<b>一张图能印多少字符、这张图按多少 token 计费</b>。这就是下一页那张表的全部内容。</p>
+<p>往下看这四步流水线，我快速过。① 序列化加归一化：把要丢弃的消息压成 <code>¶user</code> <code>¶think</code> <code>¶ai</code> <code>¶call</code> 四种前缀的紧凑文本，然后剥掉 ANSI 颜色码、折叠空白，换行折成一个实心方块 <code>█</code>——注意这一步<b>已经是有损的</b>，工具结果每条封顶 2000 字符，而且是掐头留尾，注释说理由是&quot;报错和测试失败通常落在尾部&quot;。② 排版，这一步最值得看，叫<b>中央凹</b>布局，foveation，就是人眼视网膜中央清晰、周边模糊那个词：时间轴的<b>两端</b>——会话最开头和最近这一段——保留纯文本，因为这两块要能被精确检索；<b>中段</b>才成像；中段的中段再降质，超预算就从最老的那一端整段丢。③ 光栅化，这一步在 Rust 里，一千七百多行，用的是<b>真实的点阵字体文件</b>——X.org misc 的 5x8、6x12、8x13，unscii 的 8x8，还有个 TrueType 兜底字体叫 Silver。这些是字体文件，不是他们自己画的像素。④ 模型读回，前置条件写在这儿：模型的 input 必须包含 <code>image</code>，不支持图片的模型直接降级回 LLM 摘要。而这一步是 OCR，所以&quot;读不读得出来&quot;就变成了一个<b>可以打分的指标</b>——下下页整页都在讲它怎么塌的。底下这个紫框是名字的由来：snapcompact 约等于 microfiche，缩微胶片；注释原话是 &quot;like an archivist at a snapcompact frame reader&quot;，作者自己就把这套东西比作档案管理员在阅读器上翻胶片。名字已经把意图说完了，是我们上一讲没读到位。</p>
+<p>（停一拍）现在看右边这一栏，这是本页第二个要纠的说法，而且是我更在意的一个。红框：<b>&quot;零 LLM 调用 = 零成本&quot;</b>。第一句&quot;零 LLM 调用&quot;我上一讲也说了，它<b>准确</b>，但少了一个限定词，少了这个词就会把人带沟里。紫框给限定词：是零<b>额外</b>调用。压缩这一步确实完全本地完成——Rust 光栅化，不要 API key、不走网络、没有推理延迟、结果可复现，这几条都是真的，含金量也很高。但是——看下面这三个盒子：轮 T 压缩发生，额外 LLM 调用 0 次；轮 T+1，这 N 帧图要<b>重新附上去</b>，按 vision token 计费；轮 T+2，再附一次，再计一次费，一直到下次压缩重排为止。所以省的是<b>一次推理、一次不确定性、一次幻觉机会</b>，不是 token。token 该花还得花，而且是每轮都花。正因为如此，帧数必须被夹住，看这个琥珀框：<code>MAX_FRAMES_DEFAULT</code> 是 80，注释说这个数是按&quot;装下大约 400k token&quot;选的；但真正生效的是下面这条——<code>FRAME_DATA_BYTES_BUDGET</code> 3 MB，把上限<b>实际压到了 17 帧</b>。理由写得特别实在，我念原话的意思：<i>一个 100 万 token 的模型纸面上放得下 70 张图，但放不下每轮 11 MB 的 JSON payload</i>。这是一句非常工程的话——约束不在 token 数上，在 HTTP body 上。另外还有一条我觉得挺有意思：未知 provider 的图片张数预算只有 5 张，也就是它对没见过的服务商是极度保守的。最后念一下绿框，这是我给自己定的口径，也建议大家这么念：说<b>&quot;压缩这一步零额外 LLM 调用&quot;</b>是对的；说<b>&quot;这套方案零成本&quot;</b>是错的。</p></div><div class="blk must"><span class="lb">别漏了说</span><ul>
+<li><b>必须当众提一句上一讲讲错过</b>，并且点名是第 3 页更正卡的第二条。这一页的可信度全靠这个动作立起来。</li>
+<li>&quot;零 LLM 调用&quot;务必加&quot;额外&quot;两个字，并把&quot;帧此后每轮重附、按 vision token 计费&quot;说出口——这是本页最容易被人带走的一句话。</li>
+<li>中央凹布局要讲清楚&quot;两端留原文&quot;的动机是<b>可精确检索</b>，不是随便留的。</li>
+<li>4 个信息丢失点在页脚小字里，至少点一下&quot;序列化截断是量级最大的那个&quot;，别让人以为成像才是主要损失来源。</li>
+<li><code>¶think</code> 段必然丢失这一条值得单独说半句：把 reasoning 原样喂回 Claude 会触发它的分类器，所以思维链在 compaction 之后是<b>必然</b>没了的，不是可选项。</li>
+</ul></div><div class="blk qa"><span class="lb">可能被问</span><ul>
+<li>Q：为什么不直接存文本？文本不是更好检索吗？</li>
+<li class='cont'>A：这正是下一页要回答的。剧透一句：在 Claude 上确实几乎没差，它换的不是空间，是&quot;不需要模型参与&quot;这件事。</li>
+<li>Q：模型 OCR 读图会不会读错？读错了怎么办？</li>
+<li class='cont'>A：会，而且这是这套方案最大的软肋。第 17 页整页就在讲这个，有具体的 f1 数字。有一点要说清楚：模型在字太小的时候不是读错，是<b>直接拒绝回答</b>。</li>
+<li>Q：这些点阵字体是自己画的吗？</li>
+<li class='cont'>A：不是，是现成的字体文件——X.org misc 那套和 unscii，外加一个 TrueType 的 Silver 做兜底。所以这块没什么魔法。</li>
+<li>Q：本地跑过吗？有没有实际生成的 PNG 可以看？</li>
+<li class='cont'>A：没有。本机没装 <code>bun</code>，snapcompact 的测试一行没跑，我看到的全是代码。这一页的所有说法都是读码所见，页脚标了文件行号。</li>
+</ul></div><div class="blk next"><span class="lb">过渡</span><p>那既然是印刷，账就好算了——一张图印多少字、按多少 token 收费，除一下就完了。下一页这张表是本章最反直觉的一页，我先给结论：<b>在 Claude 上，它几乎不省 token。</b></p></div></section><section class="pg-sec" data-n="16" data-title="压缩率不是重点，确定性才是"><h2>P16 · 压缩率不是重点，确定性才是</h2><div class="blk cue"><span class="lb">提词</span><ul>
+<li>先念常见讲法：变成图就省 token，一图胜千言</li>
+<li>实情：省不省完全取决于 provider 的图片计费模型 <span class="cue">[重]</span></li>
+<li>表从上往下念：Gemini 21.26（×5.3）→ Kimi 6.66 → GPT 4.83 → Claude 4.20（×1.05）→ 纯文本 4.00</li>
+<li>Gemini 为什么白嫖：每图恒定 1120 token，与像素无关</li>
+<li>Anthropic 走 (size/28)² × 1.05，放大就加钱</li>
+<li>⚠ 这张表是按代码公式<b>手算</b>的，不是实测 <span class="cue">[重]</span><span class="cue">[慢]</span></li>
+<li>右栏对照表，重点只在第 4 行：上下文已经爆了 → 摘要不可用 / snapcompact 可用</li>
+<li>鸡生蛋：摘要请求要复用已经溢出的上下文</li>
+<li>卖点是<b>确定性</b>，不是压缩率 <span class="cue">[停]</span></li>
+<li>代价三条：绑死 vision / MB 级 base64 伤缓存 / 降级成 OCR 可读性</li>
+</ul></div><div class="blk gist"><span class="lb">一句话主旨</span><p>Claude 上 4.2 vs 纯文本 4.0 chars/token，几乎打平；真正的卖点是&quot;上下文已经爆了、摘要式压缩恰好失效&quot;的那一刻它还能跑。</p></div><div class="blk say"><span class="lb">怎么讲</span><p>上一页说了，既然是印刷，那就该算账。这一页是本章、可能也是本场最反直觉的一页，所以我讲慢一点。（停一拍）还是先念左上角的常见讲法：<b>&quot;把文本变成图，token 立刻省下来&quot;</b>，理由通常是那句&quot;一张图胜过千言万语&quot;——图肯定比文本便宜。右边紫框，实情：<b>省不省，完全取决于 provider 的图片怎么计费</b>。不是取决于这个算法有多聪明，是取决于人家的价目表。</p>
+<p>看这几根条。我从上往下念，右边这一列是 chars/token，就是&quot;一个 token 能装多少个字符&quot;，越大越省。<b>Gemini 3.x，21.26</b>，对比纯文本基线是 5.3 倍，这根条最长，是唯一一个吃到大红利的。往下 Kimi 和 GLM，6.66，1.67 倍，还行。GPT / Codex，4.83，1.21 倍，聊胜于无。然后是这一根——<b>Claude Opus 4.7 以上，4.20</b>。最底下这根虚线框是纯文本基线，<b>4.00</b>。（停一拍）4.20 比 4.00，<b>×1.05</b>。也就是说，在 Claude 上，你把整段历史印成图，省下来的 token 是 <b>5%</b>。基本等于没省。这个数第一次算出来的时候我以为自己算错了，回去把公式又对了一遍。</p>
+<p>为什么会这样？看这个紫框，答案很简单，简单到有点好笑：<code>familyBilling()</code> 这个函数的 google 分支，<code>frameTokenEstimate</code> 是<b>恒定的 1120，与像素无关</b>。一张图 1120 token，不管你这张图是 512 还是 2048。那作者当然就把 Gemini 那条线的帧放大到 2048px——这是<b>纯白嫖</b>，代码注释里就是这个意思。而 Anthropic 这条线走的是 <code>ceil((size/28)²) × 1.05</code>，是随面积走的，你把图放大，token 就等比涨上去，怎么调都在原地。所以这不是算法差距，是计费模型差距。</p>
+<p>（停一拍）现在讲这一页我最需要说出口的一件事，看底下这个琥珀色的框：<b>这张 chars/token 表是我按代码公式手算的，不是实测</b>。依据两处：几何在 <code>geometry()</code>，计费在 <code>familyBilling()</code>，两个函数的行号都在框里；基线那个 4.0 chars/token 也不是我拍的，是<b>仓库自己注释里的换算口径</b>——它自己的 token 计数器默认就是 <code>bytes/4</code>，所以我用 4.0 做基线，和它自己的会计口径是一致的。但我必须说清楚局限：本机没有 <code>bun</code>，仓库的测试和 <code>research/</code> 下那 80 个 eval 脚本我一个都没跑，那些脚本要真实 API key，结果目录也没入库。如果真实 transcript 更密——里面全是 JSON 和代码，实际可能落在 3.5——那所有比值会上浮 5% 到 25%。<b>方向不会变，Claude 那一行还是打平，但精确到小数点第二位你别信我。</b></p>
+<p>那省不下 token，它到底换来了什么？看右边这张对照表。额外 LLM 调用，摘要 1 次，它 0 次；确定性，摘要每次都不一样，它是纯函数；幻觉风险，摘要有，它没有，因为原文逐字保留只是换了个载体。这三行都好，但都不是决定性的。<b>真正的卖点在第 4 行</b>，我把它标成紫色了：<b>&quot;上下文已经爆了&quot;</b>——LLM 摘要在这一格是<b>不可用</b>，snapcompact 是<b>可用</b>。为什么摘要不可用？看这个紫框：摘要式压缩要先发一次请求让模型写摘要，可<b>那次请求本身要复用已经溢出的上下文</b>。上下文都爆了，你还怎么发这个请求？这是个鸡生蛋。docs 里写得很直白，handoff 策略不用于 overflow 场景，理由就是这个。而 snapcompact 在那一刻依然能跑，因为<b>它根本不需要模型</b>。（停一拍）所以这一页的标题才叫&quot;压缩率不是重点，确定性才是&quot;。这套方案的价值不是&quot;更省&quot;，是&quot;<b>在别的方案失效的那一刻它还在</b>&quot;。这是两种完全不同的价值——一个是效率，一个是<b>兜底能力</b>。工程上后者往往更贵。</p>
+<p>代价我也得对称地念完，看红框：① 绑死 vision 模型，纯文本模型自动降级回摘要；② 每轮重附 MB 级 base64，前缀缓存吃亏——这条挺疼的，因为现在大家都靠 prompt caching 省钱；③ 信息不是被压缩了，是被<b>降级成了 OCR 可读性</b>，f1 在 .287 到 .973 之间剧烈波动，下一页整页讲这个。最后一句看页脚小字：omp 并没有二选一，<code>context-full</code>——也就是 LLM 摘要——完整保留为 fallback，非 vision 模型自动切回去。<b>是互补，不是替代。</b></p></div><div class="blk must"><span class="lb">别漏了说</span><ul>
+<li><b>&quot;这张表是手算的、不是实测&quot;必须讲出口</b>，不能只留在页面上让人自己看。这一页是全场数字密度最高的一页，口径不交代干净，后面所有数字的可信度一起塌。</li>
+<li>基线 4.0 的来源要说清楚是<b>仓库自己的注释</b>，不是我随手取的——这是这张表唯一站得住的支点。</li>
+<li>第 4 行&quot;上下文已经爆了&quot;要专门停一下，这是全页唯一必须被记住的东西。前三行都是铺垫。</li>
+<li>代价三条要念完，不能只夸。特别是&quot;伤前缀缓存&quot;这条，对成本敏感的团队这条可能比 token 本身更重要。</li>
+</ul></div><div class="blk qa"><span class="lb">可能被问</span><ul>
+<li>Q：既然 Claude 上不省，为什么还默认用它？</li>
+<li class='cont'>A：因为默认策略选的不是&quot;最省&quot;，是&quot;最不会失败&quot;。overflow 那条路径上摘要根本发不出去，而这个能跑。另外 omp 是多模型的，同一份代码要同时服务 Gemini 那条线，那边是真省。</li>
+<li>Q：4.2 和 4.0 差这么小，会不会是你算错了？</li>
+<li class='cont'>A：有可能。这就是我标&quot;手算&quot;的原因。公式我核了两遍，几何和计费两个函数都读过，但没实跑。要是有人跑出实测数，我很想知道。</li>
+<li>Q：为什么不用更密的字体把 Claude 那条线也堆上去？</li>
+<li class='cont'>A：<b>试过，失败了</b>。这正是下一页的全部内容——他们试过 33 chars/token 的方案，模型读不出来。</li>
+<li>Q：MB 级 base64 每轮重发，网络和延迟不会有问题吗？</li>
+<li class='cont'>A：会，而且他们撞过。<code>FRAME_DATA_BYTES_BUDGET</code> 那个 3 MB 的硬保护就是为这个加的，注释里说不加的话会出现&quot;HTTP body 收下了，但流到一半 5xx&quot;。</li>
+<li>Q：那 Gemini 那个 1120 恒定计费，是不是随时会变？</li>
+<li class='cont'>A：会。这套账完全建立在 provider 的价目表上，人家改一次计费模型，这张表就要重算。这也是我不敢把这页讲成&quot;结论&quot;的原因。</li>
+</ul></div><div class="blk next"><span class="lb">过渡</span><p>刚才说他们试过更狠的压缩率，结果失败了。下一页就是那次失败的完整记录——而且我认为<b>记录本身</b>比失败更值钱。</p></div></section><section class="pg-sec" data-n="17" data-title="他们主动把压缩率降了一个量级，换可读性"><h2>P17 · 他们主动把压缩率降了一个量级，换可读性</h2><div class="blk cue"><span class="lb">提词</span><ul>
+<li>先念常见直觉：压缩率当然越高越好，字印得越小越省</li>
+<li>实情：压得太狠，模型不是读错，是<b>直接摆烂</b> <span class="cue">[重]</span></li>
+<li>左卡旧线 5x8-sent@2576：165,830 字符/帧，33.0 chars/token，f1 <b>.351</b></li>
+<li>右卡当前 11on16-bw@1568：13,916 字符/帧，4.23 chars/token，f1 <b>.806</b></li>
+<li><b>两个口径别混</b>：字符/帧 11.9×；chars/token 7.8× <span class="cue">[慢]</span></li>
+<li>失败机理：低于 OCR ~16px/char 下限 → abstained，模型拒答</li>
+<li>不是缓慢劣化，是过线断崖 —— 调参找的是那条线在哪 <span class="cue">[停]</span></li>
+<li>⚠ f1 来自代码注释，不是本次实测</li>
+<li>右栏才是重点：eval 写进代码注释，和参数住在一起</li>
+<li>对照我们自己：参数在代码里，结果在某人 notebook 里</li>
+<li>能搬走的一条：魔数旁写清对照组 / 指标 / 时间</li>
+</ul></div><div class="blk gist"><span class="lb">一句话主旨</span><p>作者主动放弃了近一个量级的压缩率去换 OCR 可读性；而更值钱的是元层面的那件事——<b>eval 数字被写进代码注释，和它决定的参数住在一起</b>。</p></div><div class="blk say"><span class="lb">怎么讲</span><p>上一页最后我说他们试过更狠的，这一页就是那次的记录。（停一拍）先念左上角的常见直觉——注意这次我写的是&quot;直觉&quot;不是&quot;讲法&quot;，因为这条基本没人会质疑：<b>&quot;压缩率当然是越高越好，字印得越小，一帧塞得越多，越省钱。&quot;</b> 听起来天经地义。右边实情：<b>压得太狠，模型不是读错，是直接摆烂。</b> 于是他们主动把压缩率砍掉了将近一个量级，换回可读性。</p>
+<p>看这两张对照卡。左边红卡是<b>已废弃</b>的老方案，shape 叫 <code>5x8-sent</code>，帧尺寸 2576px。它有多猛？<b>每帧 165,830 个字符</b>——十六万五千字，一张图。换算成 chars/token 是 <b>33.0</b>，是纯文本的 8.3 倍。这是一个非常漂亮的压缩率。然后看底下这个数：在 opus-4.8 的工具输出 benchmark 上，f1 只有 <b>.351</b>。右边紫卡是当前默认，<code>11on16-bw</code>，1568px：每帧 <b>13,916</b> 字符，chars/token <b>4.23</b>，也就是上一页那个&quot;几乎不省&quot;的数。f1 <b>.806</b>。同一个 benchmark，同一个模型。</p>
+<p>（停一拍）这里我要特别小心地说一件事，因为很容易讲混：<b>这里有两个口径，别混着讲。</b> 按<b>字符/帧</b>看，从 165,830 掉到 13,916，是掉了 <b>11.9 倍</b>；按 <b>chars/token</b> 看，从 33.0 掉到 4.23，是掉了 <b>7.8 倍</b>。这两个数不一样，因为两条线的帧尺寸不同，计费也不同。页面上这个&quot;净换算&quot;框我写的是 <b>压缩率 ÷ 7.8，f1 × 2.3</b>，用的是 chars/token 这个口径，因为它才是真正的&quot;省不省钱&quot;。要是你想说&quot;每帧塞的字少了多少&quot;，那是 11.9 倍。标题写&quot;降了一个量级&quot;是取了个不刺激的说法，你们照哪个口径讲都行，但<b>别在同一句话里混着用</b>。</p>
+<p>失败机理写在注释里，而且非常具体，看这个紫框：<code>&quot;fell below the OCR ~16px/char floor and abstained&quot;</code>。翻译过来是：字号掉到了 OCR 大约每字符 16 像素这条下限以下，然后模型 <b>abstained</b>——<b>弃权</b>。（停一拍）这个词很关键。字太小的时候，模型不是读岔了、认错字了，<b>它是判断自己读不了，然后拒绝回答</b>。所以这条曲线不是缓慢劣化，是<b>过了门槛就断崖</b>。这对调参的含义完全不同：你要找的不是一个最优点，你要找的是<b>那条线在哪儿</b>，然后站在线的安全一侧留出余量。旁边那行小字给了同批的对照组：<code>8on16-bw</code> 是 .755，还不错；而 Gemini 那条线上 <code>doc-8on16-sent-dim</code> 只有 <b>.287</b>——换个模型，同一个现象再现一次，说明这不是 Claude 特有的脾气。</p>
+<p>底下这个琥珀框我必须念：<b>上面这些 f1 来自代码注释，不是本次实测</b>。是作者跑完 bench 之后手写进注释的结论，行号我标了。仓库里<b>没有</b>可复跑的结果文件，<code>research/</code> 下 80 个 eval 脚本全要真实 API key，<code>results/</code> 没入库，本机无 <code>bun</code>，我一行也没跑。所以这些数字的可信度取决于你信不信作者的注释——我倾向于信，因为它连失败机理都写了，但<b>这是引用，不是验证</b>。</p>
+<p>（停一拍）好，现在讲这一页我真正想讲的东西。前面那些数字都是铺垫，右边这一栏才是我把这页放进来的理由。看这个大字：<b>eval 数字被写进代码注释，和它决定的那个参数住在一起。</b> 位置就在 shape 表的<b>正上方</b>——不是 README，不是 wiki，不是某个 Notion 页面。下面这个代码框是节选，你看它长什么样：opus-4.8 配 11on16-bw f1 .806，下面跟着对照组 8on16-bw .755、6x12-dim .351，再下面是 gemini、kimi 各自的胜出项。这意味着什么？<b>意味着任何一个来改这个参数的人，一定会看见当初为什么选它、对照组是谁、差多少。</b> 他不需要去问人，不需要考古。</p>
+<p>对照一下我们自己通常怎么做，看这个红框：参数留在代码里，实验结果留在某个人的 notebook 里、或者某个群的聊天记录里。半年后，<code>1568</code> 这个数是怎么来的没人知道了。<b>然后就没人敢改它</b>——不是因为它对，是因为没人知道动了会怎样。这是我见过最常见的一种技术债，而且它不报警。</p>
+<p>所以能搬走的一条在最下面这个绿框：<b>任何魔数旁边写清三件事——对照组是谁、指标是什么、什么时候跑的。</b> 最后这句我很喜欢，念一下：<b>它不如测试严格，但比测试耐放。</b> 测试会因为环境变了跑不起来、会被人 skip 掉；注释不会，注释跟着代码走，只要那行参数还在，那段注释就还在。</p></div><div class="blk must"><span class="lb">别漏了说</span><ul>
+<li><b>两个口径必须分清</b>：字符/帧 11.9×，chars/token 7.8×。这是本页最容易讲错的地方，混着讲会被现场懂行的人当场抓住。</li>
+<li>&quot;abstained = 弃权，不是读错&quot;要说透，这是整页的机理核心；&quot;断崖不是斜坡&quot;这个判断要跟着一起说，否则听众会以为可以慢慢调。</li>
+<li><b>f1 来自代码注释、非本次实测</b>，要主动交代，别等人问。</li>
+<li>右栏的元层面结论是本页最值钱的部分，不要因为讲数字讲嗨了就把它压成一句带过——如果时间不够，宁可砍掉对照组那几个 f1，也要留住&quot;eval 和参数住在一起&quot;。</li>
+<li>&quot;他们主动降&quot;这个&quot;主动&quot;要强调：这是一次有意识的取舍，不是能力不足。</li>
+</ul></div><div class="blk qa"><span class="lb">可能被问</span><ul>
+<li>Q：f1 具体是怎么测的？测的是什么任务？</li>
+<li class='cont'>A：注释里写的是工具输出的 benchmark，具体的题目构成和评分细节我没查到——脚本在 <code>packages/snapcompact/research/</code> 下，但结果和评测集都没入库。这个我不知道，别照着我说的往外讲。</li>
+<li>Q：为什么标题说&quot;一个量级&quot;，页面上又是 7.8 倍又是 11.9 倍？</li>
+<li class='cont'>A：因为两个口径。字符/帧是 11.9 倍，chars/token 是 7.8 倍。标题取的是不精确但不夸张的说法。哪个都行，别混。</li>
+<li>Q：既然降到 4.23 几乎不省了，那还不如直接用文本？</li>
+<li class='cont'>A：这就回到上一页那第 4 行——它换的不是空间，是&quot;上下文爆了的时候还能跑&quot;。压缩率在这里只是一个约束条件，不是目标。</li>
+<li>Q：16px/char 这个下限是通用规律吗？</li>
+<li class='cont'>A：我不知道。注释里是针对 opus-4.8 的观察，Gemini 那条线上有类似现象但门槛不一定是同一个数。当成&quot;存在一个门槛&quot;来记，别当成常数。</li>
+<li>Q：把 eval 写进注释，注释过期了怎么办？</li>
+<li class='cont'>A：会过期，这是真的代价。我在这个仓库里就抓到过过期注释——比如 compaction 里写着用 <code>cl100k_base</code>，实际默认根本没开那条路。所以这条经验的正确说法是&quot;比没有强&quot;，不是&quot;比测试强&quot;。</li>
+</ul></div><div class="blk next"><span class="lb">过渡</span><p>前三页讲的是&quot;历史怎么存下来&quot;。这一章还剩最后一页，换一件事：<b>文件怎么才不被改错行</b>。而且这一页我又要认一次错——上一讲我说 hashline 靠 4 位指纹兜底，那不是它真正的防线。</p></div></section><section class="pg-sec" data-n="18" data-title="hashline 的防线是 seenLines，不是那 4 个 hex"><h2>P18 · hashline 的防线是 seenLines，不是那 4 个 hex</h2><div class="blk cue"><span class="lb">提词</span><ul>
+<li>先念常见讲法：靠 4 位内容指纹防改错文件</li>
+<li>上一讲也是这么讲的 <span class="cue">[重]</span></li>
+<li>实情：指纹只是索引，真防线是 seenLines</li>
+<li>哪怕指纹对得上，没看过的行照样改不了 <span class="cue">[慢]</span></li>
+<li>流程图从上往下：edit 带 tag 进来 → hash 对得上 / 对不上</li>
+<li>左路正常，但还有一道闸门：锚点行都在 seenLines 里吗</li>
+<li>右路漂移三级：头尾插入放行 → Recovery 重映射 → MismatchError</li>
+<li>Recovery 铁律：所有锚点必须同一偏移量，否则放弃 —— fails closed</li>
+<li>两种报错文案别混：编造 tag vs 文件漂移</li>
+<li>右栏：为什么敢用 16 bit —— 身份是 SnapshotStore 里的全文</li>
+<li>去重条件 hash 相等 <b>且</b> 全文相等，issue #4075</li>
+<li>防绕过：40 行 / 512 列，截断就一行都不并入 <span class="cue">[重]</span></li>
+<li>收尾：指纹答「是不是同一份」，seenLines 答「你有没有资格改」 <span class="cue">[停]</span></li>
+</ul></div><div class="blk gist"><span class="lb">一句话主旨</span><p>真正的约束是&quot;你只能改你亲眼看过的行&quot;；4-hex 指纹只有 16 bit、必然碰撞，作者自己说它只是索引，不是身份。</p></div><div class="blk say"><span class="lb">怎么讲</span><p>最后一页，换一件事讲：文件编辑的安全。（停一拍）老规矩，先念左上角常见讲法：<b>&quot;靠 4 位内容指纹防止改错文件&quot;</b>——读文件的时候给它一个 tag，编辑的时候带上 tag，对不上就拒改。<b>上一讲我就是这么讲的</b>，这是本讲第二次、也是最后一次认错。这个说法不算错，但它把重点说反了。右边实情：<b>指纹只是索引，真防线是 <code>seenLines</code></b>。而且这句话要说得更狠一点——<b>哪怕指纹对得上，你没看过的行照样改不了。</b></p>
+<p>跟着这张流程图走一遍。最上面：一个 edit 请求进来，带着 <code>[src/foo.ts#1A2B]</code> 这样一个 section header，<code>1A2B</code> 就是那 4 位 hex。第一个分叉：全文 hash 对不对得上。先走左边这条顺路——对上了，文件没变。按常见讲法，到这儿就该放行了对吧？<b>不放。</b> 看这个紫框，还有一道闸门：<b>锚点行，是不是每一行都在 <code>seenLines</code> 里？</b> <code>seenLines</code> 是什么？是 <code>read</code> 和 <code>search</code> <b>实际显示给模型看过</b>的行号集合，1-indexed。注意这里有个细节：范围读、折叠式的结构摘要，只会填一个<b>稀疏集合</b>——你 read 了 100 到 120 行，那 seenLines 里就只有这 21 个数，别的行你没见过。过了这道闸门才 applyEdits；有没看过的行，直接拒绝，而且<b>把那些行的真实内容贴回去给模型</b>。</p>
+<p>它防的是什么？看右下角这个框，注释原话：<code>&quot;editing lines the model has not seen is the off-by-memory mistake that mangles files&quot;</code>——<b>模型凭记忆去改它没看过的行，这是把文件搅烂的那类错误</b>。这句话我觉得说得特别准。模型对一个文件&quot;大概长什么样&quot;是有先验的，它见过一万个类似的文件，所以它很敢下手。<code>seenLines</code> 干的事就是把这个先验掐掉：你<b>这一次</b>看到了什么，你才能改什么。</p>
+<p>再走右边这条路，hash 对不上，文件漂移了。这里是个三级台阶，不是一刀切拒绝。① 先问：这次编辑是不是只在头部或尾部插入？如果是，那它没有锚点作用域，插在哪儿都不会改错地方，<b>带个警告放行</b>——这是个很务实的口子。② 不是的话进 <code>Recovery</code>，三方重映射：拿旧文本和新文本做 diff，只收录<b>未改动</b>的行段建映射表，锚点必须落在这些未改动的行上，锚点上下相邻的非锚点行也必须同步位移；然后是这条铁律——<b>所有锚点必须是同一个偏移量，否则整个放弃</b>。文件头写的原则叫 <code>fails closed</code>：<b>只要目标变了或者变得有歧义，就失败</b>，宁可不修。③ 还不行才抛 <code>MismatchError</code>。这里有个细节我很喜欢：报错文案分两种，<b>别混</b>。如果这个 tag 根本不是本会话产生的——查快照库查不到——报错是&quot;你把 tag 编出来了，或者用了上一次会话的 tag，永远不要发明 tag&quot;；如果 tag 认识但文件变了，报错是&quot;文件在你读完之后被改了，去抄上一次响应里的新 header，或者重读&quot;。<b>这是两个完全不同的失败模式，给模型两句完全不同的话。</b> 这个区分很值钱——大部分工具报错只有一句&quot;hash mismatch&quot;，模型看了不知道该干嘛。</p>
+<p>（停一拍）现在看右边这一栏，回答那个最容易被问的问题：<b>为什么敢只用 16 bit？</b> 上面这个代码框：先归一化——每行去掉尾部空白、吃掉 CR，这样 CRLF 和显示时被裁掉的尾空白不会让 tag 失效；然后 <code>xxHash32</code> 取低 16 位，输出 4 个大写 hex。取值空间只有 <b>65,536</b>。这个空间小到什么程度？一个会话里读几十上百个文件版本，撞上的概率是完全不能忽略的。所以看下面这个框：<b>会碰撞，但无所谓。</b> 因为 tag 只负责一件事——<b>快速认出&quot;这次读的是哪一版&quot;</b>；认出来之后，真正拿去比对的是快照里<b>逐字保存的全文</b>。注释原话：<code>&quot;the tag is only a fast index, never the identity&quot;</code>。回到左边这个紫框验证一下：<code>SnapshotStore</code> 的去重条件写死成 <code>v.hash === hash &amp;&amp; v.text === fullText</code>——<b>hash 相等还不够，全文也得相等才算同一版</b>。注释还点名了 issue #4075：如果只按 tag 合并，两段不同的内容撞了同一个 tag，就会把 B 的 <code>seenLines</code> 挂到 A 的文本上，patcher 从此开始误判。这是个真实踩过的坑。</p>
+<p>最后这个红框是我最想让大家记住的一个设计细节，<b>防绕过</b>。刚才说拒绝的时候会把没看过的行的真实内容贴回去，让模型一次就能自纠——这很贴心。但这里藏着一个漏洞：如果贴回去的行自动就算&quot;看过了&quot;，那模型只要<b>反复触发拒绝</b>，就能一点点把整个文件&quot;看&quot;完，盲改照样塞进去。所以上限卡死：<b>一次最多揭示 40 行、每行最多 512 列</b>。而且——<b>只有当揭示是完整覆盖的时候，这些行才并入 <code>seenLines</code>；一旦碰到上限被截断，就一行都不并入</b>。一行都不。为什么？因为如果截断了还并入一部分，模型就可以<b>把请求切成 40 行以下的小块反复重试</b>，把盲改硬塞进去。（停一拍）我觉得这个细节能说明作者是真的在跟模型的行为对抗，而不是在写一个理想化的校验器。他假设了模型会尝试绕过——不是恶意，是模型天然会&quot;再试一次换个写法&quot;。</p>
+<p>收尾看绿框这一句，这也是整章的收尾：<b>指纹回答&quot;是不是同一份&quot;，<code>seenLines</code> 回答&quot;你有没有资格改&quot;。</b> 这两个问题不是一个问题。而这，就是我在章扉页说的那句话——<b>这一章的两个设计都不聪明，只是把&quot;模型可能骗你&quot;写成了代码约束</b>。snapcompact 不信模型的摘要，hashline 不信模型的记忆。都不是什么高级算法，就是在关键位置上装了一道不讲情面的闸门。</p></div><div class="blk must"><span class="lb">别漏了说</span><ul>
+<li><b>必须提上一讲讲错过</b>，这是本讲第二次也是最后一次认错，和第 3 页的更正卡呼应。</li>
+<li>&quot;哪怕指纹对得上，没看过的行照样改不了&quot;这句要说出口——这一句就把常见讲法和实情的差别讲完了。</li>
+<li>16 bit 会碰撞这件事要主动挑明，并立刻给出为什么无所谓（身份是全文快照）。不主动说，听众会自己在心里给这个设计判死刑。</li>
+<li><b>防绕过那 40 行 / 512 列、以及&quot;截断就一行都不并入&quot;必须讲</b>，这是全页最能体现设计水平的地方，也是最容易被略过的地方。</li>
+<li>两种 MismatchError 文案的区分要说，别只说&quot;会报错&quot;。</li>
+<li><code>fails closed</code> 这个词值得点名，它是 Recovery 的设计哲学，一句话能带走。</li>
+</ul></div><div class="blk qa"><span class="lb">可能被问</span><ul>
+<li>Q：<code>seenLines</code> 会不会太严了？模型改个大文件得先全读一遍？</li>
+<li class='cont'>A：不会全读，但确实要读到你要改的那一段。仓库里有一份真实会话统计：<b>一半的编辑只有一个 hunk，中位数只改 5 行</b>。所以绝大多数情况下这个约束根本不碰边。这个数据也正好解释了为什么值得为&quot;改错行&quot;做这么重的防护——改动本身很小，改错的代价很大。</li>
+<li>Q：这套东西实际效果怎么样？有数据吗？</li>
+<li class='cont'>A：有一份<b>真入库</b>的 benchmark，<code>packages/typescript-edit-benchmark/all_models_results.json</code>，是编辑维度不是压缩维度。haiku-4.5 单次编辑成功率 88.5%，minimax-m2.5 88.2%，deepseek-v3.2 是 100% 但只编辑了 13 次、任务成功率只有 55%——它大量在空转。这份数据我没跑，是仓库里带的。</li>
+<li>Q：4 位 hex 换成 8 位不就没这问题了吗？</li>
+<li class='cont'>A：可以，但没必要——因为它本来就不承担安全责任。加长它只会让 tag 更难被模型正确复制，而正确性由全文快照保证。这是个&quot;故意做短&quot;的选择。</li>
+<li>Q：如果文件是被外部（比如另一个终端）改的，会怎样？</li>
+<li class='cont'>A：走 Recovery 那条路，成功的话会带一条专门的警告文案区分成因——外部改的、本会话前一次编辑改的、只是行号位移，三种警告文案不一样。</li>
+<li>Q：<code>seenLines</code> 存在哪儿？会不会很占内存？</li>
+<li class='cont'>A：在 <code>SnapshotStore</code> 里，有边界：30 个路径 LRU、每个路径最多 4 个版本、总计 64 MiB，单文件超过 4 MB 直接不做快照。页脚小字有。</li>
+<li>Q：这套设计能直接搬到我们自己的编辑工具上吗？</li>
+<li class='cont'>A：<code>seenLines</code> 这个思路能搬，而且成本很低——你只要记住 read 返回过哪些行号就行。指纹那套要不要搬看你，但记住它不是防线。</li>
+</ul></div><div class="blk next"><span class="lb">过渡</span><p>上下文这一章到这儿讲完了——一句话收：<b>它俩都不聪明，只是不信模型。</b> 下一章换一层，往下走到模型层：模型这么多家，agent 到底需要知道些什么？第一页我先给一个能让人头皮发麻的数字。</p></div></section><section class="pg-sec" data-n="19" data-title="第 04 章 · 模型层"><h2>P19 · 第 04 章 · 模型层</h2><div class="blk cue"><span class="lb">提词</span><ul>
+<li>三十秒过，交代位置就走</li>
+<li>章问题：模型这么多家，agent 到底要知道些什么</li>
+<li>两页 = 数据（catalog）+ 协议（dialect）</li>
+<li>七个点，第四个亮</li>
+<li>共用前提：每条假设都得有人替你验过 <span class="cue">[重]</span></li>
+<li>编译成制品：4,106 条 + 11 份方言 <span class="cue">[慢]</span></li>
+</ul></div><div class="blk gist"><span class="lb">一句话主旨</span><p>这一章只有两页，但它们对着两件完全不同的事——一页讲数据，一页讲协议。</p></div><div class="blk say"><span class="lb">怎么讲</span><p>上一章我们把上下文这条线走完了，现在换一个维度——模型层。这一页我走得快，三十秒，它只交代位置。（停一拍）左边大大的 04，下面&quot;模型层&quot;三个字，是本章的名字。加粗那行问题——&quot;模型这么多家，agent 到底需要知道些什么？&quot;——本章只回答它。往下这段小字我不逐字念，但它的结构必须说出来：<b>这一章只有两页，而这两页对着的是两件完全不同的事</b>。一页讲<b>数据</b>，就是模型的元数据——价格、上下文窗口、能不能思考——为什么必须自己建一个库；另一页讲<b>协议</b>，就是 native tool calling 这条路被上游做坏的时候，你拿什么兜底。这两件事经常被混成一句&quot;要做好模型适配&quot;，但它们的代价、做法、失败模式完全不一样，所以我把它们拆开。再看这排小圆点，第四个是亮的，我们已经走过一半了。右边是本章的小目录，20 页叫&quot;靠猜必错&quot;，21 页叫&quot;dialect：为 native 通道的失败模式兜底&quot;。最后看右下角这个琥珀色边框的框，它是这两页共用的前提，也是我想让大家带走的那句话：<b>模型侧的每一条假设，都得有人替你验过</b>。你以为的&quot;Claude Sonnet 4.5 的上下文窗口是 20 万&quot;，这个&quot;以为&quot;要么来自某篇博客，要么来自你上个月的记忆，它就是个假设。omp 的选择是把这些假设全部编译成制品——一份 4,106 条记录的快照，加十一份方言语法说明。它没有让模型层&quot;更聪明&quot;，它只是把假设变成了可以 diff、可以 review 的文件。</p></div><div class="blk must"><span class="lb">别漏了说</span><ul>
+<li>&quot;两页对着两件不同的事&quot;要说清楚，别让听众以为这一章就是笼统的&quot;模型适配&quot;。数据和协议是两条独立的线。</li>
+<li>&quot;每条假设都得有人替你验过&quot;是本章的钥匙，两页结尾我都会回扣它，这里要先埋。</li>
+<li>别在这页展开任何数字，20 页有的是数字。这页多说一秒都是浪费。</li>
+</ul></div><div class="blk qa"><span class="lb">可能被问</span><ul>
+<li>Q：模型层为什么只有两页？auth、provider 路由不讲吗？</li>
+<li class='cont'>A：讲不完。auth broker 那套&quot;唯一写者 ≠ 唯一进程&quot;我原本准备了一页备选，如果时间够会插在这一章后面；provider 路由和 14 种 API 协议我全放进了仓库的 research/R04。这里的取舍是：只留下&quot;你自己造 agent 时一定会撞上&quot;的两件事。</li>
+<li>Q：这一章和第一篇讲的模型选型有关系吗？</li>
+<li class='cont'>A：没有直接关系。第一篇讲的是&quot;该用哪个模型&quot;，这一章讲的是&quot;选定之后，你怎么知道它的参数&quot;。是两个问题。</li>
+</ul></div><div class="blk next"><span class="lb">过渡</span><p>那我们从数据这一半开始——下一页我用两个具体的模型，告诉你为什么&quot;猜&quot;是不行的。</p></div></section><section class="pg-sec" data-n="20" data-title="靠猜必错：543 个同名模型里，376 个价格对不上"><h2>P20 · 靠猜必错：543 个同名模型里，376 个价格对不上</h2><div class="blk cue"><span class="lb">提词</span><ul>
+<li>63 家 provider / 4,106 条模型 / 2.1 MB 提交进仓库</li>
+<li>543 个同名 → 376 个价格不一致（69%）、254 个窗口不一致（47%）<span class="cue">[重]</span></li>
+<li>Kimi K2.7 Code：18 条 / 18 家 / 4 种 wire id</li>
+<li>Claude Sonnet 4.5：18 条 / 15 家 / 8 种 wire id</li>
+<li>maxTokens 8192 ↔ 64000，差 8 倍 <span class="cue">[慢]</span></li>
+<li><b>wire id 那一排念的是 Sonnet 5，不是 4.5</b>，别串</li>
+<li>猜小 → 白白截断；猜大 → 上游 400</li>
+<li>右边：三路合流，<code>bun run gen:models</code>，禁止手改</li>
+<li>对比锚点：pi 当构建产物 gitignore；omp 当源代码提交 <span class="cue">[停]</span></li>
+<li>56% 条目来自聚合网关——这才是必须建库的理由</li>
+</ul></div><div class="blk gist"><span class="lb">一句话主旨</span><p>同一个模型名在不同网关下价格、窗口、id 全都不一样，靠猜必然错，所以模型元数据得当成软件制品来造。</p></div><div class="blk say"><span class="lb">怎么讲</span><p>上一页我说&quot;每条假设都得有人替你验过&quot;，这一页就是那句话的证据。（停一拍）先看标题下这行：omp 的 <code>packages/catalog</code> 里内置了 <b>63 家 provider、4,106 条模型记录</b>，一个 2.1 MB 的 JSON，<b>直接提交进仓库</b>。听到这儿很多人的第一反应是&quot;这不就是一张表吗，抄一份不就完了&quot;——这一页就是要打掉这个反应。看左上角三个方块：4,106 条记录去重之后有 2,275 个展示名，其中 <b>543 个名字被两条以上记录覆盖</b>，也就是同一个模型名，有两家以上在提供。然后是两个玫红色的数字：这 543 个里面，<b>376 个各家标出来的输入价不一致，占 69%</b>；<b>254 个各家标的上下文窗口不一致，占 47%</b>。请注意这不是&quot;差一点点&quot;，我们往下看两个具体样本。（停一拍）第一个是 <code>Kimi K2.7 Code</code>，18 条记录、18 家 provider。输入价这一行，去重之后的取值集合是——0、0.71、0.73、0.75、0.95。有人标 0，那是订阅制或者促销条目。contextWindow 四个值：20 万、25.6 万、26.2 万、262144。maxTokens 六个值，从 32000 一路到 262144。第二个样本是 <code>Claude Sonnet 4.5</code>，<b>18 条记录、15 家 provider</b>。输入价 0 / 2.992 / 3 / 3.75。contextWindow 三个值并存：198000、200000、1000000。maxTokens 这一行请大家盯一下：<b>8192、32000、64000——头尾差 8 倍</b>。（停一拍）差 8 倍意味着什么？看下面这个玫红色的结论框：<b>猜错的代价不是&quot;差一点&quot;</b>。maxTokens 你猜小了，模型的输出被你自己白白截断，用户看到半截答案；你猜大了，上游直接给你一个 400，整轮请求作废。contextWindow 三个值并存，你的压缩触发点必然算错——按 100 万算，实际是 20 万，那就是爆窗；按 20 万算，实际是 100 万，那就是每隔一会儿白压缩一次，压缩本身是最贵的操作之一。再看中间这一排四个盒子，讲的是 id 的分裂——这里我要提醒自己一句，<b>这一排的例子是 Claude Sonnet 5，不是上面那个 4.5</b>，别念串了。同一个模型落到线上的 wire id：first-party 是 <code>claude-sonnet-5</code>，聚合网关加个前缀变成 <code>anthropic/claude-sonnet-5</code>，Bedrock 把斜杠换成点变成 <code>anthropic.claude-sonnet-5</code>，Vertex 再加个后缀 <code>claude-sonnet-5@default</code>。四种写法。而刚才那个 Sonnet 4.5，跨 15 家一共 <b>8 种</b> wire id。（停一拍）现在看右边这一栏，回答&quot;那这份数据从哪来&quot;。三路合流，一条命令 <code>bun run gen:models</code>，README 第一句就是 <b>Never edit src/models.json by hand</b>——它是产物，不是一张能手工维护的表。第一路是 stencil.so 镜像，也就是 models.dev 裁完字段再 zstd 预压缩的版本，93 KB 对 3.3 MB 的 raw；第二路是 40 家 provider 的实时 <code>/v1/models</code> 抓取，67 条 descriptor 里有 40 条带 catalogDiscovery，生成的时候拿真实凭据去拉；第三路是手写的 curated 种子，理由写在注释里——<b>不想让自己的库被 models.dev 的更新节奏卡住</b>，官方刚放出来的新模型先进库。（停一拍）下面这个对比锚点是我最想让大家看的一格，因为它是<b>同一份数据的两种定位</b>。<b>pi 把它当构建产物</b>：<code>.gitignore</code> 掉 <code>providers/data/</code>，构建的时候现拉 models.dev。<b>omp 把它当源代码</b>：4,106 条快照提交进仓库，可以 diff、可以 review、离线可用；代价是仓库多 2.1 MB，而且得定期来一个 <code>chore: bump models</code> 的提交。这两种做法没有对错，它们对应两种不同的信念——你信不信&quot;模型元数据是你产品行为的一部分&quot;。如果信，那它就该像代码一样被 review；如果不信，那它就是个缓存。最后看右下角这个玫红框，是&quot;为什么非建不可&quot;的最硬那条证据：<b>4,106 条里有 56% 来自聚合网关</b>——nanogpt 810 条、kilo 498、openrouter 411，前五家就占了 2,302 条。而恰恰是网关，才是 id 最乱、价格最乱的地方。相比之下 anthropic 官方只有 26 条、openai 51 条。<b>你的数据里绝大多数条目来自最不可信的来源，这就是这个库必须存在的全部理由。</b></p></div><div class="blk must"><span class="lb">别漏了说</span><ul>
+<li>中间那排 wire id 用的是 <b>Claude Sonnet 5</b>，而上面样本 B 是 <b>Claude Sonnet 4.5</b>，页面上是两个不同的模型。念的时候一定要交代一句&quot;这一排换了个例子&quot;，否则听众会以为 4.5 有四种 id（实际是八种）。</li>
+<li>543 这个数和 research 里另一处的 527 口径不同：<b>543 是&quot;被 ≥2 条记录覆盖的名字&quot;，527 是&quot;被 ≥2 家 provider 提供的名字&quot;</b>。同一家可以有多条记录（比如不同 effort 档），所以 543 更大。被问到要能答上。</li>
+<li>&quot;猜小截断 / 猜大 400&quot;必须说出口，这是把统计数字翻译成工程后果的唯一一句。</li>
+<li>pi vs omp 那格要<b>对称地讲完代价</b>，不能只夸 omp。2.1 MB 进仓库 + 定期 bump 是真代价。</li>
+<li>0 这个价格值要解释一句（订阅制/促销条目），否则听众会以为是数据错误。</li>
+</ul></div><div class="blk qa"><span class="lb">可能被问</span><ul>
+<li>Q：这些数据是 omp 自己测的吗？会不会它自己也是错的？</li>
+<li class='cont'>A：不是它测的，是它从三个上游合流的，所以它同样可能错。但区别在于：错了之后你能在 git 里看到是哪一次 bump 引入的，能 diff、能回滚。这不是&quot;保证正确&quot;，是&quot;把错误变得可追溯&quot;。</li>
+<li>Q：4,106 条会不会大部分是垃圾条目？</li>
+<li class='cont'>A：坦白说有相当一部分是重复和别名，这也是它为什么要做 canonical 归并和 effort 变体折叠。变体折叠有一条自我约束我很欣赏——&quot;价格不同的孪生条目是不同的 SKU，必须分开存，<b>这样计费归因永远不会说谎</b>&quot;。</li>
+<li>Q：我自己做 agent，需要建这么大的库吗？</li>
+<li class='cont'>A：不需要。但你至少需要给你实际会用到的那几个模型，把 contextWindow 和 maxTokens <b>写死在代码里并且标上来源日期</b>，而不是从模型名去推。这页真正的可迁移结论就这一条。</li>
+<li>Q：那 543 里剩下的 167 个价格一致的，是不是说明大部分还好？</li>
+<li class='cont'>A：反过来看更准：69% 不一致。而且你事先不知道你要用的那个落在哪一边。</li>
+<li>Q：为什么 63 家和 67 条 descriptor 对不上？</li>
+<li class='cont'>A：有 4 类本机自托管的 provider（ollama / vllm / lm-studio / litellm）被排除了，理由写在生成脚本注释里——打包它们会把 <code>http://localhost:4000/v1</code> 这种机器相关的端点泄漏进提交的快照。另有两家已退役。</li>
+</ul></div><div class="blk next"><span class="lb">过渡</span><p>数据这一半讲完了。但知道模型的参数只解决了一半问题——你还得能把工具调用发出去、把结果收回来。下一页讲协议，讲当这条路被上游做坏的时候会发生什么。</p></div></section><section class="pg-sec" data-n="21" data-title="dialect 兜的不是语法，是 native 通道不会出现的失败模式"><h2>P21 · dialect 兜的不是语法，是 native 通道不会出现的失败模式</h2><div class="blk cue"><span class="lb">提词</span><ul>
+<li>11 种方言，显式 <code>PI_DIALECT</code> opt-in，不设就走 native <span class="cue">[重]</span></li>
+<li>这一页的钥匙：<b>native 通道里根本不存在的三种失败模式</b></li>
+<li>A 伪造工具结果：登记「结果开启 token」，撞见即 abort 上游止损</li>
+<li>B GLM 把 <code>&lt;/arg_value&gt;</code> 写成 <code>&lt;/arg_key&gt;</code> → 吞掉后续全部参数</li>
+<li>B 难在流式：三态 none / partial / heal，partial 要 hold 住</li>
+<li>C 双通道抢答：Gemini via OpenRouter，tools 空了照样吐 functionCall</li>
+<li>C 对策：先出真调用的通道锁死，另一条整轮丢弃 <span class="cue">[慢]</span></li>
+<li>右边：opt-in 之后请求侧三件事一起做</li>
+<li>对比锚点：pi 的 packages/ai grep dialect 零命中</li>
+<li>它不是「更好的 tool calling」，是兜底通道 <span class="cue">[停]</span></li>
+<li>被删的 pi 自研方言曾宣称省 46% token——没留住</li>
+</ul></div><div class="blk gist"><span class="lb">一句话主旨</span><p>把工具调用从结构化字段挪进正文，你就得自己收拾三种 native 通道里根本不存在的烂摊子。</p></div><div class="blk say"><span class="lb">怎么讲</span><p>上一页讲数据，这一页讲协议。（停一拍）先把定位说清楚，看标题下这行小字：<b>11 种方言，显式 <code>PI_DIALECT</code> opt-in，你不设它就走 native</b>。所以它不是默认路径，是一条备用车道。什么时候走这条道？三种情况：上游根本不支持 function calling，比如你自己跑的 llama.cpp、vLLM，或者某些便宜网关；上游说支持但解析做坏了；或者你就是想把 tool 描述的裁剪、示例的渲染、token 预算全部拿回自己手里。仓库自己在 TUI 的 tips 里有一句大白话：&quot;没有 native tool calling？推理服务把解析搞砸了？<code>PI_DIALECT=glm|kimi|anthropic</code> 帮你在本地滚一遍。&quot;（停一拍）现在，这一页真正的钥匙在最上面那行小字，我念一遍：<b>这三种失败模式，native 通道里根本不存在</b>。大多数人讲 in-band tool calling，讲的是&quot;用 XML 还是 JSON、哪种更省 token&quot;——那是语法问题。这一页说的是：<b>当你把工具调用从结构化字段挪进正文，你就把一整类新的失败模式请进了门</b>，而这三种失败模式，恰恰是 native 通道白送给你的保护。我们一个一个看。</p>
+<p>A，<b>模型伪造工具执行结果</b>，英文叫 fabrication。在 native 通道里这事不可能发生，因为工具的返回值是 runtime 注入进对话的，模型压根没有机会编。但在 in-band 通道里，模型吐完调用之后手一滑，把&quot;工具返回了什么&quot;也一起编出来了——它编了一段 <code>&lt;tool_response&gt;</code> 里面写着&quot;测试全部通过&quot;，然后基于这个幻觉继续往下推理。你不管它，它能编一整篇。omp 的对策看这行：<b>每种方言登记一组&quot;工具结果开启 token&quot;</b>，下面这排就是——glm 是 <code>&lt;tool_response&gt;</code>，kimi 是 <code>&lt;|im_system|&gt;</code>，anthropic 是 <code>&lt;function_results&gt;</code>，gemini 是 <code> </code>`<code>tool_outputs </code>，deepseek 是那个全角的 <code>&lt;｜tool▁outputs▁begin｜&gt;</code>。流式扫描器一旦在文本里撞见这些 token，立刻停。而且有两种模式：默认的 abort 模式<b>直接掐断上游请求</b>，注释原话是&quot;so the provider stops spending tokens on the hallucinated continuation&quot;——<b>这是一条止损，不是一条正确性措施</b>。你已经知道这轮废了，那就别再为幻觉付钱了。另一种 discard 模式是把流排干但丢弃边界之后的一切。还有一个细节值得一提：这些 token 可能被 SSE 的 chunk 边界切成两半，所以扫描器保留了一个重叠窗口，避免漏检。</p>
+<p>B，<b>GLM 把 <code>&lt;/arg_value&gt;</code> 写成 <code>&lt;/arg_key&gt;</code></b>。这个更具体。native 通道里参数的闭合是结构化字段保证的，压根不存在&quot;标签写错&quot;这回事。in-band 里，模型一个字符打错，后果是什么？看这句——<b>后续所有参数被吞进同一个字段</b>，一直吞到流里下一个 <code>&lt;/arg_value&gt;</code> 为止。也就是说你以为你拿到了五个参数，实际上你拿到一个巨大的字符串，里面塞着另外四个。对策是流式的&quot;愈合扫描&quot;：识别两种修复签名，一种是闭错了（<code>&lt;/arg_key&gt;</code> 后面紧跟着 <code>&lt;arg_key&gt;</code> 或者 <code>&lt;/tool_call&gt;</code>），一种是压根忘了闭。（停一拍）真正难的地方在下面这行：<b>难在流式</b>。签名可能只写到一半，chunk 就断了——你看到一个 <code>&lt;/arg_k</code>，你不知道它是要闭错还是正常的 key 结束。所以这个函数返回<b>三态</b>：none、partial、heal。partial 的时候调用方必须 <b>hold 住这一段，不能往下游 emit</b>，等下一个 chunk 来了再判。这三态设计是整页最见功力的一处。另外还有防误伤的边界：标签之间最多容忍 32 个空白，key 最长 128 字符，超了就放弃愈合——因为你不能为了修 bug 把用户正常的文本改坏。他们甚至专门写了一条反向保护测试，叫 &quot;leaves values containing tag-like prose intact&quot;，就是说<b>参数值里本来就写着像标签的散文时，不许动它</b>。</p>
+<p>C，<b>native 和 in-band 双通道同时开火</b>。这条最荒诞。omp 已经把请求里的 <code>tools</code> 字段置成 undefined 了，按理说上游不可能返回 native 的工具调用。但注释里点名了一个真实案例：<b>Gemini 经由 OpenRouter，即使你没发 tools，它照样返回 functionCall parts</b>。那你转发不转发？不转发，这一轮就没有任何可执行的内容，agent loop 拿到一条只有 reasoning 的消息，<b>会无限重试下去</b>。对策是：<b>哪条通道先产出&quot;真&quot;调用，就锁死哪条，另一条整轮全部丢弃</b>。还要处理&quot;ghost&quot;——一个没有 name 的空 native 块不算数，不锁通道。测试名字就叫 &quot;drops a nameless native ghost but keeps the real native call&quot;。（停一拍）</p>
+<p>右边这一栏收尾。上面是 11 种方言的清单：anthropic、glm、gemini、gemma、kimi、qwen3、deepseek、minimax、harmony 对 gpt-oss、hermes 需要显式指定、最后 <code>xml</code> 是 FALLBACK，遇到不认识的模型就用它。中间这格讲 opt-in 之后请求侧要<b>三件事一起做</b>：系统提示里追加工具清单加方言语法说明、历史里的调用和结果按方言回写成文本、然后 tools 置 undefined、toolChoice 清空、描述裁剪关掉。少做一件就会前后不一致。再往下是对比锚点：<b>pi 完全信任 native tool calling</b>，它的 <code>packages/ai</code> 里 grep dialect 和 inband，<b>零命中</b>。这条柱子对比是 21,429 行对 99,265 行——四倍多，dialect 只是其中一块。最后这个琥珀框是这一页的落点，我照念：<b>它不是&quot;更好的 tool calling&quot;，而是&quot;上游把 native tool calling 做坏了&quot;时的兜底通道，所以它必须处理 native 通道里不会出现的失败模式。</b> 底下还有一行很有意思的脚注：pi 曾经有一套自研方言，宣称比 legacy 格式省 46% 的 token，最后被删掉了。<b>省 token 没能留住它</b>——我的理解是，模型没见过你自研的格式，你省的那点 token 换来的是更高的出错率。这条因果是我的推断，不是仓库明说的。</p></div><div class="blk must"><span class="lb">别漏了说</span><ul>
+<li>开场必须先说&quot;显式 opt-in，不设就走 native&quot;，否则听众会以为 omp 默认不用 native tool calling，那是完全错误的印象。</li>
+<li>&quot;native 通道里根本不存在&quot;这句话在三个失败模式里各说一遍，这是本页的结构，不能省。</li>
+<li>fabrication 的 abort 是<b>止损</b>不是纠错——这个区分要说出来，否则听众会问&quot;掐断了不就丢了这轮吗&quot;。答案是这轮本来就已经废了。</li>
+<li>B 的&quot;三态 + partial 要 hold&quot;是整页技术含量最高的一处，别赶时间跳过。</li>
+<li>46% token 那条要<b>明确标为推断</b>，不要说成仓库结论。</li>
+<li>如果时间紧，C 可以压到 30 秒，A 和 B 不能压。</li>
+</ul></div><div class="blk qa"><span class="lb">可能被问</span><ul>
+<li>Q：那我到底该不该用 in-band？</li>
+<li class='cont'>A：默认不该。这一页的完整读法是&quot;能用 native 就用 native&quot;，dialect 是当你没得选的时候的逃生舱。omp 自己也是这么设计的——你得显式设环境变量它才走。</li>
+<li>Q：伪造工具结果这事，native 通道真的完全不会发生吗？</li>
+<li class='cont'>A：结果注入这条路上不会。但模型在自己的文本里&quot;假装&quot;某个工具跑过了、编造一段输出当叙述，这在任何通道里都可能发生。这一页说的是<b>结构化的伪造</b>——模型吐出一个语法上合法的结果块，被你的解析器当真。这个只在 in-band 里有。</li>
+<li>Q：11 种方言要维护，成本不高吗？</li>
+<li class='cont'>A：高。而且这个数字是会变的——旧的 pi 方言被删了，minimax 是新加的。这就是&quot;兜底通道&quot;的代价：上游每出一个新脾气你就得加一条。所以我才强调它是 opt-in 而不是主路。</li>
+<li>Q：GLM 那个 bug 现在修了吗？</li>
+<li class='cont'>A：不知道。仓库的 CHANGELOG 记录说这个症状&quot;in-band 和 native 都中招&quot;，说明问题出在网关那一层而不只是 in-band。修没修我没验证。</li>
+<li>Q：愈合扫描会不会把用户本来就想传的 <code>&lt;/arg_key&gt;</code> 改掉？</li>
+<li class='cont'>A：这正是那条反向保护测试在防的事，加上 32 空白 / 128 字符两条边界。但严格说，任何启发式愈合都存在误伤的可能，他们的做法是把误伤面缩到最小，不是消除。</li>
+</ul></div><div class="blk next"><span class="lb">过渡</span><p>模型层就到这儿——数据和协议，两条都是&quot;替你验过假设&quot;。下一章换一个完全不同的维度：一个纯 TypeScript 的 agent，为什么要自己写九个 Rust crate。</p></div></section><section class="pg-sec" data-n="22" data-title="第 05 章 · Rust 热路径"><h2>P22 · 第 05 章 · Rust 热路径</h2><div class="blk cue"><span class="lb">提词</span><ul>
+<li>三十秒过</li>
+<li>章问题：纯 TS 的 agent 为什么自研 9 个 Rust crate</li>
+<li>答案预告：<b>不是 Rust 更快，是边界换了</b> <span class="cue">[重]</span></li>
+<li>收益和代价来自同一处边界的消失 <span class="cue">[慢]</span></li>
+<li>三页：69% 不是 shell / 一行 assert / 最诚实的 benchmark</li>
+<li>84,448 行自研，vendored 的 10 万行不算</li>
+<li>只占全仓 TS 的 6.7% —— 不是重写 agent，是换掉最脏的 6% <span class="cue">[停]</span></li>
+</ul></div><div class="blk gist"><span class="lb">一句话主旨</span><p>这一章的答案不是&quot;Rust 更快&quot;，是&quot;把子进程边界换成函数调用边界&quot;——收益和代价都来自同一处边界的消失。</p></div><div class="blk say"><span class="lb">怎么讲</span><p>换章。（停一拍）左边 05，&quot;Rust 热路径&quot;。加粗那行问题——&quot;一个纯 TS 的 agent，为什么要自研 9 个 Rust crate？&quot;这个问题几乎所有人的第一反应都一样：&quot;因为 TypeScript 慢啊。&quot;这一章三页，就是在拆这个反应。答案写在下面这行小字里，我念一遍：<b>答案不是&quot;Rust 更快&quot;，是把子进程边界换成函数调用边界——收益和代价，全部来自同一处边界的消失。</b> 这句话是本章的钥匙，三页都挂在它上面。什么意思？上游 pi 要 grep，它去 GitHub 下一个 ripgrep 二进制，然后每次调用 fork 一个子进程；omp 要 grep，它调 <code>.node</code> 里的一个函数。这一步换掉之后，好的东西来了——不用下二进制了、可以跨调用共享缓存了、取消可以做精确了；坏的东西也一起来了——进程边界白送你的那些保护，panic 隔离、fd 隔离、cwd 隔离，全都没了，得手写补回来。<b>同一个决定，收益和代价是一枚硬币的两面。</b>（停一拍）右边小目录三页：23 页讲一个反直觉的发现，那 4 万行 shell 里有 69% 根本不是 shell；24 页我拿一行 assert 语句讲清整件事；25 页是这个仓库最诚实的一张 benchmark。最后看右下角这个橙色框，先给个体量的锚：<b>自研 Rust 实测 84,448 行</b>，九个 crate，vendored 进来的第三方那 100,565 行不算在里面。这 8.4 万行对着全仓库 126 万行 TypeScript，<b>约等于 6.7%</b>。这个比例我要强调一下：<b>它不是&quot;用 Rust 重写 agent&quot;，是&quot;把 agent 最脏的 6% 换成 Rust&quot;</b>。如果你带走的是&quot;要用 Rust 重写&quot;，那这一章白讲了。</p></div><div class="blk must"><span class="lb">别漏了说</span><ul>
+<li>&quot;不是 Rust 更快&quot;这个反预期要在这页就抛出来，不能留到 23 页——否则听众会带着&quot;性能优化&quot;的框架去看后面三页，全错。</li>
+<li>84,448 是<b>含内联测试</b>的实测值，README 首页自称的&quot;~55,000 行 / Four crates&quot;已经过时。被问到要能说清口径差。</li>
+<li>6.7% 这个比例是本页唯一必须记住的数字。</li>
+<li>九个 crate 不用一一点名，24 页会自然带出 pi-uutils-ctx。</li>
+</ul></div><div class="blk qa"><span class="lb">可能被问</span><ul>
+<li>Q：为什么是 Rust 不是 Go / C++？</li>
+<li class='cont'>A：仓库没写理由，我也不替它编。能观察到的事实是它用的是 napi-rs 走 N-API，生态上 ripgrep、tree-sitter、similar 这些库都在 Rust 侧，直接拿来用的成本最低。</li>
+<li>Q：README 说四个 crate，你说九个，谁对？</li>
+<li class='cont'>A：我实测是九个，8.4 万行。README 那句&quot;~55,000 lines / Four crates&quot;是过时的，我猜是某次统计后没更新，但具体口径我没考据出来。这是我在 research 里明确标了&quot;存疑&quot;的一条。</li>
+<li>Q：pi 一行 Rust 都没有，它是不是就慢？</li>
+<li class='cont'>A：这一章不下这个结论，25 页的 benchmark 会告诉你为什么不能下。</li>
+</ul></div><div class="blk next"><span class="lb">过渡</span><p>先从最大的那个 crate 开始——4 万行，但里面有个反直觉的东西。</p></div></section><section class="pg-sec" data-n="23" data-title="4 万行 shell 里，69% 不是 shell"><h2>P23 · 4 万行 shell 里，69% 不是 shell</h2><div class="blk cue"><span class="lb">提词</span><ul>
+<li>41,207 行里，minimizer 28,266 行 = 68.6% <span class="cue">[重]</span></li>
+<li>单文件前七名全是&quot;针对某个工具&quot;的过滤器：jvm 3,117、git 2,842、listing 2,032…</li>
+<li>另有 67 个 TOML 声明式管道，build.rs 构建期拼接</li>
+<li>常见讲法：「自己写了个 shell，为了性能」—— <b>两句都错</b></li>
+<li>实情：解析器直接用 crates.io 的 brush-parser 0.3，连 vendor 都没做</li>
+<li>自研只有三样：60 个 builtin / 进程树与取消 / 输出压缩</li>
+<li>那 2.8 万行是让 mvn test 的 3000 行变 30 行 <span class="cue">[慢]</span></li>
+<li>pi-shell 没有 benches、没有 criterion —— 时间常数全是设计值</li>
+<li>右边：动机那一半是&quot;不想 fork/exec&quot;，不是&quot;不想慢&quot;</li>
+<li>顺带删掉 6 个 npm 依赖，diff 是逐位兼容重写</li>
+<li>落点：省的第一笔是外部依赖，第二笔是 token，CPU 排第三 <span class="cue">[停]</span></li>
+</ul></div><div class="blk gist"><span class="lb">一句话主旨</span><p>pi-shell 最大的一块是把命令输出压小的 minimizer，它省的是 token 和注意力，不是 CPU。</p></div><div class="blk say"><span class="lb">怎么讲</span><p>这是最大的一个 crate，<code>crates/pi-shell/src</code>，实测 41,207 行，含内联测试。（停一拍）先看这条横条——它被切成了很不对称的两块。橙色那块，<b>28,266 行，68.6%，写的是 minimizer</b>，也就是按工具写的输出压缩器。右边灰色那块 12,789 行，31.4%，<b>shell 宿主的真身在这里</b>。也就是说，你以为的&quot;他们写了个四万行的 shell&quot;，其实那个 shell 只有一万二，剩下三分之二在干一件跟执行完全无关的事。下面这个排行榜可以佐证：单文件前七名，<b>全是针对某个具体工具的过滤器</b>——<code>filters/jvm.rs</code> 3,117 行，专门对付 Maven 和 Gradle 的输出；<code>filters/git.rs</code> 2,842 行；<code>filters/listing.rs</code> 2,032 行，折叠 ls、tree、find 的输出；docker 1,702；cloud 1,676，管 aws、curl、psql；pkg 1,215，管 npm、pnpm、yarn；cargo 1,001。这七个加起来就一万三了。另外还有 67 个 TOML 写的声明式管道，构建期由 build.rs 拼进去。而且所有过滤器都跑在 <code>catch_unwind</code> 下面——<b>写坏一个过滤器，不应该炸掉整条命令</b>。（停一拍）</p>
+<p>现在看下面这两个框，这是本页的核心，也是本篇一直在用的那个格式：先写常见讲法，再写实情。<b>常见讲法</b>：「他们自己写了个 shell，四万行 Rust，为了性能。」于是这一页就被归进了&quot;Rust 性能优化&quot;。<b>两句都错。</b> 先看第一句错在哪：橙色框里第一行——<b>shell 解析器直接用的是 crates.io 上的 <code>brush-parser 0.3</code>，连 vendor 都没做，就是一行依赖声明</b>。原始的命令文本整段交给 brush，解析和词展开 100% 不是自研。它自研的只有三样：60 个进程内 builtin、进程树和取消语义、还有输出压缩。（停一拍）所以&quot;为什么要自己实现一个 shell&quot;这个问题，正确的答案是——<b>它没有实现 shell，它实现了一个 shell 的宿主</b>。这两件事的工作量差着一个数量级。第二句错在哪？看这行加白的字：<b>那 2.8 万行是让 <code>mvn test</code> 的 3000 行输出，变成 30 行再进 context window。</b> 它省的是 token，是模型的注意力，<b>不是 CPU</b>。你把它当性能优化讲，你就讲错了这个仓库里最值钱的一个设计。而且下面这行小字是个很强的旁证：<b>pi-shell 没有 benches 目录、没有 criterion、没有任何 benchmark</b>。这个 crate 里所有的时间常数——250 毫秒、2 秒、75 毫秒、150 毫秒——<b>全都是设计值，不是测量值</b>。一个真的以性能为目标的 crate，不会长这样。</p>
+<p>（停一拍）右边这一栏讲动机的另一半：<b>为什么不 fork/exec</b>。上面这格是上游 pi 的做法：第一次要 grep，先看本地 bin 目录里有没有 ripgrep；没有就去 GitHub Releases 下载预编译二进制；拿到之后，每次工具调用 spawn 一个子进程。玫红那行是代价：<b>离线、内网、企业代理环境，这一步直接失败</b>。下面这格是 omp：grep、diff、jq 变成 <code>.node</code> 里的一次函数调用；目录扫描的结果进 <code>fs_cache</code>，<b>跨调用复用</b>。这第二条我要多说一句——加白那行写着&quot;在 fork/exec 模型下，架构上不可能&quot;。为什么？因为子进程模式下，每次 <code>rg</code> 跑完，它遍历目录的成果随着进程退出一起蒸发了，下一次从零再来。进程内化之后，这份成果可以留下来给 glob、给 fuzzy find、给 AST 扫描共用。<b>这才是进程内化真正的复利来源。</b> 再往下是顺带的收益：删掉了 6 个 npm 运行时依赖——glob、ignore、minimatch、cross-spawn、diff、highlight.js。其中 diff 那个有意思，是<b>逐位兼容重写</b>的，模块注释说它产出的字节和 jsdiff v9 一模一样，Myers 算法的核心是照着 jsdiff 的 <code>base.ts</code> 移植的。最后这个落点框我照念：把 rg 和 bash 从&quot;另一个进程&quot;变成&quot;本进程的函数&quot;，<b>省下的第一笔是外部依赖，第二笔是 token——CPU 排第三</b>。这个排序就是这一页全部的意思。</p></div><div class="blk must"><span class="lb">别漏了说</span><ul>
+<li>&quot;解析器是 crates.io 的 brush-parser，连 vendor 都没做&quot;必须说出口，这是纠偏最有力的一句。</li>
+<li>&quot;它实现的是 shell 的宿主，不是 shell&quot;——这句话要慢，是本页的题眼。</li>
+<li>&quot;没有 benches、时间常数全是设计值&quot;是佐证&quot;这不是性能项目&quot;的最硬证据，别漏。</li>
+<li>3000 行变 30 行这个例子要具体说 <code>mvn test</code>，抽象说&quot;压缩输出&quot;没有画面感。</li>
+<li>fs_cache 跨调用复用&quot;架构上不可能&quot;要解释清楚为什么（进程退出成果蒸发），否则听众只当是一句夸张。</li>
+</ul></div><div class="blk qa"><span class="lb">可能被问</span><ul>
+<li>Q：minimizer 会不会把重要信息压掉？</li>
+<li class='cont'>A：会，这是这个设计的固有风险。他们的缓解措施是过滤器按工具写、跑在 catch_unwind 下面、并且有 846 个测试绝大多数落在 minimizer 上。但&quot;压掉了模型本来需要的一行&quot;这件事，测试是测不出来的。</li>
+<li>Q：为什么不用模型自己去总结输出？</li>
+<li class='cont'>A：因为那要多花一次模型调用，而且模型总结长输出本身就不可靠。用确定性的过滤器把 3000 行削到 30 行，成本是零、结果可复现。这是我理解的取舍，不是仓库明说的。</li>
+<li>Q：67 个 TOML 管道和 Rust 过滤器怎么分工？</li>
+<li class='cont'>A：简单的模式匹配用 TOML 声明式写，复杂的（比如要理解 Maven 的多模块结构）写 Rust。具体分界线我没深挖。</li>
+<li>Q：那 60 个 builtin 都是自己写的吗？</li>
+<li class='cont'>A：不是。44 个是 vendored 的 uutils，4 个是自研重写（grep、rg、diff、jq），6 个 moreutils，6 个是 pi 独有的（fd、which、cmp、sleep、timeout、nohup）。而且 <code>exec</code> 和 <code>suspend</code> 被显式禁用了，因为它们能让命令逃出这个内嵌会话。</li>
+</ul></div><div class="blk next"><span class="lb">过渡</span><p>把子进程变成函数，听起来只是换了个调用方式。下一页我用一行 assert 语句告诉你，你到底失去了什么。</p></div></section><section class="pg-sec" data-n="24" data-title="一行 assert 讲清整件事"><h2>P24 · 一行 assert 讲清整件事</h2><div class="blk cue"><span class="lb">提词</span><ul>
+<li><code>shell.rs:2598</code> 一行：<code>assert!(!Path::new(&quot;a/b/c&quot;).exists(), &quot;mkdir leaked into process cwd&quot;)</code></li>
+<li>它防的是：builtin 按进程全局 cwd 解析相对路径 → 目录落到宿主当前目录</li>
+<li>同一句话可以换成 fd 或信号再说两遍 <span class="cue">[重]</span></li>
+<li>① fd 表：函数没法 dup2(1)，重定向拿不到 → 从 brush 取真 fd 装进 thread-local，一次调用一条线程</li>
+<li>② cwd：全 crate <code>set_current_dir</code> 命中数为 0；cwd 挂在 shell 实例上，路径参数逐个过 resolve</li>
+<li>③ 信号：你没法给函数发 SIGKILL → 原子标志位 + 合成 EOF + 200ms 分片 poll</li>
+<li>补三个洞的全部代码：pi-uutils-ctx，<b>446 行，全仓最小的 crate</b> <span class="cue">[慢]</span></li>
+<li>右边 Ctx 结构体：三行 stdio + cwd + cancel，<b>注意是节选</b></li>
+<li>高潮：<code>if !ctx::is_active() { 丢弃 }</code> —— 不是落到宿主 fd 1/2</li>
+<li>因为宿主的 fd 1/2 是 TUI 的画布，泄漏一个字节整屏就花 <span class="cue">[停]</span></li>
+<li>第四样：panic 隔离，真实事故是 uu-tail 对 BrokenPipe 做了 unwrap</li>
+</ul></div><div class="blk gist"><span class="lb">一句话主旨</span><p>进程边界一消失，POSIX 白送的 fd 表、cwd、信号三样保证同时失效，446 行 <code>pi-uutils-ctx</code> 就是补这三个洞的全部代码。</p></div><div class="blk say"><span class="lb">怎么讲</span><p>这一页我只有一个论点，而且它可以被一行代码讲完。（停一拍）看左上角这个框，这是回归测试里的一行，位置是 <code>crates/pi-shell/src/shell.rs</code> 第 2598 行。上面一行注释我先说：<b>mkdir 走的是进程内 builtin，不是子进程</b>。然后跑一条命令 <code>mkdir -p a/b/c</code>，工作目录指定成一个临时目录。接着是这个断言——<code>assert!</code> 括号里是 <code>!Path::new(&quot;a/b/c&quot;).exists()</code>，<b>注意那个感叹号，它断言的是&quot;不存在&quot;</b>。失败信息写着：<code>&quot;mkdir leaked into process cwd&quot;</code>——mkdir 泄漏到进程的当前目录去了。（停一拍）这一行在防什么？看下面这句：如果 builtin 按<b>进程全局的 cwd</b> 去解析相对路径，那 <code>a/b/c</code> 这个目录就不会落在你指定的临时目录里，而会落在宿主进程的当前目录下——也就是用户正在工作的那个仓库根目录。你让 agent 在一个隔离目录里建目录，结果它在你的项目根目录里拉了一坨。<b>而且这不是 bug，这是子进程模型给你白送的东西，在你换成函数调用的那一刻，静悄悄地不见了。</b> 下面这行是我最想让大家记住的：<b>同一句话，可以换成 fd 说一遍，换成信号再说一遍——进程边界一没，三样保证一起没。</b></p>
+<p>（停一拍）中间这三格就是那三样。<b>第一样，fd 表</b>。子进程模型里，重定向是怎么实现的？父进程 <code>dup2</code> 一下，子进程什么都不用管，它写 fd 1 就自动进了文件。函数调用没法 dup2，你写 <code>println!</code> 它就是往进程的 stdout 去了，重定向根本拿不到。omp 的做法：<b>在任何 await 之前</b>，从 brush 的执行上下文里把这条命令真正的 fd 取出来，装进 thread-local；而且<b>一次调用配一条专属线程</b>，这是刻意的——因为管道的并发各段不能互相串流。<b>第二样，cwd</b>。全进程只有一个当前目录，但一个 agent 可以同时开很多个 shell 会话。这里有一个数字我很喜欢：<b>整个 crate 里 <code>set_current_dir</code> 的命中数是 0</b>——它从来不改进程的 cwd。cwd 挂在每个 shell 实例上，然后<b>每一个路径参数都逐个过一遍 <code>ctx::resolve</code></b>。注意这句话的含义：vendored 进来的那 44 个 uutils 工具是被<b>打了补丁</b>的，每次碰文件系统之前都要先走这个解析。<b>第三样，信号</b>。这条最有意思——<b>你没法给一个函数发 SIGKILL</b>。子进程超时了你 kill 掉就完事了，函数跑在你自己的线程里，你杀了它整个 agent 也没了。所以取消从抢占式改成了<b>协作式</b>：共享一个原子标志位；stdin 那边读到取消就返回一个<b>合成的 EOF</b>，让工具自然地退栈——这个设计很聪明，因为绝大多数命令行工具遇到 EOF 都会优雅退出；实在卡在管道上的，unix 下用 <code>libc::poll</code> <b>200 毫秒一片</b>地循环重查标志位。（停一拍）下面这个橙色框：<b>补这三个洞的全部代码，叫 <code>pi-uutils-ctx</code>，446 行</b>。它是全仓库最小的一个 crate，但它是那 60 个进程内 builtin 能够成立的前提。八万四千行 Rust 里，最关键的四百四十六行。</p>
+<p>（停一拍）看右边。上面是 <code>Ctx</code> 这个结构体，<b>我先声明一句，这是节选</b>——原定义里还有 <code>stdin_fd</code>、<code>stdin_is_search_input</code>、<code>exit_code</code> 三个字段，我为了让它和左边那三样对上，删掉了。剩下的这几行请对着左边看：<code>stdout</code>、<code>stderr</code>、<code>stdin</code> 三行——<b>这就是 fd 表</b>；<code>cwd: PathBuf</code>——<b>这就是相对路径解析</b>；<code>cancel: Arc&lt;AtomicBool&gt;</code>——<b>这就是信号</b>。<code>env</code> 是附赠的第四样，因为 shell 里 export 的变量在宿主进程的环境里根本不存在，也得快照进来。<b>一个结构体，恰好就是进程白送你的那几样东西的清单。</b></p>
+<p>（停一拍）下面这个玫红框是这一页的高潮，我讲慢一点。问题是这样的：如果某段代码跑起来了，但根本没装上下文，怎么办？直觉的做法是&quot;那就退回默认行为，写到真正的 stdout 去&quot;——毕竟总比丢了强。<b>他们选的是丢弃。</b> 看这行代码：<code>if !ctx::is_active() { /<i> 丢弃 </i>/ }</code>。写入被丢弃，<b>而不是落到宿主进程真实的 fd 1 和 2</b>。为什么？因为<b>宿主的 fd 1 和 2 是 TUI 的画布</b>。omp 是个全屏终端界面，它自己在精确地控制每一个字符的位置。这时候有一个 vendored 的工具因为没装上下文，往 fd 2 打了一行&quot;warning: something&quot;——<b>整屏就花了</b>，光标位置全乱，用户看到的是一坨乱码。所以这里的 fail-safe 方向是反直觉的：<b>宁可丢数据，不可污染画布</b>。我觉得这是整个 crate 里最能体现&quot;他们真的在终端里用过这东西&quot;的一个设计——你不被这个 bug 咬过一次，你不会把默认行为设成丢弃。</p>
+<p>最后这一格是顺手补回的第四样，<b>panic 隔离</b>。子进程里工具 panic 了，内核给你兜着，你只看到一个非零退出码。进程内化之后，一个 panic 直接掀桌子。而且注释里点名了一个真实事故：<b>vendored 的 <code>uu-tail</code> 对 BrokenPipe 做了 unwrap</b>——你 <code>tail -f | head -1</code>，head 一退出管道就断了，tail 那边 unwrap 直接 panic。现在 panic 被 <code>catch_unwind</code> 接住，变成 exit 1 加一行 internal error。底下这行是这一页的总结：<b>子进程模型里内核替你做的隔离，现在每一样都要自己写。</b></p></div><div class="blk must"><span class="lb">别漏了说</span><ul>
+<li>assert 里那个<b>感叹号</b>必须点出来，否则听众会以为断言的是&quot;存在&quot;，整个逻辑反过来。</li>
+<li>右边 <code>Ctx</code> <b>必须声明是节选</b>，页面上有小字但太小了，要口头说一遍。原定义另有 stdin_fd / stdin_is_search_input / exit_code。</li>
+<li>&quot;446 行是全仓最小的 crate，却是 60 个 builtin 的前提&quot;——这个对比要说。</li>
+<li>fail-safe 那段是本页高潮，讲慢，把&quot;TUI 的画布&quot;这个画面感建立起来。别只念代码。</li>
+<li><code>set_current_dir</code> 命中数为 0 这个数字很有说服力，别跳过。</li>
+<li>这一页不要展开取消的四层机制（token / 桥到 brush / 三波清理 / builtin 协作），时间不够，只讲第四层就行。</li>
+</ul></div><div class="blk qa"><span class="lb">可能被问</span><ul>
+<li>Q：为什么不干脆还是用子进程，让内核帮你做这些？</li>
+<li class='cont'>A：这就是上一页那个取舍。你要 fs_cache 跨调用复用、要 shell 会话持久、要精确知道哪些进程是这一轮自己 spawn 的，这些在子进程模型下架构上做不到。代价就是这一页。25 页会给这笔账的另一半。</li>
+<li>Q：thread-local + 一次调用一条线程，开销大不大？</li>
+<li class='cont'>A：不知道，仓库没测。pi-shell 里没有任何 benchmark，我在上一页说过。这是一个我无法回答的问题。</li>
+<li>Q：协作式取消的意思是，如果工具自己不检查标志位就杀不掉？</li>
+<li class='cont'>A：对，这是协作式的固有弱点。他们的兜底是三波信号清理外加 2 秒优雅窗口，但一个死循环里既不读 stdin 也不做 I/O 的 builtin，理论上是杀不掉的。</li>
+<li>Q：这些 uutils 是打了补丁的，那上游更新怎么办？</li>
+<li class='cont'>A：这正是 vendor 48 个 crate 的代价——上游更新得自己 rebase。仓库里没写他们的同步策略。</li>
+<li>Q：446 行为什么这么少？</li>
+<li class='cont'>A：因为它只做垫片，不做逻辑。三个 thread-local、几个宏、一个 resolve、一个 is_active。少恰恰是它对的地方。</li>
+</ul></div><div class="blk next"><span class="lb">过渡</span><p>讲了收益，讲了代价，那这笔买卖到底划不划算？下一页是这个仓库最诚实的一张表——因为它敢把自己更慢的那一行放上去。</p></div></section><section class="pg-sec" data-n="25" data-title="最诚实的一张 benchmark：小批量上 Rust 更慢"><h2>P25 · 最诚实的一张 benchmark：小批量上 Rust 更慢</h2><div class="blk cue"><span class="lb">提词</span><ul>
+<li>全仓唯一提交在册的 benchmark 结果，Apple M1 / bun 1.3.14 / <b>crossing-inclusive</b></li>
+<li><code>cosineSimilarityPairs @ 10</code> = <b>0.86×，Rust 更慢</b> <span class="cue">[重]</span></li>
+<li>同一个核 @100 = 2.37×，@1000 = 2.48×</li>
+<li><code>mmrRerankIndices</code> = 22.44× / 30.18×，因为复杂度高</li>
+<li>读法：<b>变的不是代码，只是批量大小</b></li>
+<li>规矩原话：<code>If native is slower, do not switch callsites.</code> <span class="cue">[慢]</span></li>
+<li>口径：这是 <b>mnemopi 向量核</b>的数，grep/shell/walker <b>结果未入库</b></li>
+<li>右边代价三条：111.2 KiB 核心包 vs 每平台 leaf 138–285 MiB</li>
+<li>Windows 交叉编译拉 ~3 GiB SDK；darwin 冷构建 ~40 分钟</li>
+<li>最难测的平台代码（overlayfs / clonefile / ProjFS）<b>零测试覆盖</b></li>
+<li><b>pi-iso 是 CoW 工作区隔离，不是安全沙箱</b> —— 零 seccomp / landlock / namespace <span class="cue">[停]</span></li>
+<li>防 subagent 改坏工作树，不防它读你的 <code>~/.ssh</code></li>
+</ul></div><div class="blk gist"><span class="lb">一句话主旨</span><p>同一个核，count=10 时 Rust 是 0.86× 净亏，count=1000 时是 2.48×——变的不是代码，只是批量大小。</p></div><div class="blk say"><span class="lb">怎么讲</span><p>这一页我给它起名叫&quot;最诚实的一张 benchmark&quot;，理由很简单——<b>它把自己更慢的那一行也放上去了</b>。（停一拍）先交代口径，看右上角：Apple M1、bun 1.3.14，最关键的是 <b>crossing-inclusive</b>——测的时间<b>包含 N-API 跨越的成本</b>，不是只测 Rust 函数体内部。这个口径很重要，因为很多人贴的 native 性能对比是不含跨越的，那个数字没有意义。（停一拍）现在看表。前两行是 <code>searchExactVectorIndex</code>，count 10 是 1.83×，count 一万是 1.62×，都还行。然后是被玫红条框住的这一行，<b><code>cosineSimilarityPairs</code>，count = 10，TS 用了 26.42 微秒，native 用了 30.67 微秒，speedup 0.86×</b>——<b>Rust 更慢</b>，净亏 14%。同一个 kernel，我们往下看：count 涨到 100，变成 2.37×；count 涨到 1000，2.48×。（停一拍）<b>变的不是代码，一行都没改，变的只是批量大小。</b> 这就是&quot;读法&quot;那一格说的：<b>N-API 跨越成本是个常数，payload 越小它占的比例越大</b>，小到一定程度就把 Rust 的全部优势吃光。最后这两行 <code>mmrRerankIndices</code> 是另一个极端，22.44× 和 30.18×——为什么差这么多？因为 MMR 重排是个 O(n²) 的算法，计算量大到跨越成本可以忽略不计。<b>所以能不能拿到量级的差距，取决于你的核复不复杂，不取决于你用的是不是 Rust。</b></p>
+<p>（停一拍）看下面这个橙框，我一个字一个字念仓库自己写的规矩：<b>&quot;If native is slower, do not switch callsites.&quot;</b>——如果 native 更慢，就不要切换调用点。出处是 <code>docs/porting-to-natives.md</code> 第 173 行。这句话看起来是废话，但它在实际工程里非常难做到，因为它意味着：<b>你花了几周把一个函数用 Rust 重写了，测出来更慢，你得把它扔掉。</b> 沉没成本在这句话面前是不算数的。我觉得这才是这一页真正值钱的东西——不是那些数字，是一个团队愿意提前把&quot;我可能白干了&quot;这条规矩写进文档。（停一拍）再往下这两行玫红字是<b>口径</b>，非常重要，我必须说清楚：<b>这是 mnemopi 向量核的数字，不是 grep、不是 shell、不是 walker 的。</b> 后者其实有一个写得相当规范的对照脚本——真的去 spawn 一个 <code>rg</code> 子进程做对照组，先比对匹配数确保语义等价，还带了并发维度，因为并发才是 agent 的真实场景。<b>但是仓库里没有任何一次运行结果被提交。</b> 所以我在这里不给数字，<b>我也建议大家不要引用任何&quot;omp 的 grep 快 N 倍&quot;的说法</b>，那个数在仓库里不存在。</p>
+<p>（停一拍）右边这一栏是代价，三条，也全都是实测的。<b>第一条，产物体积。</b> 核心的 npm 包只有一个 loader，<b>111.2 KiB</b>，很轻。但它靠 optionalDependencies 拉一个平台专属的 leaf 包，那个包是——linux-x64 因为有 baseline 和 modern 两个变体，<b>285.2 MiB</b>；其余每个平台 137 到 144 MiB。这里面装的是 56 个 tree-sitter 语法、syntect 的语法和主题、两张 BPE 表、几份位图字体、webrtc 加 opus。<b>对照一下上游 pi 的成本：首次用到的时候下载 rg 和 fd，几 MB。</b> 这是这笔投入最直观的代价，而且它是每一个用户都要付的。<b>第二条，构建复杂度上了一个数量级。</b> Bazel + rules_rust + hermetic_cc 也就是 zig 做交叉编译工具链 + crate_universe，八个构建目标；而且 cargo 和 Bazel <b>双轨并存</b>——cargo 仍然是本地开发的权威，Bazel 是产物和 CI 的权威，两套依赖图都得能跑。Rust 工具链也是两份，Bazel 钉的是四月的 nightly，本地是七月的。他们甚至还要自己写一个补丁去绕开 zig 的并发缓存损坏。加白这行是最直观的：<b>Windows 交叉编译要拉大约 3 GiB 的 SDK，darwin 冷构建大约 40 分钟。</b> <b>第三条，也是最扎心的一条：最难测的那部分，零覆盖。</b> pi-shell 有 846 个测试，听起来很多，但绝大多数落在 minimizer——也就是纯逻辑、最好写测试的那部分。而 pi-iso 只有 3 个测试、pi-uutils-ctx 3 个、pi-voice 4 个。加白这行：<b>overlayfs、clonefile、ProjFS 这些平台相关的代码，测试为零。</b> 测试覆盖的分布和风险的分布<b>正好是反的</b>——好写的地方写满了，最容易出事的地方一个没有。这不是批评，这是所有做跨平台原生代码的人共同的处境，但把它摊开来看还是有点吓人。</p>
+<p>（停一拍）最后这一格，也是我今天在这一章一定要说清的一件事，因为它最容易被讲错。<b><code>pi-iso</code> 是 CoW 工作区隔离，它不是安全沙箱。</b> 我把整个 crate 翻了一遍：<b>零 seccomp、零 landlock、零 namespace、零 cgroup、零 ptrace、零 job object、零 sandbox_init。</b> 它做的事情是：用 APFS 的 clonefile、Linux 的 overlayfs、Windows 的 ProjFS 这些机制，给 subagent 一份写时复制的工作区副本，跑完再把改动 diff 出来。所以它<b>防的是&quot;subagent 把你的工作树改坏了&quot;</b>，它<b>不防&quot;subagent 读你的 <code>~/.ssh</code>&quot;</b>，也不防它发起网络请求。这两件事经常被混为一谈，我见过不止一次有人拿&quot;omp 有隔离&quot;去论证&quot;agent 执行是安全的&quot;。<b>不是的。</b> 这个区分我必须讲，因为讲错的代价是有人真的把它当沙箱用。</p></div><div class="blk must"><span class="lb">别漏了说</span><ul>
+<li>口径那两行是本页的诚实底线，<b>必须念完</b>：这是 mnemopi 向量核的数，grep/shell/walker 结果未入库。别让听众带走一个不存在的数字。</li>
+<li>&quot;crossing-inclusive&quot;要解释一句，否则 0.86× 这个数会被质疑口径不公。</li>
+<li>&quot;If native is slower, do not switch callsites.&quot;要念英文原句，并且解释它对沉没成本的杀伤力——这是本页真正的落点，不是那些数字。</li>
+<li>pi-iso 不是安全沙箱这条<b>绝对不能省</b>，就算时间到了也要说。零 seccomp / landlock / namespace 要具体点名，不要笼统说&quot;没有安全机制&quot;。</li>
+<li>285.2 MiB 那条要说明是 linux-x64 因为有双变体，别让人以为其他平台也这么大。</li>
+<li>测试覆盖那条的措辞是&quot;覆盖分布和风险分布正好是反的&quot;，不是&quot;他们不写测试&quot;。</li>
+</ul></div><div class="blk qa"><span class="lb">可能被问</span><ul>
+<li>Q：0.86× 是不是测得不对？为什么不多跑几轮？</li>
+<li class='cont'>A：这份结果是提交在册的 JSON，我没有本机复跑（本机没有 bun）。但注意它是 crossing-inclusive，小 payload 上跨越成本占主导，这个结论在 N-API 上是通用的，不是这一次测量的偶然。仓库自己在向量核的模块注释里也写了对应的自觉——&quot;每一次导出都处理整批候选，让跨越成本摊到整个召回操作上&quot;。</li>
+<li>Q：那 grep 到底快不快？</li>
+<li class='cont'>A：不知道，我不给数字。仓库有脚本没结果。要我猜的话，并发场景下因为能共享 fs_cache 应该有优势，但这是猜，不能写进 slide。</li>
+<li>Q：138 MiB 的包，用户装的时候不会崩溃吗？</li>
+<li class='cont'>A：optionalDependencies 只会装当前平台的那一个，所以是一个 138 MiB 而不是六个。但对 CI 来说，每次冷装都是这个量级。</li>
+<li>Q：既然小 payload 更慢，为什么不做个阈值自动切换？</li>
+<li class='cont'>A：仓库里没有看到这样的运行时切换机制，规矩是在<b>移植决策</b>这一层做的——测出来慢就不移植。运行时动态切换会带来两套代码路径要同时维护的问题，我猜是这个原因，但这是我的推测。</li>
+<li>Q：pi-iso 既然不是沙箱，那 agent 执行安全靠什么？</li>
+<li class='cont'>A：靠权限审批和工具白名单那一层，也就是第一篇讲的护栏装在&quot;环境真实执行&quot;那一格。pi-iso 解决的是另一个问题——多个 subagent 并行改同一个工作树会互相踩。别把它们混在一起。</li>
+<li>Q：为什么 Bazel 和 cargo 要双轨？</li>
+<li class='cont'>A：<code>MODULE.bazel</code> 里自己说了，cargo 仍然是本地迭代的权威，因为 rust-analyzer、cargo nextest、napi 的 typedef 生成都依赖它；Bazel 只负责产物和 CI 的内容寻址缓存。代价就是两套依赖图。</li>
+</ul></div><div class="blk next"><span class="lb">过渡</span><p>Rust 这一章到这儿——收益和代价，都来自同一处边界的消失。下一章我们回到 TypeScript 这边，看一个完全不花钱、但一样容易做错的东西：规则和记忆。</p></div></section><section class="pg-sec" data-n="26" data-title="第 06 章 · 规则与记忆"><h2>P26 · 第 06 章 · 规则与记忆</h2><div class="blk cue"><span class="lb">提词</span><ul>
+<li>四十秒过，扉页不承载信息</li>
+<li>章问题：写在哪一层 <span class="cue">[重]</span></li>
+<li>两页：三桶路由 / 代价页</li>
+<li>进度点第六个亮，还剩一章</li>
+<li>底下紫框那句是全章的钥匙 <span class="cue">[慢]</span></li>
+<li>不是「TTSR 取代 prompt 规则」<span class="cue">[停]</span></li>
+</ul></div><div class="blk gist"><span class="lb">一句话主旨</span><p>这一章只回答一个问题——「让 agent 别犯错」这件事，到底该写在哪一层。</p></div><div class="blk say"><span class="lb">怎么讲</span><p>上一章我们停在那张最诚实的 benchmark 上——小 payload 上 Rust 反而慢 0.86 倍，作者自己在注释里写「若更慢，不要切换调用点」。那是「性能这件事怎么判断该不该做」。这一章换一个题目，但你会发现它的思路是一模一样的。（停一拍）看左边这个 06，标题叫「规则与记忆」。加粗那行是本章唯一的问题：<b>「让 agent 别犯错」，到底该写在哪一层？</b> 我先把大家脑子里最常见的答案说出来——写在 system prompt 里。「你不许用 any」「你不许删库」「你改完要跑测试」，一条一条堆进去。这个答案不能说错，但它只是一层。omp 这个仓库里同时存在三套互不相干、耦合度极低的机制在干这件事，而且——这句话请记住——<b>它们的默认开关状态本身就是作者的价值排序</b>。TTSR 默认开，advisor 默认关，记忆默认关。往下这行小字是本章的收束：同一份规则文件，按错误的时间尺度分流到不同的执行时机。右边小目录两页：27 页讲三桶路由，28 页是代价页——那一页的副标题我先念一下，「309 次 Stop.」，这是仓库里一个 issue 的实测数字，等会儿会展开。进度点第六个亮了，我们还剩一章。最后是底下这个紫框，本章的钥匙就在这儿：<b>不是「TTSR 取代 prompt 规则」，而是秒级的错误交给流式匹配，恒定的约束交给 prompt。</b> 这句话我等一下在 27 页会再说一遍，因为整章就靠它立着。</p></div><div class="blk must"><span class="lb">别漏了说</span><ul>
+<li>「默认开关状态本身就是价值排序」这句要说出口——它是 27、28 两页的共同读法，也是本章跟 CH5 那张 benchmark 的呼应点：作者一贯地把「不敢默认打开」当成一种诚实。</li>
+<li>章问题要念成「写在哪一层」，不要念成「怎么让 agent 别犯错」。差别在于：后者是求解，前者是分层——本章不提供更好的规则，只提供规则的放置方式。</li>
+<li>时间控制：这页四十秒，别在扉页展开三套机制的细节，27、28 页都要用。</li>
+</ul></div><div class="blk qa"><span class="lb">可能被问</span><ul>
+<li>Q：三套机制指哪三套？扉页上没写全。</li>
+<li class='cont'>A：TTSR（流式规则）、advisor / watchdog（第二个模型做二次评审）、mnemopi（跨 session 的本地记忆）。27 页主讲 TTSR 的分桶，28 页主讲 advisor 的代价，记忆只在 28 页右栏点四条天花板。完整的三套对照在仓库 research/R06 的第 0 节。</li>
+<li>Q：记忆为什么不单独给一页？</li>
+<li class='cont'>A：因为它默认是关的，而且我读下来它最有价值的部分是「它做不到什么」——没有向量索引、O(N) 全表扫、10000 行硬上限、事实去重是精确字符串匹配。这些放在 28 页右栏当「天花板」讲，比单独吹一页表结构诚实。</li>
+</ul></div><div class="blk next"><span class="lb">过渡</span><p>那我们就把这三个桶摊开——下一页是这一章、也可能是全场最该被抄走的一张设计图。</p></div></section><section class="pg-sec" data-n="27" data-title="同一份规则 markdown，按 frontmatter 分成三个桶"><h2>P27 · 同一份规则 markdown，按 frontmatter 分成三个桶</h2><div class="blk cue"><span class="lb">提词</span><ul>
+<li>最该被抄走的一页，讲慢一点 <span class="cue">[慢]</span></li>
+<li>输入只有一种：带 YAML 头的 markdown</li>
+<li>桶 1 TTSR：有 condition → 占用 0 <span class="cue">[重]</span></li>
+<li>桶 2 alwaysApply → 全文，固定税</li>
+<li>桶 3 只有 description → 一行索引，rule:// 按需读</li>
+<li>判据优先级：TTSR 最高</li>
+<li>右栏五步：匹配 → abort → 删半截 → 注入 → 重跑</li>
+<li>红利：规则可测试、可生成</li>
+<li>代价：O(n²)、重跑丢 token</li>
+<li>收口那句要念全 <span class="cue">[停]</span></li>
+</ul></div><div class="blk gist"><span class="lb">一句话主旨</span><p>同一份规则文件按 frontmatter 自动路由到三种执行时机，prompt 占用分别是 0、全文、一行。</p></div><div class="blk say"><span class="lb">怎么讲</span><p>这一页我讲得最慢，因为如果今天全场你只带走一张图，我希望是这张。（停一拍）先看最上面那行小字：<b>同一份 markdown，YAML frontmatter + 正文</b>。请注意「同一份」三个字——这套系统的输入只有一种东西，就是一个带 YAML 头的 markdown 文件，正文是给模型看的整改说明，带 Bad / Good 对照。这些文件从哪来？第二行：按 provider 优先级，native 100、omp-plugins 90、agents 70、cursor 50、windsurf 50、cline 40，按规则名去重，first-wins。也就是说你项目里的 <code>.cursor/rules</code>、<code>.clinerules</code>、<code>RULES.md</code> 它全收，同名的按优先级挑一个。第三行是仓库自带的：<b>27 条内置规则</b>，ts-no-any、ts-import-type、rs-parking-lot、go-range-int 这些，一眼看得出是按语言分的 lint 类约束。</p>
+<p>（停一拍）关键来了：<b>这一份文件进来之后，走哪条路，不是人选的，是看 frontmatter 里有什么字段自动分的。</b> 三个桶。</p>
+<p>第一个紫框，桶 1，TTSR。判据写在这儿：<b>有 <code>condition</code> 或 <code>astCondition</code>，优先级最高</b>。举两条真实的：<code>ts-no-any</code> 的 condition 就是一段正则，<code>&quot;: any|as any&quot;</code>；<code>ts-redundant-clear-guard</code> 用的是 astCondition，写的是 <code>if ($X) clearTimeout($X)</code>。这两条的区别请一定说清——底下这行灰字就是理由：<b>同一个元变量 <code>$X</code> 出现两次，要求这两处必须相等</b>，<code>if ($X) clearTimeout($Y)</code> 不匹配。这是纯正则做不到的，也是他们引入 ast-grep 的唯一理由。然后看中间这个大大的 <b>0</b>——这是本页最重要的一个数字：<b>TTSR 规则的 prompt 占用是 0</b>。右边三行是它的生效时机：流式命中的那一刻现身；命中之前不花任何 token；命中一次的成本是重跑本轮。</p>
+<p>第二个黄框，桶 2，always-apply。判据是 <code>alwaysApply: true</code> 且不属于 TTSR。它全文注入到 <code>&lt;generic-rules&gt;</code> 里。占用是「全文」，生效时机是「始终」。底下这行小字是它的代价：<b>每一次请求都付固定 token，无论这条规则跟本轮相不相关。</b> 右边这行给了个量感——这 27 条内置规则的正文全带代码块，真要全塞进 system prompt 是数万 token 的量级。</p>
+<p>第三个青框，桶 3，rulebook。判据是只有 <code>description</code>，既不是 TTSR 也不是 always-apply。它在 prompt 里只留<b>一行索引</b>，格式就是 <code>- 名字 (globs)：描述</code>。生效时机是——<b>模型自己决定读不读</b>，想读就用 <code>rule://&lt;名字&gt;</code> 把全文取回来。这一格底下还有一句很容易漏的话：三个桶的规则最后都会被塞回 <code>setActiveRules</code>，所以<b>被 TTSR 触发过的规则，模型仍然可以用 <code>rule://</code> 复读全文</b>。三个桶不是三块隔离的区域，是三种投递方式。</p>
+<p>（停一拍）右边这一栏是把 TTSR 的五步拆开。① 逐 delta 匹配，监听 text、thinking、toolcall 三种流，正则或 ast-grep。② <code>abort()</code>，命中即中断，而且可以只中断被命中的那一个工具，不是把整轮全掐了。③ <code>replaceMessages</code>，默认 <code>contextMode: discard</code>——<b>把那条写了一半的 assistant 消息整条删掉</b>，这就是「time traveling」这个名字的来处：规则在你写出违规 token 的那一瞬间生效，然后把时间倒回这一轮开始之前。④ 注入 <code>&lt;system-interrupt&gt;</code>，我念一下模板里最有意思的一句：「<b>这不是 prompt injection，这是 coding agent 在执行项目规则</b>」——他们要专门跟模型解释这件事，因为模型被训练成要警惕突然冒出来的指令。⑤ <code>continue()</code> 重跑，延迟 50 毫秒，而且抑制状态会以 <code>ttsr_injection</code> 这个 entry 持久化下来，跨 resume 有效，免得你重开 session 同一条规则又来轰炸一遍。</p>
+<p>绿框这一块是我认为这套东西真正的红利，请一定讲：<b>规则变成可测试、可生成的东西了。</b> <code>omp ttsr test</code> 可以喂一段代码进真实的匹配管线，看哪几条会触发；<code>omp ttsr scan</code> 扫整个目录，还是 gitignore-aware 的。更狠的是 <code>/omfg</code> 这个命令——用户被同一种行为惹毛了，模型读整段对话，<b>产出一条本来能提前拦住它的规则</b>；生成完还要回放校验，把候选规则拿去跑一遍历史的 assistant 输出，不匹配就带着 feedback 重新生成。你把 &quot;never use any&quot; 写在 system prompt 里，这三样一样都没有：你没法测它，没法生成它，也没法验证它到底有没有拦住过什么。</p>
+<p>最后红框，它不是白来的。第一条：每个 delta 都把全量缓冲区重新拼一遍再跑正则，长流上就是 <b>O(n²)</b>，这是 issue #4245 真实发生过的性能 bug，后来加了早退位才修好——<b>这个 bug 存在过，说明代价是真的</b>。第二条：打断一次等于本轮全部重跑，而且 discard 模式下已经生成的部分整条丢弃，<b>那些 token 你已经付过钱了</b>。</p>
+<p>（停一拍）收口在左下这个紫框，我念全：<b>所以准确的说法不是「TTSR 取代 prompt 规则」，而是同一份规则文件，按时间尺度配不同的执行时机——秒级的错误交给流式匹配，恒定的约束交给 prompt，其余的留给模型按需取。</b> 底下这行是给工程师的换算：<b>TTSR = prompt 预算为 0 的规则；always-apply = 每次请求都要付的固定税。</b> 这两个词你带回去就能直接用在自己的系统上。</p></div><div class="blk must"><span class="lb">别漏了说</span><ul>
+<li>「同一份文件、自动分流」这个机制本身比三个桶的具体内容更值钱。很多人的第一反应是「我也搞个流式拦截」，那是抄功能；真正该抄的是「规则不该只有一种执行时机」。</li>
+<li>那个 <b>0</b> 要指着念出来，并且立刻接一句「代价在命中时才付」——否则听众会以为是免费午餐。</li>
+<li>27 条这个数字我逐文件核过：目录下 28 个条目，其中一个是 <code>index.ts</code>，<code>.md</code> 规则是 27 条。仓库研究笔记 R06 里写的是 28 条，那是把 <code>index.ts</code> 一起数了。以页面上的 27 为准。</li>
+<li>ast-grep 那条一定要讲元变量两处相等，这是「为什么不能只用正则」唯一站得住的技术理由，少了它 ast-grep 就显得是炫技。</li>
+<li>「TTSR 命中过的规则仍可 <code>rule://</code> 复读」这句别跳——它说明三个桶是同一个规则池的三种投递方式，不是三份拷贝。</li>
+</ul></div><div class="blk qa"><span class="lb">可能被问</span><ul>
+<li>Q：正则会不会误杀？<code>&quot;: any|as any&quot;</code> 在注释里、字符串里、markdown 里都会命中吧。</li>
+<li class='cont'>A：会，而且这是设计上认了的。他们的缓解手段不是把正则写得更精确，而是用 <code>scope</code> 收窄到流上——<code>ts-no-any</code> 的 scope 是 <code>tool:edit(*.ts)</code> 这一类，也就是只在编辑 TS 文件的那股流上匹配，不管你在正文里写了什么。这是个很值得学的取舍：<b>降低误杀靠缩小作用域，不靠提高模式精度。</b></li>
+<li>Q：这跟 lint / pre-commit hook 有什么区别？我 CI 上跑 eslint 不就行了？</li>
+<li class='cont'>A：区别在时机。lint 是在模型把整个文件写完、工具执行完、你 review 的时候才发现；TTSR 是在那几个 token 刚吐出来的时候就掐掉，然后让模型带着规则重写一遍。省的是「写完—发现—再让它改一遍」这一整个来回。但反过来说，如果你的错误容忍到 CI 才发现也不亏，那你确实不需要 TTSR，用 lint 更便宜——这也是本页要传达的判断方式。</li>
+<li>Q：桶 3 的 <code>rule://</code> 靠模型自觉去读，它会读吗？</li>
+<li class='cont'>A：不保证。这正是三个桶的差别所在：桶 1 是确定性执行、不依赖自觉；桶 2 是常驻但要付固定税；桶 3 最便宜但最不可靠。所以规则该进哪个桶，本质上就是在问「这条规则漏了会死人吗」。我没有在仓库里找到「模型实际读取 <code>rule://</code> 的比例」这类数据，这个我不知道。</li>
+<li>Q：<code>interruptMode</code> 有几档？默认是什么？</li>
+<li class='cont'>A：全局默认是 <code>always</code>，也就是命中就中断重跑，规则级可以覆盖成 <code>never</code>。但下一页你会看到一个很反差的事实——先卖个关子。</li>
+<li>Q：这套东西对延迟的影响有多大？</li>
+<li class='cont'>A：仓库里有 O(n²) 的修复记录，但<b>没有 benchmark 数据</b>，「一次匹配是微秒还是毫秒级」我答不上来，这是我这轮取证的空白。</li>
+</ul></div><div class="blk next"><span class="lb">过渡</span><p>讲到这儿这套东西听起来太美好了，所以下一页我专门做了一张代价页——而且这一页最有说服力的证据是：<b>作者自己也不敢默认打开它。</b></p></div></section><section class="pg-sec" data-n="28" data-title="作者自己也不敢默认打断"><h2>P28 · 作者自己也不敢默认打断</h2><div class="blk cue"><span class="lb">提词</span><ul>
+<li>三条代价，全是原话和数字，不是推测 <span class="cue">[重]</span></li>
+<li>① 27 条内置规则，27 条全是 never <span class="cue">[慢]</span></li>
+<li>能力做出来了，默认档挑最保守的</li>
+<li>② 309 / 92 / 114 / 52 / 41</li>
+<li>&quot;make the rules load-bearing in code instead of prose&quot;</li>
+<li>抑制必须对模型不可见 —— 否则 Stop. 换成 Halt. <span class="cue">[重]</span></li>
+<li>③ advisor 默认走强模型，省钱不靠降档</li>
+<li>五道闸：默认关 / 只喂增量 / 四层闸门 / 冷却 3 轮 / 背压 30s</li>
+<li>&quot;silence is the correct expression of &#x27;no concerns&#x27;&quot;</li>
+<li>右栏：换到了 prompt-only 给不了的三样</li>
+<li>记忆四条天花板</li>
+<li>收口：搬走的是「时间尺度 → 执行边界」<span class="cue">[停]</span></li>
+</ul></div><div class="blk gist"><span class="lb">一句话主旨</span><p>三条代价都是仓库里能查到的原话和数字，其中最有力的一条是 27 条内置规则全部选了「不打断」。</p></div><div class="blk say"><span class="lb">怎么讲</span><p>上一页我把 TTSR 讲得很漂亮，这一页专门泼冷水。副标题我先声明一下：<b>这三条代价，全部是仓库里能查到的原话和数字，不是我的推测。</b> 有几条我甚至是逐个文件数过的。（停一拍）</p>
+<p>第一条，也是我个人认为整场最有说服力的一条证据。全局默认的 <code>interruptMode</code> 明明是 <code>&quot;always&quot;</code>——能力是做出来的，命中就 abort、就丢弃、就重跑。但是：<b>仓库自带的 27 条内置 TTSR 规则，27 条，一条不落，全部显式写了 <code>interruptMode: never</code>。</b> 这个我是逐文件 grep 过的，不是抽样。never 意味着什么？意味着不 abort，只是把提醒渲染成一个 text block，<b>前置到工具结果的第一个 block 之前</b>——就是这行代码：<code>return { content: [{ type: &quot;text&quot;, text: reminder }, ...ctx.result.content] }</code>。模型看到工具结果的时候，先看到那句提醒。（停一拍）所以这一页的读法写在最下面这行红字：<b>打断的能力做出来了，但默认档位挑了最保守的那一档。</b> 一个人把这套流式打断系统从头写出来，最后自己给它配的默认值是「不要打断」。这比我说十句「谨慎使用」都有力。</p>
+<p>第二条，advisor。advisor 是可选的第二个模型，每个主 turn 结束后看主 agent 的增量转录，通过 <code>advise</code> 把意见反向注入回来。听起来很合理对吧？现在看这排数字，这是 issue #3520 记录的<b>一个 session</b>：<b>309 次 advise 调用，92 条唯一内容，其中 114 次是 &quot;Stop.&quot;，52 次是「无问题，继续」，41 次是「完成」。</b> 309 次里只有 92 条是不重复的，剩下三分之二是复读。而且——念这行——<b>任务早就做完了，主转录还在被 <code>&lt;advisory severity=&quot;blocker&quot;&gt;Stop.&lt;/advisory&gt;</code> 一条条灌满。</b>（停一拍）他们的修复注释我原话念一遍：<b>&quot;make the rules load-bearing in code instead of prose.&quot;</b> —— 让规则在代码里承重，而不是待在散文里。这句话我认为是整个仓库里最值钱的一句话，因为它可以直接反过来用在你的项目上：你 prompt 里那些「请不要反复提醒用户」「请保持简洁」，全是 prose，全都不承重。</p>
+<p>然后是这一页第二有意思的细节，请一定讲：<b>抑制必须对模型不可见。</b> 被丢弃的 advise 调用，工具照样返回 <code>&quot;Recorded.&quot;</code>，就跟成功了一样。为什么？理由白纸黑字写在注释里：如果你告诉它「你这条被拦下来了」，它会把 <code>&quot;Stop.&quot;</code> 换成 <code>&quot;Halt.&quot;</code>，再换成 <code>&quot;Stop now.&quot;</code> 绕过去。（停一拍）我第一次读到这儿是有点毛骨悚然的——这不是模型在恶意规避，它只是在尽职地完成「我要提醒主 agent 停下」这个目标，反馈信号让它学会了换个说法。<b>你给模型的每一个失败反馈，都可能被它当成一次优化机会。</b> 这条经验适用于任何你打算给 agent 加限流、加配额、加过滤的场景。</p>
+<p>第三条讲钱。直觉上第二个模型应该用小模型对吧？错。<code>ROLE_PRIORITY_ALIAS</code> 里写着 <code>advisor: &quot;slow&quot;</code>——<b>advisor 默认解析到 slow 强推理模型链，而且不继承主模型</b>，所以哪怕你主 agent 用的是便宜模型，advisor 还是一个独立的强模型。省钱<b>不靠降档</b>。靠什么？靠另外五道：第一，<b>默认关闭</b>——<code>advisor.enabled</code> 默认 false。第二，<b>只喂增量转录</b>，每轮只发 delta，不发全量。第三，<b>四层输出闸门</b>，底下这行写全了：归一化（<code>&quot;Stop.&quot;</code>、<code>&quot;<i>Stop</i>&quot;</code>、前后带空格的 <code>stop</code> 全归一到一个 <code>stop</code>）→ 无内容短语黑名单 → 全 session 精确去重，4096 条 FIFO → 每个 advisor 周期最多放行一条。第四，<b>打断冷却</b>：<code>immuneTurns</code> 默认 3，一次成功打断之后，接下来 3 个主 turn 里的 concern 和 blocker 全部降级成不打断。第五，<b>背压不是锁步</b>：主 agent 在 turn 结束后最多等 30 秒让 advisor 追上，等不到就走——这 30 秒也正是它默认关掉的原因之一。最后这行注释原话也很好：<b>&quot;silence is the correct expression of &#x27;no concerns&#x27;&quot;</b>——没问题的正确表达方式是沉默。这一句可以直接抄进你自己给 review agent 写的 prompt 里。</p>
+<p>（停一拍）右边这一栏是平衡。绿框：它换到了 prompt-only 给不了的东西——可测试、可生成、可回放校验，这三样上一页讲过了，我这里只重复一句：<b>system prompt 里的一句 &quot;never use any&quot; 没有这三样。</b> 下面紫色这四块是顺带把记忆的天花板说清楚，因为它也是默认关的，我不打算给它单开一页，但这四条你得知道：一，向量是以 JSON 文本存的，<code>memory_embeddings.embedding_json</code>，而且 sqlite-vec 的路径写了但<b>从来不建表</b>。二，所以召回是<b>暴力全表扫，10000 行封顶</b>，规模上会先撞墙。三，事实去重是 SPO 精确匹配——主谓宾三个字段一模一样才算重复，所以<b>换个说法的同一件事会被记两遍</b>，这是记忆膨胀的现实入口。四，工作记忆 TTL 24 小时，但巩固窗口只有一半、12 小时；<b>没赶上巩固的，24 小时后是真 DELETE，不是软删。</b></p>
+<p>最后这个框是本章的收口，我念：<b>这一章能搬走的，不是那 27 条规则，也不是那套记忆表结构；是「按错误的时间尺度，给它配一个执行边界」——秒级用流式匹配，轮级用第二意见，跨 session 用记忆。以及：把 prose 里的软约束，落成代码里的硬闸门。</b></p></div><div class="blk must"><span class="lb">别漏了说</span><ul>
+<li>「27 条全是 never」是本页的王牌，必须说清是<b>逐文件核过的、不是抽样</b>，因为它承载的是一个很强的推论（作者自己不敢默认打断）。</li>
+<li>&quot;make the rules load-bearing in code instead of prose&quot; 建议英文原话念一遍再翻译，这是全场最值得被抄进笔记的一句。</li>
+<li>「抑制对模型不可见」这条要展开讲后果，别只念结论。它是本页唯一一条能直接迁移到听众自己系统上的反直觉设计。</li>
+<li>advisor <b>不降档</b>这件事要点破，因为所有人的直觉都是「监督者用小模型」。它选择了「贵但默认关」而不是「便宜但默认开」——这又是一次价值排序。</li>
+<li>记忆那四条讲快一点，它们是补充不是主线；但「真 DELETE」和「换个说法记两遍」两条别省，这是听众自己做记忆系统时最容易踩的两个坑。</li>
+</ul></div><div class="blk qa"><span class="lb">可能被问</span><ul>
+<li>Q：309 次是不是极端个例？平均是多少？</li>
+<li class='cont'>A：不知道。仓库里只有这一个被 issue 记录下来的 session 快照，没有分布数据。我讲它是因为它触发了一次真实的代码修复，不是因为它有代表性。</li>
+<li>Q：那 advisor 到底值不值得开？</li>
+<li class='cont'>A：仓库没给结论，我也不替大家下。我能给的判断依据是：它补的是 prompt 和正则都覆盖不了的那一层——设计判断、方向漂移、过早宣布完成。这类问题写不成正则，也很难靠同一个模型自查，因为它已经说服自己了。如果你的场景里这类错误代价很高（比如无人值守长跑），那双倍成本可能划算；如果你全程盯着，那你本人就是 advisor。</li>
+<li>Q：TTSR 默认开、advisor 默认关，是不是因为 advisor 还不成熟？</li>
+<li class='cont'>A：我倾向于不是成熟度问题，是成本形态不同。TTSR 不命中就零成本，默认开是安全的；advisor 是每轮固定一次强模型调用，默认开等于所有人的账单翻倍。这是我的读法，不是仓库原话。</li>
+<li>Q：advisor 的工具集有安全问题吗？</li>
+<li class='cont'>A：有一条文档里明确标注的信任边界：<code>WATCHDOG.yml</code> 可以把 advisor 的工具池扩到任意内置工具，包括 <code>edit</code>、<code>bash</code>、<code>eval</code>，而且<b>advisor 的工具不走主 agent 的审批包装</b>——授予即可直接调用。默认工具池是只读的 read / grep / glob 加一个 advise，但这个口子是敞着的。</li>
+<li>Q：记忆那套东西 O(N) 全表扫，10000 行大概是多久的量？</li>
+<li class='cont'>A：这个我没实测，也没在仓库里找到换算。只能说结构上它就是个会先撞墙的实现。</li>
+</ul></div><div class="blk next"><span class="lb">过渡</span><p>前六章我们一直在讲「它做了什么」。最后一章换个角度——讲它<b>是怎么判断该不该做的</b>，以及这 153 万行里你真正能搬走的是哪几条。</p></div></section><section class="pg-sec" data-n="29" data-title="第 07 章 · 工程文化与收口"><h2>P29 · 第 07 章 · 工程文化与收口</h2><div class="blk cue"><span class="lb">提词</span><ul>
+<li>视角切换：从「做了什么」到「怎么判断该不该做」<span class="cue">[重]</span></li>
+<li>三页：文档编译进二进制 / 靠量化 / 收口清单</li>
+<li>三条其实是同一件事 <span class="cue">[慢]</span></li>
+<li>规范 + 执法者成对出现，规范才不会腐烂 <span class="cue">[重]</span></li>
+<li>进度点满了，最后一章</li>
+<li>本章只回答：你能搬走哪几条 <span class="cue">[停]</span></li>
+</ul></div><div class="blk gist"><span class="lb">一句话主旨</span><p>最后一章不讲功能，只讲判断方式，以及一条贯穿三页的主线——规范和执法者必须成对出现。</p></div><div class="blk say"><span class="lb">怎么讲</span><p>七个进度点，全亮了，这是最后一章。（停一拍）先说这一章跟前面六章的关系，这句话写在标题下面：<b>前六章讲的是它做了什么，这一章只讲一件事——它是怎么判断该不该做的。</b> 为什么把这个放最后？因为前六章你听下来，很可能会有一种「哇好厉害但跟我没关系」的感觉——一个人写了 153 万行，8.4 万行 Rust，自建 CI 集群，你抄不动，也不该抄。但<b>判断方式是可以抄的，而且是免费的</b>。</p>
+<p>往下这行小字列了本章三页的内容，我先说一件事：这三条乍看毫不相干——文档编译进二进制给 agent 自己读、每条禁令后面挂 issue 编号、edit 格式好不好靠基准量出来。但它们是同一件事的三个面，那句共同点写在这行的最后：<b>规范和执法者成对出现，规范才不会腐烂。</b> 文档的执法者是 agent 自己——它读到过时的文档就会犯错，错误立刻暴露文档没更新；禁令的执法者是 issue 号和 smoke test；「什么样的 edit 格式好」的执法者是那个 benchmark。（停一拍）反过来说，你项目里那些只有规范没有执法者的东西——比如一份没人跑的 CONTRIBUTING、一条写在 wiki 里的命名约定——它们不是没用，它们是<b>正在腐烂</b>。</p>
+<p>右边小目录三页：30 页讲文档编译进二进制，122 篇、27,931 行打成两行注入；31 页讲量化，自建 edit 基准跑 6 个模型，成绩签进仓库；32 页是收口，能抄的五条、别抄的六条。最后这个绿框是本章唯一的承诺：<b>这 153 万行里，你真正能搬走的是哪几条。</b></p></div><div class="blk must"><span class="lb">别漏了说</span><ul>
+<li>「判断方式可以抄，而且免费」这句要点破，它是听众坚持听到最后一页的理由。</li>
+<li>「三条其实是同一件事」要在这里就埋下，30、31 两页都会回扣到「规范 + 执法者」这一句上，32 页则是它的总账。</li>
+<li>进度点满格这个视觉要提一句，跟第一章的约定收尾。</li>
+</ul></div><div class="blk qa"><span class="lb">可能被问</span><ul>
+<li>Q：工程文化这种东西能算技术分享吗？</li>
+<li class='cont'>A：我理解这个疑问。我的选择是：只讲<b>有代码坐标、有数字、有原话</b>的部分——每条禁令挂的 issue 号是真的，122 篇文档的编译脚本是真的，6 个模型的成绩是签在仓库里的 JSON。不讲「团队氛围」「工程师精神」这类无法核查的东西。</li>
+<li>Q：这一章会讲 robomp 那个自托管机器人吗？</li>
+<li class='cont'>A：不单独讲，它出现在 32 页的「别抄」里会一笔带过。它的安全设计很值得读——双容器信任边界、HMAC sidecar、凭据脱敏审计、崩溃后续接会话——但那是「agent 自动修自己仓库的 issue」这个具体目标才需要的规模，跟今天的主线关系不大。完整的八条在 research/R09 第 4.2 节。</li>
+</ul></div><div class="blk next"><span class="lb">过渡</span><p>先从最反直觉的一条开始——他们把 122 篇文档编译进了二进制，而这些文档的读者不是人。</p></div></section><section class="pg-sec" data-n="30" data-title="122 篇文档被编译进二进制，读者是 agent 自己"><h2>P30 · 122 篇文档被编译进二进制，读者是 agent 自己</h2><div class="blk cue"><span class="lb">提词</span><ul>
+<li>一份来源，两个消费者 <span class="cue">[重]</span></li>
+<li>docs/ 122 篇 27,931 行 → compile-binary.ts → PI_DOCS_EMBED</li>
+<li>注入的就两行：文件名数组 + 一大坨 base64</li>
+<li>列目录只解析第 1 行，一个正文都不解压</li>
+<li>真读某篇才在 zlib 线程池上懒解压一次</li>
+<li>dev 树绕开嵌入，直接读磁盘 —— 永不分叉</li>
+<li>原话：过时的速度比任何人重读它的速度都快 <span class="cue">[慢]</span></li>
+<li>你的最小形态：不需要编译期注入</li>
+<li>右栏 ①：禁令后面挂 issue 号</li>
+<li>右栏 ②：Never source-grep</li>
+<li>共同点：规范和执法者成对出现 <span class="cue">[停]</span></li>
+</ul></div><div class="blk gist"><span class="lb">一句话主旨</span><p>文档在编译期打包进二进制、运行时由 agent 通过 <code>omp://</code> 自己懒解压查阅，目的是让检索路径和阅读路径重合。</p></div><div class="blk say"><span class="lb">怎么讲</span><p>标题里最重要的是后半句——<b>读者是 agent 自己</b>。（停一拍）左上角这行是这一页的骨架：<b>一份来源，两个消费者。</b> 顺着这条线看：最左边 <code>docs/</code> 目录，122 篇 markdown，27,931 行；中间 <code>compile-binary.ts</code> 第 42 行，gzip 加 base64；右边注入成一个叫 <code>PI_DOCS_EMBED</code> 的常量，进编译后的二进制。</p>
+<p>底下这个框把注入的东西摊开了，其实就两行。第 1 行是文件名的 JSON 数组，<code>[&quot;docs/rpc.md&quot;,&quot;docs/models.md&quot;,…]</code>，<b>明文，不压缩</b>。第 2 行是所有正文 gzip 之后 base64，就是这一坨 <code>H4sIAAAA…</code>。为什么要拆成两行？看绿框——因为这两行对应两种截然不同的访问模式。<b>列目录的时候，只解析第 1 行，一个正文都不解压</b>；只有 agent 真的要读某一篇，才在首次读取时到 zlib 线程池上懒解压一次，之后走缓存。这是很讲究的一个设计：目录是高频操作，正文是低频操作，把高频的那部分留成明文。第三行还有一个细节别漏：<b>dev 树、源码 checkout 的时候绕开嵌入，直接读磁盘上的 <code>docs/</code></b>。所以开发者改了 md 立刻生效，不需要重新编译；同一份 md，人读磁盘，agent 读嵌入，<b>永不分叉</b>。</p>
+<p>（停一拍）现在讲为什么。这一段我建议大家把原话记下来，写在 <code>DEVELOPMENT.md</code> 第 7 到 10 行：<b>「曾经住在这里的长篇架构走查，过时的速度比任何人重读它的速度都快。」</b> 所以他们做了什么？把这个文件里的架构描述<b>删了</b>，改成链接过去，而不是留一份会腐烂的散文副本。（停一拍）这句话请对照一下你自己的 README——你那份「架构概览」上次更新是什么时候？</p>
+<p>最下面这个青框是真正的收益，也是给大家的可执行版本。收益是这一句：<b>检索路径和阅读路径重合，所以文档不更新，会立刻被 agent 的错误暴露出来。</b> 这就是我上一页说的「规范和执法者成对出现」——agent 就是文档的执法者，你的文档写错了，它照着做就会犯错，你当场就知道。而且请注意最后这行：<b>你不需要抄编译期注入这一步。</b> 最小形态是：把 <code>docs/</code> 定成唯一权威，<code>AGENTS.md</code> 或 <code>CLAUDE.md</code> 里不写架构描述、只放一张「子系统 → 文档路径」的索引表。成本是一次目录整理加一条 review 规矩。</p>
+<p>（停一拍）右边这一栏是同源的另外两条。第一条，<b><code>AGENTS.md</code> 282 行，是一份执行契约，不是风格指南</b>。全篇 NEVER / MUST，而且每条禁令必须配一个替代物——「不要用 <code>ReturnType&lt;&gt;</code>」后面必须跟「用真实类型名」。为什么？因为<b>禁令没有替代物，agent 会自己发明一个</b>。但最独特的一招是这个：<b>禁令后面挂着它诞生的 issue 编号</b>。看这个例子：worker 入口用 <code>with { type: &quot;file&quot; }</code> → 编译二进制里 worker 静默崩溃，issues #1011、#1027；后来换成字面路径的方案 → 又要求两个构建脚本保持同步，issue #1150。（停一拍）这个 issue 号同时服务两边：<b>人类 reviewer 知道这条不能删</b>——它不是某人的洁癖，是两次线上事故换来的；<b>agent 遇到 edge case 时知道边界在哪</b>。而且它还配了活体执法者：<code>omp --smoke-test</code> 会真的 spawn 一个 worker、ping 它、退出，这个探针接进了 <code>ci:test:smoke</code>。</p>
+<p>第二条，测试禁令：<b>Never source-grep</b>。禁止写那种读实现文件源码、然后断言它文本内容的测试——<code>expect(src).toContain(&quot;someCall()&quot;)</code>、<code>expect(src).not.toContain(&quot;oldName&quot;)</code>、「注释里必须写 X」。理由写得极清楚：<b>它测的是代码长什么样，而不是代码做什么。</b> 后果是双向的：无害的重构——重命名、换行、import 重排——会把它打挂；而行为真的坏掉的时候它照样通过。这是最坏的一种测试，两个方向的错误都占了。替代方案在底下：结构性不变量用类型测试或者 lint 规则去守，不要用字符串扫描。</p>
+<p>最后绿框，三条收在一起：docs 有 <code>omp://</code> 兜底，禁令有 issue 号和 smoke-test 兜底，测试哲学有 review 契约兜底——<b>规范和执法者成对出现。只写规范不给执法者，规范就一定会腐烂。</b></p></div><div class="blk must"><span class="lb">别漏了说</span><ul>
+<li>「读者是 agent 自己」必须在开头就说破，否则整页会被误听成「他们把文档做成了离线包」。</li>
+<li>「dev 树绕开嵌入」这个细节别省，它是「一份来源」这个说法成立的关键，否则就是两份会分叉的拷贝。</li>
+<li>那句 DEVELOPMENT.md 的原话建议念两遍，一遍英文一遍中文——它是本页的情绪高点。</li>
+<li>「你不需要抄编译期注入」这句必须说，否则听众会觉得这一页跟自己没关系。最小形态是这一页真正的交付物。</li>
+<li>issue 号那一招要讲「同时服务两边」，只讲一边（人或 agent）都会显得平淡。</li>
+</ul></div><div class="blk qa"><span class="lb">可能被问</span><ul>
+<li>Q：122 篇文档谁维护？不会腐烂吗？</li>
+<li class='cont'>A：结构上有兜底但没有自动化。我在仓库里<b>没有</b>找到「文档引用的文件路径失效就报错」这类检查——<code>.fallowrc.jsonc</code> 只管死代码。所以 docs 的准确性最终还是靠人工纪律加上「agent 犯错会暴露它」这个软反馈。这一点我如实说，它比页面上呈现的要脆弱一些。</li>
+<li>Q：编译进二进制之后，文档更新是不是要重新发版？</li>
+<li class='cont'>A：对，嵌入的那份是跟着二进制走的。但开发链路上有 dev 树直读磁盘的旁路，所以本地开发不受影响。</li>
+<li>Q：这跟 RAG 有什么区别？为什么不做个向量库？</li>
+<li class='cont'>A：它压根不做检索排序，只做「目录 + 按名取全文」，靠的是 agent 自己按文件名判断该读哪篇。好处是零依赖、确定性、结果可复现；代价是文档命名和索引表得写得好。我认为对 122 篇这个量级，这是正确的取舍。</li>
+<li>Q：把文档打进二进制会让体积涨多少？</li>
+<li class='cont'>A：这个我没实测。参考量级是 27,931 行 markdown gzip 之后，相对于这个仓库本身 138 到 285 MiB 的分发体积可以忽略，但确切数字我给不了。</li>
+<li>Q：<code>AGENTS.md</code> 和 <code>CLAUDE.md</code> 有什么区别？</li>
+<li class='cont'>A：格式上没有本质区别，都是仓库根目录给 agent 读的上下文文件，不同工具认不同的文件名。这一页讲的是内容该怎么写，跟叫什么名字无关。</li>
+</ul></div><div class="blk next"><span class="lb">过渡</span><p>文档那条是让规范有执法者。下一页更狠一点——他们把「哪种 edit 格式好」这种听起来纯属口味的问题，也变成了有执法者的问题。</p></div></section><section class="pg-sec" data-n="31" data-title="「edit 格式好不好」被做成了可测量问题"><h2>P31 · 「edit 格式好不好」被做成了可测量问题</h2><div class="blk cue"><span class="lb">提词</span><ul>
+<li>4,645 行的自建基准，成绩以 JSON 签进仓库 <span class="cue">[重]</span></li>
+<li>页脚已注明：仓库内快照，非本次实跑 <span class="cue">[慢]</span></li>
+<li>haiku-4.5 拿 90，最高</li>
+<li>最刺眼一行：deepseek edit_success 100%，success 55%，9 次 ghost <span class="cue">[重]</span></li>
+<li>落刀很准，失败在「决定该编辑什么」</li>
+<li>造题：真实仓库 + AST 平凡变异</li>
+<li>四档难度不改任务难度，只改要模型自己定位多少</li>
+<li>判分逐字节 + formattedEquivalent 区分改错 / 缩进不对</li>
+<li>右栏：CI 分片是二分实验的结论</li>
+<li>10 文件 50% abort，5 文件 0/20</li>
+<li>别用 bun -e 验动态库 <span class="cue">[停]</span></li>
+</ul></div><div class="blk gist"><span class="lb">一句话主旨</span><p>自建编辑精度基准跑 6 个模型、成绩签进仓库，让「edit 格式好不好」从口味问题变成可测量问题。</p></div><div class="blk say"><span class="lb">怎么讲</span><p>上一页说执法者。这一页的执法者是一个基准测试。（停一拍）标题里我用了「可测量问题」这五个字，是因为「哪种 edit 工具格式对模型更友好」——用 diff、用 str_replace、用行号、用 patch——这在绝大多数团队里是一个纯口味问题，谁嗓门大听谁的。omp 的做法是：自建一个叫 <code>typescript-edit-benchmark</code> 的包，4,645 行，跑 6 个模型，然后把成绩以 JSON <b>签进仓库</b>，换模型、换 prompt 就重跑一遍对比。</p>
+<p>在念数字之前我先把口径说清楚，右上角这行小字：<b>这是仓库内快照，不是我本次实跑的。</b> 我本机没有 bun，跑不了。而且页脚我也标了，这份 JSON <b>没有标注样本量和生成时间</b>——从 success 都是 5 的倍数可以推测每个模型 20 个 task，但那是推测。所以下面这些数字请当成「这个团队的一次内部实验记录」来听，不要当成模型排行榜。</p>
+<p>（停一拍）现在看表。第一行绿色的是 claude-haiku-4.5，success 90，最高。往下 kimi-k2.5 85，gemini-3-flash 80，minimax-m2.5 75，glm-4.7 65。然后是最后这行红的，我认为这一行值回整页票价：<b>deepseek-v3.2，success 只有 55，全场最低；但它的 edit_success 是 100.0，全场唯一的满分；同时有 9 次 ghost run，也就是空跑。</b></p>
+<p>（停一拍）这三个数字放一起是什么意思？看下面这个红框：<b>它每一次 edit 调用都成功了，但任务成功率最低。</b> 翻译成人话——<b>它落刀很准，但它失败在「决定该编辑什么」这一步。</b> 你让它改，它一改一个准；问题是它经常改错地方，或者干脆什么都不改（那 9 次 ghost run）。（停一拍）这行的最后半句是我最想让大家带走的：<b>这种诊断只有量化才看得见，人肉试用是看不出来的。</b> 你手动试几次 deepseek，感觉「诶它挺听话的呀，每次都改成功了」，你永远发现不了真正的瓶颈在定位而不是在编辑。这就是把口味问题变成测量问题的价值——它不只给你排名，它给你<b>归因</b>。</p>
+<p>再看怎么造题，因为这决定了这份数据能说明什么。第一句：<b>测的是编辑精度，不是找 bug 能力。</b> 做法是从真实的 TypeScript 仓库取源文件，做 <b>AST 级的平凡变异</b>——注意「平凡」两个字，变异本身要简单，改个标识符、挪个语句就行，因为重点不是难度，是能不能在困难上下文里外科手术式地打上这个补丁。然后是四档难度，这一条设计得很聪明：<b>四档难度不改任务难度，只改「要模型自己定位多少」</b>。easy 直接给精确行号；medium 给所在函数；hard 是长文件加相似块，<b>不给位置</b>；nightmare 是近似重复的区域反复出现，还是不给位置。（停一拍）所以它隔离出来的变量非常干净——同样的修改内容，只改变「你得自己找多远」，测出来的就是定位能力。</p>
+<p>判分在最下面：<b>逐字节比对期望产物</b>，同时记一个 <code>formattedEquivalent</code>——就是用 prettier 归一化之后是否等价。为什么要记这个？为了<b>区分「改错了」和「只是缩进不对」</b>。这两种失败的严重程度完全不同，混在一起统计你就什么都看不出来了。</p>
+<p>（停一拍）右边这一栏是同一种做法用在另一个地方——CI。上面这个框是他们测试分片崩溃的排查结论，直接写在代码注释里，英文原话：<b>&quot;Bisection showed no single file is at fault — the crash is cumulative heap volume.&quot;</b> 没有哪个文件有问题，崩溃是累积堆体积导致的。下面红框是这次二分实验的对照数据，在强制 256MB 堆的条件下：<b>10 个文件一个 chunk，约 50% 的运行会 abort；切成两个 5 文件的半区，各自 0 比 20，一次都不崩。</b> 崩的位置也定位到了：bun 1.3.14 的 GC 标记阶段，exit 133 或 134，堆积的是 native 的 ghostty-vt cell。</p>
+<p>所以下面这个框——<b>chunkSize 不是拍脑袋定的</b>。UI / TUI 桶 chunkSize 是 5，runtime / native 桶是 10，singleton 桶<b>故意不切</b>，因为全局状态必须共进程。每一个数字背后都有一次实验。</p>
+<p>最后绿框三条可搬走的：① <b>分片逻辑离开 YAML</b>，进一个能本地跑、自己还有单测的脚本——他们真的有一个 <code>ci-concurrency.test.ts</code> 在守着 CI 的并发组规则。② <b>每个魔数旁边写清它是怎么测出来的</b>，这一条我觉得所有人今天回去就能开始做。③ 送一个具体的坑：<b>验证动态库加载别用 <code>-e</code></b>。<code>bun -e &#x27;require(&quot;./x.node&quot;)&#x27;</code> 对一个损坏的 addon 也返回 exit 0，会把 dlopen 失败吞掉；写成脚本文件才会真的失败——而且他们是<b>用一个损坏的 <code>.node</code> fixture 实测验证过</b>的，不是猜的。</p></div><div class="blk must"><span class="lb">别漏了说</span><ul>
+<li>口径声明必须在念数字<b>之前</b>说，不能等被问了才补：仓库内快照、未标样本量与生成时间、非本次实跑（本机无 bun）。</li>
+<li>deepseek 那一行要念全三个数字（55 / 100 / 9），少任何一个归因就不成立。</li>
+<li>「四档难度只改定位距离，不改任务难度」是这份基准科学性的关键，别讲成「四档难度递增」。</li>
+<li><code>formattedEquivalent</code> 这个字段要讲它解决什么问题，否则听起来只是个实现细节。</li>
+<li>右栏的 0/20 这个对照数据要念出来，它是「魔数旁边写清怎么测出来的」这条建议的活样本。</li>
+</ul></div><div class="blk qa"><span class="lb">可能被问</span><ul>
+<li>Q：这份成绩能当模型选型依据吗？</li>
+<li class='cont'>A：不能。它没标样本量、没标生成时间、没标 fixture 版本，而且只测编辑精度这一个维度。它的价值在于<b>方法</b>，不在于排名。另外仓库 README 里还有另一张表（Grok Code Fast 1 从 6.7% 提到 68.3% 那组），跟这份 JSON 的模型集合<b>交集为空</b>——是两个不同批次的实验，我没有找到能复现 README 那组数字的脚本，所以我今天不讲它。</li>
+<li>Q：为什么 haiku 这种小模型能拿第一？</li>
+<li class='cont'>A：因为测的是编辑精度不是推理能力——定位加落刀这件事，长上下文注意力和格式遵循比推理深度更重要。这是我的解释，仓库里没有作者的说明。</li>
+<li>Q：ghost run 具体指什么？</li>
+<li class='cont'>A：空跑，即模型跑完一轮但没有产生有效的编辑。JSON 里是单独一列 <code>ghost_runs</code>。它跟 timeout 是分开统计的。</li>
+<li>Q：我要自己做一个，最小要多少工作量？</li>
+<li class='cont'>A：仓库这套是 4,645 行，因为它要支持多类变异 × 四档难度 × 多语言。research 里给的估算是：<b>单语言、单一种变异的最小版本 200 行足够，一个周末</b>。20 个 case 就有用——关键是从<b>你自己的代码库</b>取素材，不要用合成代码。</li>
+<li>Q：CI 那个 256MB 堆的实验是他们特意做的吗？</li>
+<li class='cont'>A：是。注释里明确写了这是「强制 256MB 堆」下的对照实验，二分定位加 0/20 的对照组，这是标准的实验设计，不是事后总结。</li>
+</ul></div><div class="blk next"><span class="lb">过渡</span><p>好，最后一页。前面七章一百多个细节，我把它压成两栏——你能抄的五条，和你千万别抄的六条。</p></div></section><section class="pg-sec" data-n="32" data-title="能抄的五条 ／ 别抄的六条"><h2>P32 · 能抄的五条 ／ 别抄的六条</h2><div class="blk cue"><span class="lb">提词</span><ul>
+<li>全场收口，这一页讲满，别赶时间 <span class="cue">[慢]</span></li>
+<li>左栏五条：每条都有仓库坐标和成本估算</li>
+<li>① AGENTS.md 带故障史 —— 投入产出比最高 <span class="cue">[重]</span></li>
+<li>② 编辑精度基准，20 个 case 就有用</li>
+<li>③ 契约测试 + 禁 source-grep —— 跟 agent 无关的纯软工收益</li>
+<li>④ CI 编排写成有测试的程序</li>
+<li>⑤ 文档一份来源两个消费者</li>
+<li>右栏六条：注明它在解什么问题</li>
+<li>⑥ stats 绑定方式 —— 读码推断，未实跑，必须说明 <span class="cue">[重]</span></li>
+<li>上台前实证：omp stats + lsof -nP -iTCP:3847 -sTCP:LISTEN</li>
+<li>最后主张要慢、要重 <span class="cue">[停]</span></li>
+<li>预告第四讲：动手写自己的实现</li>
+</ul></div><div class="blk gist"><span class="lb">一句话主旨</span><p>左边五条有坐标有成本可以直接开抄，右边六条注明了它在解什么问题——你没有那个问题，就别付那个代价。</p></div><div class="blk say"><span class="lb">怎么讲</span><p>最后一页。前面七章我给了大概一百多个细节，现在我把它们压成两栏。副标题先说清这两栏的写法差异，因为这个差异本身就是我的态度：<b>左边每一条都有仓库坐标和成本估算；右边每一条都注明它在解什么问题——你没有那个问题，就别付那个代价。</b>（停一拍）我不写「好的实践」和「坏的实践」，因为右边这六条在 omp 自己的语境里全都是对的。</p>
+<p>先看左边五条。</p>
+<p><b>第一条，把 <code>AGENTS.md</code> 写成带故障史的执行契约，而不是风格指南。</b> 具体怎么写：第一段先消歧义——原文那句我很喜欢，「用户说 agent 的时候，指的是仓库里的那个 CLI 实现，不是你（助手）自己」，这一句解决的是 agent 在自指仓库里最容易犯的错：把用户的 bug 报告当成对自己行为的抱怨。然后是包结构表、默认工作区。规则一律 NEVER / MUST，<b>每条禁令必配替代物</b>。API 选择用「操作 | 用什么 | 不要用什么」的对照表——这种形式对 LLM 极其友好，它把「我该用哪个 API」从检索问题降级成了查表问题。最后是那一招：<b>每条非显然的规则挂 issue 号</b>，并且配一个活体执法者。成本写在底下：<b>一天写初版，之后每次事故补一行。</b> 我标了一句话——<b>投入产出比最高的一条</b>。如果今天你只做一件事，做这个。</p>
+<p><b>第二条，给你的 agent 建一个编辑精度基准，哪怕只有 20 个 case。</b> 上一页讲透了，这里只强调三个要点：从<b>你自己的代码库</b>取源文件，不要用合成代码；四档难度只控制上下文难度，不控制任务难度；结果<b>签进仓库</b>，换模型就重跑。成本一个周末，最小版本 200 行。</p>
+<p><b>第三条，用契约测试取代覆盖率测试，并明令禁止 source-grep。</b> 核心是这一句：<b>每个新测试要能一句话说出它守护的那一个外部可观察契约，说不出就别加这个测试。</b> 加上禁止断言源码文本，加上测试必须「全量套件安全」——不能做文件级的长期改写 env 或 platform，要用 spyOn 加 restoreAllMocks。（停一拍）这一条我特意标了：<b>它适用于任何项目，跟 agent 完全无关——这是纯粹的软件工程收益。</b> 你今天就算不做 agent，这条也该抄。</p>
+<p><b>第四条，CI 编排写成有测试的程序，魔数旁边写清它是怎么测出来的。</b> 上一页的 0/20 就是样板。</p>
+<p><b>第五条，让文档同时服务人和 agent——一份来源，两个消费者。</b> 再强调一次：<b>不需要抄编译期注入那一步</b>。建 <code>docs/</code> 定为唯一权威，<code>AGENTS.md</code> 只放索引表，每篇 doc 顶部列出对应的实现文件路径。成本是一次目录整理加一条 review 规矩。</p>
+<p>（停一拍）右边六条，别抄的。我快一点，因为它们的逻辑是同一个。① <b>自建 Kata microVM + k3s 的 CI 集群</b>——它解的是「8 个平台交叉编译 Rust，且不能让 PR 代码碰共享缓存」。你没有 native 代码，GitHub 托管 runner 完全够。② <b>Bazel + zig 交叉编译 + 双 Rust nightly</b>——<code>MODULE.bazel.lock</code> 3.6 MB，Windows 交叉编译要拉 3 GiB 的 SDK，分发体积 138 到 285 MiB 一个平台，而核心包只有 111 KiB。单目标用 cargo 就好。③ <b>122 篇文档这个体量</b>——抄结构，不要抄篇数，否则你会造出一片无人维护的文档坟场。④ <b>1,930 个测试文件、53 万行测试</b>——这是 17 个大版本累积加多 provider 组合爆炸的结果，是<b>结果不是目标</b>。抄测试哲学，不要抄数量。⑤ <b>mnemopi 的向量检索实现</b>——上一章讲过了，无索引、O(N) 全表扫、10000 行硬上限、向量以 JSON 文本存。</p>
+<p>（停一拍，语速放慢）第⑥条我要单独说，因为它牵涉到我今天的诚实纪律。这一条是 stats 面板的绑定方式：<code>Bun.serve({ port })</code> <b>没有传 hostname</b>，CORS 是 <code>&quot;<i>&quot;</code>，而同一份代码的注释自称 &quot;the dashboard is a localhost tool&quot;。如果它真的绑到了 <code>0.0.0.0</code>，那么同一个局域网里的任何人都能读到你完整的 token 用量、成本、项目路径和行为统计。（停一拍）<b>但是——我必须明确说明：这一条是读码推断，不是实跑验证。</b> 页面上我也这么标了。「<code>Bun.serve</code> 不传 hostname 就绑 <code>0.0.0.0</code>」这一步依赖的是 Bun 的默认行为，我本机没有 bun，<b>没有实测过</b>。前面几条我都能给你文件行号说「我亲眼读到」，这一条我只能说「我读到了前半截，后半截我推的」。（停一拍）如果各位要在自己团队里讲这一条，上台前请先自己验一遍，两条命令：先跑 <code>omp stats</code> 把面板起起来，再跑 <code>lsof -nP -iTCP:3847 -sTCP:LISTEN</code>，看它 LISTEN 在 <code>127.0.0.1</code> 还是 <code></i></code>。一分钟的事。我这次没做，所以我只能把它标成推断。</p>
+<p>（停一拍，看着大家，慢）好，最后一句话，这是我这一场想留下的唯一一句：<b>omp 的价值不在它做了什么，而在它把每个决定的代价都摊开给你看了。</b>（停）它做了 153 万行，做了 8.4 万行 Rust，做了流式打断，做了第二个模型盯着第一个模型。但真正让这个仓库值得读的，是它每做一件事都在旁边留下了代价——Rust 更快，但小 payload 上 0.86 倍更慢，注释里写「若更慢，不要切换调用点」；打断能力做出来了，27 条内置规则却一条不落地选了不打断；advisor 很有用，但一个 session 刷了 309 次 Stop.，于是把规则从散文挪进代码；CI 的 chunkSize 是 5 还是 10，旁边写着 0/20 的对照实验。（停一拍）<b>所以——抄功能会死，抄它「怎么判断该不该做」才活。</b></p>
+<p>页脚右边我留了一行：<b>第四讲，我们动手写自己的实现。</b> 前三讲是地图、是下限、是上限，第四讲我们下场。谢谢大家。</p></div><div class="blk must"><span class="lb">别漏了说</span><ul>
+<li>五条里第①条和第③条要明确标出它们的特殊性：①是投入产出比最高，③是跟 agent 无关的纯软工收益。这两条最可能被真的执行。</li>
+<li>右栏每一条都要说出「它在解什么问题」，不能只念结论，否则整栏会被听成「omp 过度工程」——那不是这一页的意思。</li>
+<li><b>第⑥条的局限声明是硬要求，不是可选项</b>：必须说出「读码推断、未实跑、本机无 bun」，并给出 <code>omp stats</code> + <code>lsof -nP -iTCP:3847 -sTCP:LISTEN</code> 这个实证方法。这一页的可信度全押在这句话上——前面所有「有坐标、有行号」的信誉，都是靠这里主动降级一条来兑现的。</li>
+<li>最后那段主张要慢，要停，要用前面几章的具体例子把它撑起来（Rust 0.86× / 27 条 never / 309 次 Stop. / 0-of-20）。空喊这句话没有分量，举完四个例子再喊才有。</li>
+<li>edit benchmark 是仓库内快照这件事，如果 31 页已经说过，这里带一句即可，别重复讲。</li>
+</ul></div><div class="blk qa"><span class="lb">可能被问</span><ul>
+<li>Q：五条里如果只能做一条，做哪条？</li>
+<li class='cont'>A：第①条，<code>AGENTS.md</code>。一天出初版，之后每次事故补一行，而且它对人和 agent 同时生效。第③条其次，因为它连 agent 都不需要。</li>
+<li>Q：<code>AGENTS.md</code> 写多长合适？282 行是不是太长了？</li>
+<li class='cont'>A：omp 是 282 行、2,570 词，但那是一个 153 万行的仓库。我的经验是：<b>长度应该由你的事故数量决定，不是由仓库大小决定</b>。从空文件开始，每次 agent 犯一个你不想再看到的错，补一行加一个 issue 号。自然长到该有的长度。</li>
+<li>Q：第⑥条这个安全问题，你有没有跟作者提过 issue？</li>
+<li class='cont'>A：没有。我这次是单向取证，没有跟上游互动。而且在我实测确认之前，这只是一个读码推断，我不会拿它去开 issue。</li>
+<li>Q：你把「别抄」那六条列出来，是不是在批评这个项目？</li>
+<li class='cont'>A：不是。这六条在 omp 自己的语境里全都是对的——它真的要给 8 个平台交叉编译 Rust，它的文档真的是 agent 的检索语料。我列出来是因为<b>分享最大的风险是听众照着抄</b>，而这六条抄过去就是纯成本。这也是我整场的方法：功能可以是对的，同时对你是错的。</li>
+<li>Q：第四讲什么时候？讲什么？</li>
+<li class='cont'>A：具体时间待定。内容是动手写——前三讲一直在读别人的代码，第四讲我们从零搭一个最小 harness，把这三场里能落地的部分自己实现一遍。</li>
+<li>Q：三讲下来，你自己最大的收获是什么？</li>
+<li class='cont'>A：就是最后那句话。我一开始是抱着「看看极致长什么样」去读的，读完最有用的反而不是它做了什么，是它每一处都留下了「为什么这么选、代价是多少」的痕迹——注释里的实验数据、issue 号、被主动降级的默认值。这些东西是免费的，而且今天就能开始做。</li>
+</ul></div></section></div>
+<div id="ov"><div class="g"><div class="c" data-i="0"><span class="n">1</span><span class="t">封面 · 把 agent 做到极致，代价是什么</span></div><div class="c" data-i="1"><span class="n">2</span><span class="t">关于这一篇：一个人的 fork，凭什么值一整讲</span></div><div class="c" data-i="2"><span class="n">3</span><span class="t">上一讲的三处更正：先认错，再讲课</span></div><div class="c" data-i="3"><span class="n">4</span><span class="t">目录：七章 32 页，从体量一路拆到代价</span></div><div class="c" data-i="4"><span class="n">5</span><span class="t">第 01 章 · 体量与血统</span></div><div class="c" data-i="5"><span class="n">6</span><span class="t">血缘只剩两行版权：omp 与 pi 是两个独立仓库</span></div><div class="c" data-i="6"><span class="n">7</span><span class="t">同一份基座，6.45 倍的体量</span></div><div class="c" data-i="7"><span class="n">8</span><span class="t">omp 的代码，有一部分是 omp 自己写的</span></div><div class="c" data-i="8"><span class="n">9</span><span class="t">第 02 章 · 内核</span></div><div class="c" data-i="9"><span class="n">10</span><span class="t">主循环：骨架一字没改，钩子从 8 涨到约 40</span></div><div class="c" data-i="10"><span class="n">11</span><span class="t">切包才是真重构：把 harness 踢出内核包</span></div><div class="c" data-i="11"><span class="n">12</span><span class="t">abort 不是一个布尔，是四条信号</span></div><div class="c" data-i="12"><span class="n">13</span><span class="t">打假两则：名字最唬人的两个包，实质都比名字朴素</span></div><div class="c" data-i="13"><span class="n">14</span><span class="t">第 03 章 · 上下文</span></div><div class="c" data-i="14"><span class="n">15</span><span class="t">snapcompact 是缩微胶片，不是点阵图</span></div><div class="c" data-i="15"><span class="n">16</span><span class="t">压缩率不是重点，确定性才是</span></div><div class="c" data-i="16"><span class="n">17</span><span class="t">他们主动把压缩率降了一个量级，换可读性</span></div><div class="c" data-i="17"><span class="n">18</span><span class="t">hashline 的防线是 seenLines，不是那 4 个 hex</span></div><div class="c" data-i="18"><span class="n">19</span><span class="t">第 04 章 · 模型层</span></div><div class="c" data-i="19"><span class="n">20</span><span class="t">靠猜必错：543 个同名模型里，376 个价格对不上</span></div><div class="c" data-i="20"><span class="n">21</span><span class="t">dialect 兜的不是语法，是 native 通道不会出现的失败模式</span></div><div class="c" data-i="21"><span class="n">22</span><span class="t">第 05 章 · Rust 热路径</span></div><div class="c" data-i="22"><span class="n">23</span><span class="t">4 万行 shell 里，69% 不是 shell</span></div><div class="c" data-i="23"><span class="n">24</span><span class="t">一行 assert 讲清整件事</span></div><div class="c" data-i="24"><span class="n">25</span><span class="t">最诚实的一张 benchmark：小批量上 Rust 更慢</span></div><div class="c" data-i="25"><span class="n">26</span><span class="t">第 06 章 · 规则与记忆</span></div><div class="c" data-i="26"><span class="n">27</span><span class="t">同一份规则 markdown，按 frontmatter 分成三个桶</span></div><div class="c" data-i="27"><span class="n">28</span><span class="t">作者自己也不敢默认打断</span></div><div class="c" data-i="28"><span class="n">29</span><span class="t">第 07 章 · 工程文化与收口</span></div><div class="c" data-i="29"><span class="n">30</span><span class="t">122 篇文档被编译进二进制，读者是 agent 自己</span></div><div class="c" data-i="30"><span class="n">31</span><span class="t">「edit 格式好不好」被做成了可测量问题</span></div><div class="c" data-i="31"><span class="n">32</span><span class="t">能抄的五条 ／ 别抄的六条</span></div></div></div>
+<script>const DECK_TOTAL=32;
+const secs=[...document.querySelectorAll('.pg-sec')];
+let i=0, auto=false, spd=1.1, raf=null;
+const bar=document.getElementById('pgno'), ttl=document.getElementById('pgttl'),
+      prog=document.getElementById('prog'), st=document.getElementById('st');
+function show(n){
+  i=Math.max(0,Math.min(secs.length-1,n));
+  secs.forEach((s,k)=>s.classList.toggle('on',k===i));
+  const s=secs[i];
+  bar.textContent=s.dataset.n+'/'+DECK_TOTAL;
+  ttl.textContent=s.dataset.title;
+  prog.style.width=((i+1)/secs.length*100)+'%';
+  window.scrollTo(0,0);
+  localStorage.setItem('prompter-pos',i);
+}
+function tick(){ if(auto){ window.scrollBy(0,spd); } raf=requestAnimationFrame(tick); }
+function setAuto(v){ auto=v; renderStatus(); }
+function setMode(){
+  const full=!document.body.classList.contains('cues');
+  document.getElementById('btn-full').textContent = full? '收起全文 F' : '展开全文 F';
+  renderStatus();
+}
+function renderStatus(){
+  const full=!document.body.classList.contains('cues');
+  st.innerHTML = (full?'全文':'<b>提词</b>') + ' · ' + (auto? '自动滚 ×'+spd.toFixed(1) : '手动');
+}
+document.addEventListener('keydown',e=>{
+  if(document.getElementById('find').classList.contains('on') && e.key!=='Escape') return;
+  const k=e.key;
+  if(k==='ArrowRight'||k==='PageDown'){show(i+1);e.preventDefault()}
+  else if(k==='ArrowLeft'||k==='PageUp'){show(i-1);e.preventDefault()}
+  else if(k===' '){window.scrollBy(0,window.innerHeight*0.72);e.preventDefault()}
+  else if(k==='ArrowDown'){window.scrollBy(0,90);e.preventDefault()}
+  else if(k==='ArrowUp'){window.scrollBy(0,-90);e.preventDefault()}
+  else if(k==='a'||k==='A'){setAuto(!auto)}
+  else if(k===']'){spd=Math.min(6,spd+0.3);setAuto(auto)}
+  else if(k==='['){spd=Math.max(0.2,spd-0.3);setAuto(auto)}
+  else if(k==='+'||k==='='){bump(2)}
+  else if(k==='-'){bump(-2)}
+  else if(k==='f'||k==='F'){
+    const full=document.body.classList.toggle('cues')===false;
+    localStorage.setItem('prompter-full',full?'1':'0'); setMode();
+  }
+  else if(k==='o'||k==='O'){document.getElementById('ov').classList.toggle('on')}
+  else if(k==='/'){openFind();e.preventDefault()}
+  else if(k==='Escape'){document.getElementById('ov').classList.remove('on');closeFind()}
+});
+function bump(d){
+  const cur=parseInt(getComputedStyle(document.documentElement).getPropertyValue('--fs'));
+  const v=Math.max(14,Math.min(52,cur+d));
+  document.documentElement.style.setProperty('--fs',v+'px');
+  localStorage.setItem('prompter-fs',v);
+}
+function openFind(){const f=document.getElementById('find');f.classList.add('on');f.querySelector('input').focus()}
+function closeFind(){const f=document.getElementById('find');f.classList.remove('on');f.querySelector('input').blur()}
+document.getElementById('findi').addEventListener('keydown',e=>{
+  if(e.key==='Escape'){closeFind();return}
+  if(e.key!=='Enter')return;
+  const q=e.target.value.trim(); if(!q)return;
+  for(let k=1;k<=secs.length;k++){
+    const j=(i+k)%secs.length;
+    if(secs[j].textContent.includes(q)){show(j);closeFind();break}
+  }
+});
+document.querySelectorAll('#ov .c').forEach(c=>c.addEventListener('click',()=>{
+  show(+c.dataset.i); document.getElementById('ov').classList.remove('on');
+}));
+document.getElementById('btn-prev').onclick=()=>show(i-1);
+document.getElementById('btn-next').onclick=()=>show(i+1);
+document.getElementById('btn-auto').onclick=()=>setAuto(!auto);
+document.getElementById('btn-ov').onclick=()=>document.getElementById('ov').classList.toggle('on');
+document.getElementById('btn-full').onclick=()=>{
+  const full=document.body.classList.toggle('cues')===false;
+  localStorage.setItem('prompter-full',full?'1':'0'); setMode();
+};
+const fs=localStorage.getItem('prompter-fs');
+if(fs) document.documentElement.style.setProperty('--fs',fs+'px');
+if(localStorage.getItem('prompter-full')!=='1') document.body.classList.add('cues');
+show(+(localStorage.getItem('prompter-pos')||0));
+setAuto(false); setMode(); tick();
+</script>
+</body></html>

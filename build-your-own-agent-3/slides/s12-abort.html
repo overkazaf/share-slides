@@ -1,0 +1,112 @@
+<section class="slide" data-ch="CH2 内核" data-title="abort 不是一个布尔，是四条信号；错误恢复分两层">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot emerald"></span>CH 2 · 内核</div>
+    <h1 class="s-title">abort 不是一个布尔，是<span class="hl-r">四条信号</span></h1>
+    <div class="s-sub">规则一句话 —— 排队的用户插话，<b style="color:#e2e8f0">永不硬杀一个已经产生副作用的前台工具</b>。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 505" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="18" fill="#34d399" font-size="10.5" font-weight="600">四条独立信号（agent-loop.ts:2231-2247）</text>
+
+          <rect x="16" y="28" width="160" height="64" rx="6" fill="rgba(136,19,55,.28)" stroke="#fb7185" stroke-width="1.2"/>
+          <text x="28" y="48" fill="#fb7185" font-size="9.5" font-weight="600">外部 signal</text>
+          <text x="28" y="64" fill="#94a3b8" font-size="8">调用方给的 abort</text>
+          <text x="28" y="79" fill="#cbd5e1" font-size="8">硬杀一切，谁都拦不住</text>
+
+          <rect x="184" y="28" width="160" height="64" rx="6" fill="rgba(8,51,68,.32)" stroke="#22d3ee" stroke-width="1.2"/>
+          <text x="196" y="48" fill="#22d3ee" font-size="9.5" font-weight="600">steering</text>
+          <text x="196" y="64" fill="#94a3b8" font-size="8">用户插话</text>
+          <text x="196" y="79" fill="#cbd5e1" font-size="8">只杀 interruptible 工具</text>
+
+          <rect x="352" y="28" width="160" height="64" rx="6" fill="rgba(251,146,60,.28)" stroke="#fb923c" stroke-width="1.2"/>
+          <text x="364" y="48" fill="#fb923c" font-size="9.5" font-weight="600">IRC</text>
+          <text x="364" y="64" fill="#94a3b8" font-size="8">peer agent 消息</text>
+          <text x="364" y="79" fill="#cbd5e1" font-size="8">同上，AbortSignal.any</text>
+
+          <rect x="520" y="28" width="164" height="64" rx="6" fill="rgba(6,78,59,.28)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="532" y="48" fill="#34d399" font-size="9.5" font-weight="600">协作式软信号</text>
+          <text x="532" y="64" fill="#94a3b8" font-size="8">ctx.toolCall.steeringSignal</text>
+          <text x="532" y="79" fill="#cbd5e1" font-size="8">工具自愿让路，不中止</text>
+
+          <rect x="16" y="104" width="668" height="66" rx="6" fill="rgba(136,19,55,.14)" stroke="#fb7185" stroke-width="1"/>
+          <text x="30" y="124" fill="#fb7185" font-size="9.5" font-weight="600">分派规则</text>
+          <text x="30" y="142" fill="#cbd5e1" font-size="8.5">工具声明 interruptible:true（纯等待类，如 hub wait / vibe）→ 收 interruptibleSignal，可被 steering / IRC 硬杀</text>
+          <text x="30" y="160" fill="#cbd5e1" font-size="8.5">其余工具（bash 等）→ 只收外部 signal。工具跑完就保留真实结果，不因为 abort 落地而伪造成 skipped</text>
+
+          <rect x="16" y="180" width="668" height="44" rx="6" fill="rgba(6,78,59,.14)" stroke="#34d399" stroke-width="1"/>
+          <text x="30" y="198" fill="#34d399" font-size="9" font-weight="600">第五条不叫 abort：AgentPauseGate（pause.ts:25）—— 冻结不中止</text>
+          <text x="30" y="215" fill="#94a3b8" font-size="8">只在两个动作边界轮询：模型调用前、每个工具启动前；在飞的流和已启动的工具跑完再停</text>
+
+          <text x="16" y="248" fill="#94a3b8" font-size="9.5" font-weight="600">错误恢复分两层，界限很清晰</text>
+
+          <rect x="16" y="258" width="330" height="130" rx="6" fill="rgba(6,78,59,.14)" stroke="#34d399" stroke-width="1"/>
+          <text x="28" y="278" fill="#34d399" font-size="9.5" font-weight="600">① 循环内 · 协议层</text>
+          <text x="28" y="293" fill="#64748b" font-size="8">「这一次 HTTP 流本身坏了」</text>
+          <text x="28" y="313" fill="#cbd5e1" font-size="8">Harmony 泄漏 → 截断续跑 ≤2 次 / 重采样 ≤2 次</text>
+          <text x="28" y="329" fill="#cbd5e1" font-size="8">半截 toolCall → 只保留 toolcall_end 已到达的</text>
+          <text x="28" y="345" fill="#cbd5e1" font-size="8">瞬时流错误但工具完整 → stopReason 改写为 toolUse</text>
+          <text x="28" y="361" fill="#cbd5e1" font-size="8">批次尾扫补 skipped，保证 tool_use/tool_result 配对</text>
+          <text x="28" y="379" fill="#64748b" font-size="8">pi 只有 failToolCallsFromTruncatedMessage 一项</text>
+
+          <rect x="354" y="258" width="330" height="130" rx="6" fill="rgba(76,29,149,.16)" stroke="#a78bfa" stroke-width="1"/>
+          <text x="366" y="278" fill="#a78bfa" font-size="9.5" font-weight="600">② 会话层 · 策略层 TurnRecovery</text>
+          <text x="366" y="293" fill="#64748b" font-size="8">1,787 行 ·「这个模型不行，换一个再来」</text>
+          <text x="366" y="313" fill="#cbd5e1" font-size="8">模型 fallback 链 retry-fallback-chains.ts</text>
+          <text x="366" y="329" fill="#cbd5e1" font-size="8">空回复重试 EMPTY_STOP_MAX_RETRIES = 3</text>
+          <text x="366" y="345" fill="#cbd5e1" font-size="8">非预期停止 3 次 / 4,000ms + 停止原因分类器</text>
+          <text x="366" y="361" fill="#cbd5e1" font-size="8">限流退避 · 思考循环重定向 · 重试成功回标历史</text>
+          <text x="366" y="379" fill="#64748b" font-size="8">本次对比基准下，pi 侧未见对应实现</text>
+
+          <text x="16" y="416" fill="#cbd5e1" font-size="9.5">分层的好处：循环内不必知道有几个模型可切，会话层不必懂 Harmony 协议。</text>
+          <text x="16" y="440" fill="#94a3b8" font-size="8.5">终结信号也复用 abort：子代理 yield → abort(TERMINAL_TOOL_RESULT_ABORT_REASON)，</text>
+          <text x="16" y="456" fill="#94a3b8" font-size="8.5">主循环认出这个特定 reason 就把 hasMoreToolCalls 置 false —— 既停住循环，又不污染用户 abort 语义。</text>
+          <text x="16" y="480" fill="#64748b" font-size="8">合成结果（aborted / skipped）都带可识别标记，下游 compaction 与重试能区分「模型真看过的」和「我们补的」</text>
+        </svg>
+      </div>
+
+      <div class="figure">
+        <svg viewBox="0 0 440 495" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="18" fill="#34d399" font-size="10.5" font-weight="600">顺手抄走：逐工具 shared / exclusive 调度</text>
+          <text x="16" y="34" fill="#94a3b8" font-size="8.5">pi 是全局二选一 sequential | parallel；omp 让每个工具自己声明</text>
+
+          <rect x="16" y="44" width="408" height="46" rx="6" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="28" y="63" fill="#cbd5e1" font-size="8.5" font-family="ui-monospace,Menlo,monospace">concurrency?: "shared" | "exclusive" | ((args) =&gt; …)</text>
+          <text x="28" y="80" fill="#cbd5e1" font-size="8.5" font-family="ui-monospace,Menlo,monospace">interruptible?: boolean | ((args) =&gt; boolean)</text>
+          <text x="16" y="102" fill="#64748b" font-size="8">packages/agent/src/types.ts:757 · 可按调用参数动态决定</text>
+
+          <rect x="16" y="110" width="408" height="250" rx="6" fill="rgba(2,6,23,.7)" stroke="#334155" stroke-width="1"/>
+          <text x="28" y="128" fill="#64748b" font-size="8">agent-loop.ts:2660-2686 · 13 行的屏障链</text>
+          <text x="28" y="148" fill="#cbd5e1" font-size="8.5" font-family="ui-monospace,Menlo,monospace">let lastExclusive = Promise.resolve();</text>
+          <text x="28" y="163" fill="#cbd5e1" font-size="8.5" font-family="ui-monospace,Menlo,monospace">let sharedTasks = [];</text>
+          <text x="28" y="178" fill="#cbd5e1" font-size="8.5" font-family="ui-monospace,Menlo,monospace">for (const [i, rec] of batch.entries()) {</text>
+          <text x="28" y="193" fill="#cbd5e1" font-size="8.5" font-family="ui-monospace,Menlo,monospace">  const c = resolveConcurrency(rec);</text>
+          <text x="28" y="208" fill="#cbd5e1" font-size="8.5" font-family="ui-monospace,Menlo,monospace">  const start = c === "exclusive"</text>
+          <text x="28" y="223" fill="#34d399" font-size="8.5" font-family="ui-monospace,Menlo,monospace">    ? Promise.all([lastExclusive, ...sharedTasks])</text>
+          <text x="28" y="238" fill="#34d399" font-size="8.5" font-family="ui-monospace,Menlo,monospace">    : lastExclusive;</text>
+          <text x="28" y="253" fill="#cbd5e1" font-size="8.5" font-family="ui-monospace,Menlo,monospace">  const task = start.then(() =&gt; runTool(rec, i));</text>
+          <text x="28" y="268" fill="#cbd5e1" font-size="8.5" font-family="ui-monospace,Menlo,monospace">  if (c === "exclusive") {</text>
+          <text x="28" y="283" fill="#cbd5e1" font-size="8.5" font-family="ui-monospace,Menlo,monospace">    lastExclusive = task;</text>
+          <text x="28" y="298" fill="#cbd5e1" font-size="8.5" font-family="ui-monospace,Menlo,monospace">    sharedTasks = [];</text>
+          <text x="28" y="313" fill="#cbd5e1" font-size="8.5" font-family="ui-monospace,Menlo,monospace">  } else sharedTasks.push(task);</text>
+          <text x="28" y="328" fill="#cbd5e1" font-size="8.5" font-family="ui-monospace,Menlo,monospace">}</text>
+          <text x="28" y="350" fill="#64748b" font-size="8">（照原码语义整理，省去 telemetry 与错误包装）</text>
+
+          <text x="16" y="380" fill="#34d399" font-size="9.5" font-weight="600">shared 彼此并行；exclusive 是批次内的写屏障</text>
+          <text x="16" y="399" fill="#94a3b8" font-size="8.5">写文件的工具声明 exclusive，只读工具声明 shared，</text>
+          <text x="16" y="415" fill="#94a3b8" font-size="8.5">同一批工具调用就能既并发、又不互相打架。</text>
+          <text x="16" y="438" fill="#94a3b8" font-size="8.5">pi 的做法：任一工具是 sequential，整批串行。</text>
+          <text x="16" y="462" fill="#cbd5e1" font-size="9">13 行、零依赖 —— 全篇最容易被小项目直接抄走的一段。</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src"><b>agent-loop.ts:2231-2247 / 2660-2686 · pause.ts:25 · session/turn-recovery.ts:62-64,168</b> · 分派规则注释见 agent-loop.ts:2239-2247</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

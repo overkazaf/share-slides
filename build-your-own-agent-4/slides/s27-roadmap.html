@@ -1,0 +1,94 @@
+<section class="slide" data-ch="CH7 代价与规划" data-title="代价页与规划页：明说的只有一句，其余是缝">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot rose"></span>CH 7 · 代价与未来规划</div>
+    <h1 class="s-title">先把洞摊开，<span class="hl-r">再谈规划</span> —— 而明写的规划只有一句</h1>
+    <div class="s-sub">仓库里<b style="color:#e2e8f0">没有 ROADMAP.md、没有 issue 模板、没有 milestone</b>。所以左边是实测的洞，右边分两栏：<b style="color:#e2e8f0">明说的</b> 和 <b style="color:#e2e8f0">从代码缝里推的</b>。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c46">
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:9px">
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>安全闸的七个洞（挑最要命的四个）</h3></div>
+          <ul>
+            <li><strong>默认档就不安全</strong>：<em>AutoApproves</em> 对 yolo <strong>和 safe 都无视 tier 一律放行</strong> —— 而 safe 是默认。架构文档自己承认了这一点</li>
+            <li><strong>run_command 就是 bash -c</strong>，没有 chroot / namespace / seccomp。<em>python3 -c</em> 一行就能绕过 <em>--write</em> 和 <em>--allow-network</em></li>
+            <li><strong>路径包含检查不解 symlink</strong>：<em>util.ResolveInside</em> 只做 <em>Clean</em> + 前缀比对（全仓唯一一处 <em>EvalSymlinks</em> 在 <em>assets.go:52</em>，与它无关）。而这个函数所在的 <em>util</em> 包<strong>零测试</strong></li>
+            <li><em>reverse_toolkit</em> 申请审批时<strong>不带 concerns</strong> —— 其中 <strong>frida 会真的起进程</strong>，在 <em>--allow-network</em> 关着时照跑（burp / mitmproxy 只吐模板，这条别夸大）</li>
+          </ul>
+        </div>
+        <div class="card amber">
+          <div class="card-head"><span class="card-dot"></span><h3>还有三个「说了但没兑现到底」</h3></div>
+          <ul>
+            <li>写盘有两处<strong>绕过写闸门</strong>（output 落 artifact、retool 落产物）；<em>!cd</em> 用 bash 解析并能<strong>把工作区搬走</strong>；knowledge 和 skills 绕过包含检查读盘</li>
+            <li><em>security.ValidateCommand</em> 是<strong>零调用点的死代码</strong> —— 写了，但没接上</li>
+          </ul>
+        </div>
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>但有一条经得起验：executor 的只读表</h3></div>
+          <ul>
+            <li>「委派出去的 executor 只能读」不是宣传语，<em>delegate.go:145</em> 是一张 <strong>14 项白名单</strong>，写和执行两类工具压根不在表里 —— <strong>这条属实</strong></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="14" fill="#34d399" font-size="9.5" font-weight="700">A · 仓库里明写的计划 —— 只有一件事，出现在三处</text>
+
+          <rect x="16" y="22" width="668" height="58" rx="6" fill="rgba(6,78,59,.26)" stroke="#34d399" stroke-width="1.3"/>
+          <text x="30" y="42" fill="#e2e8f0" font-size="9.5">① 接<tspan fill="#fff">本地模型 route</tspan>　②补一套<tspan fill="#fff">可复现的评测样例</tspan>，用来横向量各家 provider</text>
+          <text x="30" y="61" fill="#94a3b8" font-size="8.5">英文 README、中文 README、项目主页卡片，三处说的是同一件事　README.md:135</text>
+          <text x="30" y="75" fill="#64748b" font-size="8">而最后两个 commit 正好指向「把手工转录的案例变成自动评测集」—— 方向对得上</text>
+
+          <path d="M 16 92 L 684 92" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="112" fill="#fbbf24" font-size="9.5" font-weight="700">B · 代码缝里露出来的缺口 —— <tspan fill="#fb7185">这些不是项目承诺，是我推的</tspan></text>
+
+          <rect x="16" y="120" width="326" height="30" rx="4" fill="rgba(120,53,15,.22)"/>
+          <text x="28" y="139" fill="#e2e8f0" font-size="8.5">没有真沙箱（bash -c 裸跑）</text>
+          <rect x="358" y="120" width="326" height="30" rx="4" fill="rgba(120,53,15,.22)"/>
+          <text x="370" y="139" fill="#e2e8f0" font-size="8.5">没有重试（grep retry/backoff 零命中）</text>
+
+          <rect x="16" y="154" width="326" height="30" rx="4" fill="rgba(120,53,15,.22)"/>
+          <text x="28" y="173" fill="#e2e8f0" font-size="8.5">symlink 未解，util 包零测试</text>
+          <rect x="358" y="154" width="326" height="30" rx="4" fill="rgba(120,53,15,.22)"/>
+          <text x="370" y="173" fill="#e2e8f0" font-size="8.5">审批记忆不落盘，每次重来</text>
+
+          <rect x="16" y="188" width="326" height="30" rx="4" fill="rgba(120,53,15,.22)"/>
+          <text x="28" y="207" fill="#e2e8f0" font-size="8.5">没有 CI、没有 lint 配置</text>
+          <rect x="358" y="188" width="326" height="30" rx="4" fill="rgba(120,53,15,.22)"/>
+          <text x="370" y="207" fill="#e2e8f0" font-size="8.5">mcp / types / util 三个包零测试</text>
+
+          <rect x="16" y="222" width="326" height="30" rx="4" fill="rgba(120,53,15,.22)"/>
+          <text x="28" y="241" fill="#e2e8f0" font-size="8.5">MCP 生态空（唯一示例 disabled:true）</text>
+          <rect x="358" y="222" width="326" height="30" rx="4" fill="rgba(120,53,15,.22)"/>
+          <text x="370" y="241" fill="#e2e8f0" font-size="8.5">没有 Windows 目标</text>
+
+          <rect x="16" y="256" width="668" height="30" rx="4" fill="rgba(136,19,55,.26)" stroke="#fb7185" stroke-width="1.1"/>
+          <text x="28" y="275" fill="#fff" font-size="8.5" font-weight="600">最该先补的一条：会话线性无回退 —— 逆向就是不断走死路再退回来，这个缺口和领域直接冲突</text>
+
+          <path d="M 16 300 L 684 300" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="320" fill="#22d3ee" font-size="9.5" font-weight="700">C · 分发与社区的真实状态</text>
+
+          <rect x="16" y="328" width="326" height="44" rx="5" fill="rgba(8,51,68,.22)"/>
+          <text x="28" y="346" fill="#e2e8f0" font-size="8.5">GitHub Pages 项目页 · 7 张架构图 · 14 张截图</text>
+          <text x="28" y="363" fill="#94a3b8" font-size="8">3 段动画 · 11 张竖版卡，素材由 scripts/ 脚本化生产</text>
+
+          <rect x="358" y="328" width="326" height="44" rx="5" fill="rgba(136,19,55,.2)"/>
+          <text x="370" y="346" fill="#e2e8f0" font-size="8.5">但仓库里<tspan fill="#fff">没有 Dockerfile、没有 brew formula</tspan></text>
+          <text x="370" y="363" fill="#94a3b8" font-size="8">README 只给 go install 一条路；「没有 Releases 二进制」是站点侧事实，标 [B]</text>
+
+          <rect x="16" y="380" width="668" height="38" rx="5" fill="rgba(2,6,23,.6)" stroke="#334155" stroke-width="1"/>
+          <text x="30" y="399" fill="#cbd5e1" font-size="9">讽刺的地方在这儿：<tspan fill="#fff">卖点是「静态单二进制，scp 过去就能用」，但安装说明只给 go install</tspan>。</text>
+          <text x="30" y="413" fill="#94a3b8" font-size="8">你得先在一台<tspan fill="#fff">有 Go 工具链</tspan>的机器上把它编出来 —— 这条缝，把整个 S1 的价值主张削掉了一半</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">本地实测 · <b>926e615</b> · internal/security/{approval.go,policy.go} · util/util.go:112 · README.md:135 · git log 全 24 条 · 研究笔记 R06</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

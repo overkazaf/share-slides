@@ -1,0 +1,62 @@
+<section class="slide" data-ch="CH6 能干什么" data-title="四个场景：每一步都能对到 skill 原文">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot emerald"></span>CH 6 · 能干什么</div>
+    <h1 class="s-title">四个场景 —— 每一步都能<span class="hl">对回 skill 原文的行号</span></h1>
+    <div class="s-sub">这些不是「它应该能做」，是 <b style="color:#e2e8f0">SKILL.md 里写死的步骤和命令</b>。判据是：你能不能照着自己跑一遍。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cards c2" style="gap:12px">
+
+      <div class="card cyan">
+        <div class="card-head"><span class="card-dot cyan"></span><h3>① CTF 未知样本首轮分诊　<span style="color:#64748b;font-weight:400">ctf-first-pass</span></h3></div>
+        <ul>
+          <li><strong>零 token 五连</strong>：<em>/scan ./artifact</em> → <em>/entropy</em> → <em>/carve</em> → <em>/findbytes ./artifact flag{</em> → <em>/decode auto</em></li>
+          <li><strong>五条判据表</strong>（skill 原文，可直接背）：高熵 + 低可打印率 → 加壳/压缩/加密；危险导入或 <em>/bin/sh</em> → 走 pwn；base64 串挨着 crypto 词 → 先解码再看 key/IV/mode；多个 magic 偏移 → 走取证 carving；见 APK/DEX/SO → 转 Android 那条线</li>
+          <li>收敛成<strong>一句假设</strong>：类别 + 可能的 primitive + <strong>最小的下一步实验</strong>。不给结论，给下一步</li>
+        </ul>
+      </div>
+
+      <div class="card emerald">
+        <div class="card-head"><span class="card-dot emerald"></span><h3>② APK 签名算法逆向　<span style="color:#64748b;font-weight:400">android-apk-frida</span></h3></div>
+        <ul>
+          <li><em>/apk ./app.apk</em> 出加固壳与框架 → 对可疑 so 跑 <em>/scan</em> → <em>jadx -d jadx_out</em> 后 <em>rg -n "Cipher|MessageDigest|sign|token|encrypt"</em></li>
+          <li><strong>先定死 class/method，才生成 hook 脚手架</strong> —— 三种目标写法：<em>com.example.Crypto.sign(java.lang.String, byte[])</em> / <em>libfoo.so!Java_com_example_Crypto_sign</em> / <em>libfoo.so+0x1234</em></li>
+          <li>模板输出有<strong>单测钉死</strong>：给 android_ssl_pinning 必须吐 <em>CertificatePinner</em> + <em>TrustManagerImpl</em>（<em>tools_test.go:271-300</em>）—— 比文档更硬的证据</li>
+          <li><strong>纪律条款</strong>：先观察后改写 —— 先打参数/返回/调用栈/字节数组，<strong>假设被验证过才去改返回值</strong></li>
+        </ul>
+      </div>
+
+      <div class="card violet">
+        <div class="card-head"><span class="card-dot violet"></span><h3>③ SO 里的 native 函数变成可调服务　<span style="color:#64748b;font-weight:400">unidbg</span></h3></div>
+        <ul>
+          <li><strong>选型分界线写得很清楚</strong>：要 Java/JNI 上下文、framework 取值、文件系统 mock → unidbg；只是一段没有 Java 依赖的独立指令区间 → unicorn</li>
+          <li>流程：先攒证据（包名/类/方法/ABI/偏移）→ 写<strong>最小</strong> harness → 第一次开 verbose，<strong>只补失败日志里真正缺的 JNI 回调</strong> → 稳定 Android 状态 → 定点 trace（全量指令 trace 很贵）</li>
+          <li><em>armeabi-v7a → for32Bit()</em>，<em>arm64-v8a → for64Bit()</em>。交付物包含<strong>「仍然缺哪些回调」</strong> —— 把没做完的部分也写进报告</li>
+        </ul>
+      </div>
+
+      <div class="card rose">
+        <div class="card-head"><span class="card-dot rose"></span><h3>④ 混淆墙：OLLVM / VMP / JSVMP</h3></div>
+        <ul>
+          <li>这是第一讲第 ⑦ 道坎的落点，全部住在 skill 里而不是 prompt 里：<strong>ollvm-deobfuscation 583 行 · vmp-restore 604 行 · jsvmp-analysis 620 行 · so-string-deobfuscation 428 行</strong></li>
+          <li>顺序是强制的：<strong>传统去混淆和符号恢复先跑完，模型只上最后一公里</strong> —— 因为混淆是信息论层面的删除，模型再强也变不出被删掉的信息</li>
+          <li>Web 那条线接得也很实：<em>web-wasm-crypto</em> 的 fetch / WASM hook，加 jsvmp 的六特征探测脚本</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="takeaway" style="border-color:rgba(251,113,133,.42); background:rgba(136,19,55,.24); color:#fecdd3; line-height:1.7">
+      <b style="color:#fb7185">但这一页必须配一句实话 →</b>
+      这四个场景<b style="color:#fff">全部没有成功率数字</b>。全仓 <b style="color:#fff">0 个 Benchmark、0 个 eval harness、没有 CI</b>，只有 164 个正确性单测。<br>
+      <span style="color:#94a3b8">所以准确的说法是：<b style="color:#fff">这四条路径被写成了可执行的步骤，而不是被证明了有效。</b> 作者自己在 README 里承诺要补「可复现的评测样例」—— 那是下一步，不是现状。</span>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">skills/{ctf-first-pass,android-apk-frida,unidbg,ollvm-deobfuscation}/SKILL.md 逐字取证 · internal/tools/tools_test.go:271-300 · 研究笔记 R05 §5 §6</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

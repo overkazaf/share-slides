@@ -1,0 +1,141 @@
+<section class="slide" data-ch="CH5 Rust" data-title="最诚实的一张 benchmark：小批量上 Rust 更慢，0.86×">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot orange"></span>CH 5 · Rust 热路径</div>
+    <h1 class="s-title">最诚实的一张 benchmark：小批量上 Rust <span class="hl-r">更慢</span></h1>
+    <div class="s-sub">全仓唯一提交在册的 benchmark 结果。N-API 跨越成本是个常数 —— <b style="color:#e2e8f0">payload 越小，它占的比例越大</b>。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 505" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="18" fill="#fb923c" font-size="10" font-weight="600">packages/mnemopi/bench/native-vectors.bench.json</text>
+          <text x="684" y="18" fill="#64748b" font-size="8.5" text-anchor="end">Apple M1 · bun 1.3.14 · crossing-inclusive</text>
+
+          <rect x="12" y="120" width="676" height="26" rx="4" fill="rgba(136,19,55,.3)" stroke="#fb7185" stroke-width="1"/>
+
+          <text x="16" y="46" fill="#64748b" font-size="9">kernel</text>
+          <text x="290" y="46" fill="#64748b" font-size="9" text-anchor="end">count</text>
+          <text x="430" y="46" fill="#64748b" font-size="9" text-anchor="end">ts (µs)</text>
+          <text x="560" y="46" fill="#64748b" font-size="9" text-anchor="end">native (µs)</text>
+          <text x="672" y="46" fill="#64748b" font-size="9" text-anchor="end">speedup</text>
+          <path d="M 16 54 L 684 54" stroke="#334155" stroke-width="1"/>
+
+          <text x="16" y="76" fill="#cbd5e1" font-size="10" font-family="ui-monospace,Menlo,monospace">searchExactVectorIndex</text>
+          <text x="290" y="76" fill="#94a3b8" font-size="10" text-anchor="end">10</text>
+          <text x="430" y="76" fill="#94a3b8" font-size="10" text-anchor="end">17.34</text>
+          <text x="560" y="76" fill="#94a3b8" font-size="10" text-anchor="end">9.49</text>
+          <text x="672" y="76" fill="#cbd5e1" font-size="10" text-anchor="end">1.83×</text>
+
+          <text x="16" y="102" fill="#cbd5e1" font-size="10" font-family="ui-monospace,Menlo,monospace">searchExactVectorIndex</text>
+          <text x="290" y="102" fill="#94a3b8" font-size="10" text-anchor="end">10000</text>
+          <text x="430" y="102" fill="#94a3b8" font-size="10" text-anchor="end">5562.41</text>
+          <text x="560" y="102" fill="#94a3b8" font-size="10" text-anchor="end">3437.82</text>
+          <text x="672" y="102" fill="#cbd5e1" font-size="10" text-anchor="end">1.62×</text>
+
+          <text x="16" y="138" fill="#fff" font-size="10" font-family="ui-monospace,Menlo,monospace">cosineSimilarityPairs</text>
+          <text x="290" y="138" fill="#fff" font-size="10" text-anchor="end">10</text>
+          <text x="430" y="138" fill="#fff" font-size="10" text-anchor="end">26.42</text>
+          <text x="560" y="138" fill="#fff" font-size="10" text-anchor="end">30.67</text>
+          <text x="672" y="138" fill="#fb7185" font-size="11" font-weight="700" text-anchor="end">0.86×</text>
+
+          <text x="16" y="166" fill="#cbd5e1" font-size="10" font-family="ui-monospace,Menlo,monospace">cosineSimilarityPairs</text>
+          <text x="290" y="166" fill="#94a3b8" font-size="10" text-anchor="end">100</text>
+          <text x="430" y="166" fill="#94a3b8" font-size="10" text-anchor="end">4418.75</text>
+          <text x="560" y="166" fill="#94a3b8" font-size="10" text-anchor="end">1866.25</text>
+          <text x="672" y="166" fill="#cbd5e1" font-size="10" text-anchor="end">2.37×</text>
+
+          <text x="16" y="192" fill="#cbd5e1" font-size="10" font-family="ui-monospace,Menlo,monospace">cosineSimilarityPairs</text>
+          <text x="290" y="192" fill="#94a3b8" font-size="10" text-anchor="end">1000</text>
+          <text x="430" y="192" fill="#94a3b8" font-size="10" text-anchor="end">445625.44</text>
+          <text x="560" y="192" fill="#94a3b8" font-size="10" text-anchor="end">179685.28</text>
+          <text x="672" y="192" fill="#cbd5e1" font-size="10" text-anchor="end">2.48×</text>
+
+          <text x="16" y="218" fill="#cbd5e1" font-size="10" font-family="ui-monospace,Menlo,monospace">mmrRerankIndices</text>
+          <text x="290" y="218" fill="#94a3b8" font-size="10" text-anchor="end">10</text>
+          <text x="430" y="218" fill="#94a3b8" font-size="10" text-anchor="end">395.50</text>
+          <text x="560" y="218" fill="#94a3b8" font-size="10" text-anchor="end">17.62</text>
+          <text x="672" y="218" fill="#fb923c" font-size="10" font-weight="700" text-anchor="end">22.44×</text>
+
+          <text x="16" y="244" fill="#cbd5e1" font-size="10" font-family="ui-monospace,Menlo,monospace">mmrRerankIndices</text>
+          <text x="290" y="244" fill="#94a3b8" font-size="10" text-anchor="end">1000</text>
+          <text x="430" y="244" fill="#94a3b8" font-size="10" text-anchor="end">103521.56</text>
+          <text x="560" y="244" fill="#94a3b8" font-size="10" text-anchor="end">3430.07</text>
+          <text x="672" y="244" fill="#fb923c" font-size="10" font-weight="700" text-anchor="end">30.18×</text>
+
+          <path d="M 16 258 L 684 258" stroke="#1e293b" stroke-width="1"/>
+
+          <rect x="16" y="272" width="668" height="76" rx="6" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="30" y="292" fill="#94a3b8" font-size="9.5" font-weight="600">读法</text>
+          <text x="100" y="292" fill="#cbd5e1" font-size="9.5">同一个 kernel，count=10 是 <tspan fill="#fb7185">0.86×（净亏）</tspan>，count=1000 是 2.48×</text>
+          <text x="30" y="313" fill="#cbd5e1" font-size="9.5">跨越成本吃光了小 payload 的全部收益；变的不是代码，只是批量大小</text>
+          <text x="30" y="334" fill="#cbd5e1" font-size="9.5">只有复杂度高的核（MMR 重排）才有 22–36× 这种量级差</text>
+
+          <rect x="16" y="360" width="668" height="54" rx="6" fill="rgba(251,146,60,.14)" stroke="#fb923c" stroke-width="1.2"/>
+          <text x="30" y="382" fill="#fff" font-size="12" font-family="ui-monospace,Menlo,monospace">If native is slower, do not switch callsites.</text>
+          <text x="30" y="402" fill="#64748b" font-size="8.5">docs/porting-to-natives.md:173 —— 仓库自己写下的规矩</text>
+
+          <text x="16" y="440" fill="#fb7185" font-size="9" font-weight="600">口径必须说清</text>
+          <text x="100" y="440" fill="#94a3b8" font-size="9">这是 mnemopi 向量核的数字，不是 grep / shell / walker 的。</text>
+          <text x="16" y="458" fill="#94a3b8" font-size="9">后者的 native-vs-subprocess-rg 对照脚本存在（含并发维度），但没有任何一次运行结果入库。</text>
+        </svg>
+      </div>
+
+      <div class="figure">
+        <svg viewBox="0 0 440 495" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="18" fill="#fb7185" font-size="10.5" font-weight="600">代价，同样是实测的</text>
+
+          <rect x="16" y="28" width="408" height="150" rx="6" fill="rgba(136,19,55,.16)" stroke="#fb7185" stroke-width="1"/>
+          <text x="30" y="48" fill="#fb7185" font-size="10" font-weight="600">① 产物体积</text>
+          <text x="30" y="67" fill="#cbd5e1" font-size="8.5">核心 npm 包只有 loader：<tspan fill="#fff">111.2 KiB</tspan>；每平台 leaf 包：</text>
+
+          <text x="30" y="90" fill="#94a3b8" font-size="8.5">linux-x64 ×2 变体</text>
+          <rect x="150" y="82" width="257" height="9" rx="2" fill="rgba(251,113,133,.55)"/>
+          <text x="401" y="90" fill="#fff" font-size="8" text-anchor="end">285.2 MiB</text>
+
+          <text x="30" y="107" fill="#94a3b8" font-size="8.5">win32-x64</text>
+          <rect x="150" y="99" width="129" height="9" rx="2" fill="rgba(251,113,133,.45)"/>
+          <text x="273" y="107" fill="#fff" font-size="8" text-anchor="end">143.8</text>
+
+          <text x="30" y="124" fill="#94a3b8" font-size="8.5">linux-arm64</text>
+          <rect x="150" y="116" width="125" height="9" rx="2" fill="rgba(251,113,133,.45)"/>
+          <text x="269" y="124" fill="#fff" font-size="8" text-anchor="end">139.4</text>
+
+          <text x="30" y="141" fill="#94a3b8" font-size="8.5">darwin-x64</text>
+          <rect x="150" y="133" width="125" height="9" rx="2" fill="rgba(251,113,133,.45)"/>
+          <text x="269" y="141" fill="#fff" font-size="8" text-anchor="end">138.7</text>
+
+          <text x="30" y="158" fill="#94a3b8" font-size="8.5">darwin-arm64</text>
+          <rect x="150" y="150" width="124" height="9" rx="2" fill="rgba(251,113,133,.45)"/>
+          <text x="268" y="158" fill="#fff" font-size="8" text-anchor="end">137.6</text>
+
+          <text x="30" y="172" fill="#64748b" font-size="8">npm registry 2026-08 实查 unpackedSize · v17.2.3</text>
+
+          <rect x="16" y="190" width="408" height="128" rx="6" fill="rgba(136,19,55,.16)" stroke="#fb7185" stroke-width="1"/>
+          <text x="30" y="210" fill="#fb7185" font-size="10" font-weight="600">② 构建复杂度上了一个数量级</text>
+          <text x="30" y="230" fill="#cbd5e1" font-size="8.5">Bazel + rules_rust 0.71.3 + hermetic_cc（zig）+ crate_universe</text>
+          <text x="30" y="248" fill="#cbd5e1" font-size="8.5">8 个构建目标；cargo 与 Bazel 双轨并存，两套依赖图都要能跑</text>
+          <text x="30" y="266" fill="#cbd5e1" font-size="8.5">Rust 工具链两份：Bazel 钉 nightly/2026-04-29，本地 2026-07-28</text>
+          <text x="30" y="284" fill="#cbd5e1" font-size="8.5">还要自研一个补丁，绕开 zig 的并发缓存损坏</text>
+          <text x="30" y="304" fill="#fff" font-size="9">Windows 交叉编译拉 ~3 GiB SDK；darwin 冷构建约 40 分钟</text>
+
+          <rect x="16" y="330" width="408" height="100" rx="6" fill="rgba(136,19,55,.16)" stroke="#fb7185" stroke-width="1"/>
+          <text x="30" y="350" fill="#fb7185" font-size="10" font-weight="600">③ 最难测的那部分，零覆盖</text>
+          <text x="30" y="370" fill="#cbd5e1" font-size="8.5">pi-shell 846 个测试，绝大多数落在 minimizer</text>
+          <text x="30" y="388" fill="#cbd5e1" font-size="8.5">pi-iso 3 个 · pi-uutils-ctx 3 个 · pi-voice 4 个</text>
+          <text x="30" y="410" fill="#fff" font-size="9">overlayfs / clonefile / ProjFS 这些平台代码，测试为零</text>
+
+          <rect x="16" y="440" width="408" height="48" rx="6" fill="rgba(30,41,59,.5)" stroke="#334155" stroke-width="1"/>
+          <text x="30" y="460" fill="#94a3b8" font-size="8.5">顺带一句：pi-iso 是 CoW 工作区隔离，<tspan fill="#fb7185">不是安全沙箱</tspan></text>
+          <text x="30" y="478" fill="#94a3b8" font-size="8.5">它防 subagent 改坏你的工作树，不防它读你的 ~/.ssh</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src"><b>packages/mnemopi/bench/native-vectors.bench.json</b> · 规矩 docs/porting-to-natives.md:173 · 体积为 npm registry 2026-08 实查</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

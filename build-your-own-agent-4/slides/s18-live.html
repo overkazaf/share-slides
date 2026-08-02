@@ -1,0 +1,110 @@
+<section class="slide" data-ch="CH4 功能点" data-title="看着它干活：UI 比内核大 2.7 倍，值不值">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot cyan"></span>CH 4 · 功能点</div>
+    <h1 class="s-title">回合还在跑，<span class="hl">你就能插话、改任务、换模型</span></h1>
+    <div class="s-sub">这就是 <b style="color:#e2e8f0">UI 5,608 行 vs 内核 2,086 行</b> 换来的东西。<b style="color:#e2e8f0">值不值，看你信不信「盯着结果看」才是逆向的主要动作</b>。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="14" fill="#94a3b8" font-size="9" font-weight="600">一个回合跑起来，屏幕上实时有什么</text>
+
+          <rect x="16" y="22" width="668" height="128" rx="7" fill="rgba(2,6,23,.75)" stroke="#22d3ee" stroke-width="1.2"/>
+          <text x="30" y="42" fill="#22d3ee" font-size="8.5">［路由 chip］</text>
+          <text x="120" y="42" fill="#a78bfa" font-size="8.5">codex · planner</text>
+          <text x="222" y="42" fill="#64748b" font-size="8.5">→</text>
+          <text x="240" y="42" fill="#34d399" font-size="8.5" font-weight="700">claude · executor ●</text>
+          <text x="400" y="42" fill="#64748b" font-size="8">高亮的是「此刻正在作答的那一方」</text>
+
+          <text x="30" y="62" fill="#fbbf24" font-size="8.5">［阶段］</text>
+          <text x="120" y="62" fill="#e2e8f0" font-size="8.5">⠋ thinking　t+12.4s</text>
+          <text x="400" y="62" fill="#64748b" font-size="8">转轮 + 计时；同一帧内所有步骤读同一个 Now</text>
+
+          <text x="30" y="82" fill="#fbbf24" font-size="8.5">［token］</text>
+          <text x="120" y="82" fill="#e2e8f0" font-size="8.5">in 48.2k　out 3.1k　think 1.9k　cacheR 31k　$0.42</text>
+          <text x="470" y="82" fill="#34d399" font-size="8.5">▁▂▃▅▇▆▃▂</text>
+          <text x="546" y="82" fill="#64748b" font-size="8">输出 token 增量火花线</text>
+
+          <text x="30" y="104" fill="#fbbf24" font-size="8.5">［任务清单］</text>
+          <text x="120" y="104" fill="#34d399" font-size="8.5">✓ 1. 定位 native 库　　3.2s</text>
+          <text x="330" y="104" fill="#22d3ee" font-size="8.5">▸ 2. 抽符号表　　　运行中 8.1s</text>
+          <text x="120" y="120" fill="#64748b" font-size="8.5">　 3. 定位签名函数</text>
+          <text x="330" y="120" fill="#64748b" font-size="8.5">　 4. 写 frida hook</text>
+          <text x="530" y="112" fill="#64748b" font-size="8">每步带耗时</text>
+
+          <text x="30" y="142" fill="#fbbf24" font-size="8.5">［队列］</text>
+          <text x="120" y="142" fill="#e2e8f0" font-size="8.5">queued 2　draft: 顺便看下 assets 里有没有…</text>
+          <text x="470" y="142" fill="#fb923c" font-size="8">← 你正在敲的字也显示出来</text>
+
+          <path d="M 16 160 L 684 160" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="178" fill="#fb923c" font-size="9.5" font-weight="600">回合跑着的时候，键盘上还能做三件事</text>
+
+          <rect x="16" y="188" width="216" height="62" rx="6" fill="rgba(251,146,60,.2)" stroke="#fb923c" stroke-width="1.1"/>
+          <text x="30" y="207" fill="#fb923c" font-size="9" font-weight="600">① 裸文本 → 自动入队</text>
+          <text x="30" y="225" fill="#cbd5e1" font-size="8">敲一句话回车，回执</text>
+          <text x="30" y="240" fill="#e2e8f0" font-size="8">queued #N for the next turn</text>
+
+          <rect x="242" y="188" width="216" height="62" rx="6" fill="rgba(8,51,68,.24)" stroke="#22d3ee" stroke-width="1.1"/>
+          <text x="256" y="207" fill="#22d3ee" font-size="9" font-weight="600">② 5 个命令即时生效</text>
+          <text x="256" y="225" fill="#e2e8f0" font-size="8">/queue　/tasks　/think　/model　/version</text>
+          <text x="256" y="240" fill="#94a3b8" font-size="8">白名单只有这 5 个，其余排队</text>
+
+          <rect x="468" y="188" width="216" height="62" rx="6" fill="rgba(136,19,55,.24)" stroke="#fb7185" stroke-width="1.1"/>
+          <text x="482" y="207" fill="#fb7185" font-size="9" font-weight="600">③ ^C 打断</text>
+          <text x="482" y="225" fill="#cbd5e1" font-size="8">提示：<tspan fill="#fff">partial work kept in the transcript</tspan></text>
+          <text x="482" y="240" fill="#94a3b8" font-size="8">已产生的成果不丢，中断不是失败</text>
+
+          <rect x="16" y="260" width="668" height="52" rx="6" fill="rgba(120,53,15,.22)" stroke="#fbbf24" stroke-width="1.2"/>
+          <text x="30" y="279" fill="#fbbf24" font-size="9.5" font-weight="700">/model 为什么能中途生效 —— 一个指针的事</text>
+          <text x="30" y="297" fill="#cbd5e1" font-size="8.5">provider 持有 <tspan fill="#fff">*ProviderConfig 指针</tspan>，每次 Complete 现读 p.config.Model。所以 UI 如实提示 <tspan fill="#fff" font-style="italic">"applies to the next provider turn"</tspan></text>
+          <text x="30" y="310" fill="#fb7185" font-size="8">⚠ 注意别搞混：/think expand 只是 UI 显示开关，<tspan fill="#fff">不影响请求</tspan>；调推理强度的命令是 /effort</text>
+
+          <path d="M 16 324 L 684 324" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="342" fill="#a78bfa" font-size="9.5" font-weight="600">两个折叠语义上的巧思 —— 这种细节骗不了人，只有天天用的人才会写</text>
+
+          <rect x="16" y="352" width="326" height="66" rx="6" fill="rgba(76,29,149,.22)" stroke="#a78bfa" stroke-width="1.1"/>
+          <text x="30" y="371" fill="#a78bfa" font-size="9" font-weight="600">折叠 think，但不折叠 think 的计数</text>
+          <text x="30" y="389" fill="#cbd5e1" font-size="8">注释：Collapsed hides the text but not the think token counter</text>
+          <text x="30" y="405" fill="#e2e8f0" font-size="8"><tspan fill="#fff">收起来的 HUD 仍然告诉你「它在想」</tspan> —— 消失的只是字</text>
+
+          <rect x="358" y="352" width="326" height="66" rx="6" fill="rgba(76,29,149,.22)" stroke="#a78bfa" stroke-width="1.1"/>
+          <text x="372" y="371" fill="#a78bfa" font-size="9" font-weight="600">你主动展开的内容，排在丢弃顺序的最后</text>
+          <text x="372" y="389" fill="#cbd5e1" font-size="8">屏幕行数不够时 HUD 会主动丢内容</text>
+          <text x="372" y="405" fill="#e2e8f0" font-size="8">注释：<tspan fill="#fff">content you asked for should not be the first thing dropped</tspan></text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:9px">
+        <div class="card cyan">
+          <div class="card-head"><span class="card-dot cyan"></span><h3>/queue edit 确实存在</h3></div>
+          <ul>
+            <li>完整动作集：<em>list / add / edit &lt;id&gt; &lt;task&gt; / cancel / rm / drop / clear / run</em> —— <strong>能改一条已排队但还没执行的任务</strong></li>
+            <li><em>/queue run</em> 在回合中只回「排完这轮再继续」，<strong>不打断当前回合</strong></li>
+          </ul>
+        </div>
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>四种可视化档位</h3></div>
+          <ul>
+            <li><em>full</em>（图 + trace）· <em>flow</em>（只要图）· <em>trace</em>（只要行）· <em>off</em>；选择落盘到 UI 偏好文件</li>
+            <li>trace 每行带<strong>耗时条和参数摘要</strong>，是永久 scrollback，不是刷掉的动画</li>
+          </ul>
+        </div>
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>同页的代价：这 5,608 行几乎没测</h3></div>
+          <ul>
+            <li><em>internal/ui</em> 的测试覆盖只有 <strong>10.7%</strong>；<em>internal/tools</em> 更低，<strong>8.8%</strong></li>
+            <li>UI 是最容易悄悄坏掉又最难写测试的地方 —— <strong>这里目前主要靠作者自己天天用来兜底</strong></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">本地实测 · <b>926e615</b> · internal/ui/{hud.go,live.go,flow.go,trace.go} · internal/app/repl.go · 研究笔记 R03 §6 · R02 §7</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

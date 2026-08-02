@@ -1,0 +1,102 @@
+<section class="slide" data-ch="CH2 灵感来源" data-title="灵感来源：三条上游，各抄了什么">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot violet"></span>CH 2 · 灵感来源</div>
+    <h1 class="s-title">三条上游 —— 而且<span class="hl">研究竞品是设计输入，不是事后比较</span></h1>
+    <div class="s-sub">证据：7 张架构图里 <b style="color:#e2e8f0">有 2 张画的不是自己</b>，画的是 oh-my-pi；且这两张<b style="color:#e2e8f0">在首个 commit 就存在</b>。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="in-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#a78bfa"/>
+            </marker>
+          </defs>
+
+          <text x="16" y="14" fill="#94a3b8" font-size="9" font-weight="600">三条上游 · 各自贡献了什么</text>
+
+          <rect x="16" y="24" width="212" height="96" rx="7" fill="rgba(6,78,59,.24)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="30" y="44" fill="#34d399" font-size="9.5" font-weight="700">pi（第二讲）</text>
+          <text x="30" y="63" fill="#e2e8f0" font-size="8.5">单事件驱动循环</text>
+          <text x="30" y="79" fill="#e2e8f0" font-size="8.5">一个工具注册表</text>
+          <text x="30" y="95" fill="#e2e8f0" font-size="8.5">结构化结果，不解析散文</text>
+          <text x="30" y="112" fill="#64748b" font-size="8">「内核可以小到读得完」</text>
+
+          <rect x="244" y="24" width="212" height="96" rx="7" fill="rgba(136,19,55,.24)" stroke="#fb7185" stroke-width="1.2"/>
+          <text x="258" y="44" fill="#fb7185" font-size="9.5" font-weight="700">oh-my-pi（第三讲）</text>
+          <text x="258" y="63" fill="#e2e8f0" font-size="8.5">输出预算当一等公民</text>
+          <text x="258" y="79" fill="#e2e8f0" font-size="8.5">分级审批（tiered approval）</text>
+          <text x="258" y="95" fill="#e2e8f0" font-size="8.5">「把每个决定的代价摊开」</text>
+          <text x="258" y="112" fill="#64748b" font-size="8">同时也贡献了「别抄」清单</text>
+
+          <rect x="472" y="24" width="212" height="96" rx="7" fill="rgba(120,53,15,.26)" stroke="#fbbf24" stroke-width="1.2"/>
+          <text x="486" y="44" fill="#fbbf24" font-size="9.5" font-weight="700">Claude Code</text>
+          <text x="486" y="63" fill="#e2e8f0" font-size="8.5">Agent Skills 格式逐字照搬</text>
+          <text x="486" y="79" fill="#e2e8f0" font-size="8.5">MCP 客户端</text>
+          <text x="486" y="95" fill="#e2e8f0" font-size="8.5">渐进式披露的机制</text>
+          <text x="486" y="112" fill="#64748b" font-size="8">而且它本身还是一个后端</text>
+
+          <path d="M 122 126 L 300 158" stroke="#a78bfa" stroke-width="1.2" marker-end="url(#in-ar)"/>
+          <path d="M 350 126 L 350 158" stroke="#a78bfa" stroke-width="1.2" marker-end="url(#in-ar)"/>
+          <path d="M 578 126 L 400 158" stroke="#a78bfa" stroke-width="1.2" marker-end="url(#in-ar)"/>
+
+          <rect x="16" y="166" width="668" height="52" rx="7" fill="rgba(76,29,149,.3)" stroke="#a78bfa" stroke-width="1.5"/>
+          <text x="350" y="188" fill="#a78bfa" font-size="11" font-weight="700" text-anchor="middle">0xAF-Re · 24,229 行 Go · 外部依赖 1 个</text>
+          <text x="350" y="208" fill="#cbd5e1" font-size="8.5" text-anchor="middle">golang.org/x/term —— go.sum 只有 4 行。没有任何 agent 框架</text>
+
+          <path d="M 16 232 L 684 232" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="250" fill="#fbbf24" font-size="9.5" font-weight="600">「渐进式披露」这条抄得最实在 —— 有量化证据</text>
+
+          <rect x="16" y="260" width="326" height="72" rx="6" fill="rgba(2,6,23,.65)" stroke="#334155" stroke-width="1"/>
+          <text x="30" y="280" fill="#e2e8f0" font-size="9" font-weight="600">常驻 system prompt 的部分</text>
+          <text x="30" y="302" fill="#fff" font-size="18" font-weight="700">8,531 <tspan font-size="10" fill="#94a3b8">字节</tspan></text>
+          <text x="30" y="322" fill="#94a3b8" font-size="8">33 条 skill description</text>
+
+          <rect x="358" y="260" width="326" height="72" rx="6" fill="rgba(76,29,149,.24)" stroke="#a78bfa" stroke-width="1.2"/>
+          <text x="372" y="280" fill="#e2e8f0" font-size="9" font-weight="600">用到才读的部分</text>
+          <text x="372" y="302" fill="#fff" font-size="18" font-weight="700">397,723 <tspan font-size="10" fill="#94a3b8">字节</tspan></text>
+          <text x="372" y="322" fill="#94a3b8" font-size="8">33 个 SKILL.md 全文</text>
+
+          <rect x="16" y="342" width="668" height="30" rx="5" fill="rgba(76,29,149,.2)"/>
+          <text x="350" y="362" fill="#a78bfa" font-size="11" font-weight="700" text-anchor="middle">1 : 47　—　常驻的只占 2.1%</text>
+
+          <rect x="16" y="382" width="668" height="36" rx="5" fill="rgba(2,6,23,.6)" stroke="#334155" stroke-width="1"/>
+          <text x="30" y="399" fill="#cbd5e1" font-size="8.5">机制在 <tspan fill="#fff">internal/skills/skills.go:108-131</tspan> + read_skill / list_skills 两个工具。</text>
+          <text x="30" y="413" fill="#94a3b8" font-size="8">但全仓 grep「progressive disclosure」<tspan fill="#fb7185">零命中</tspan> —— 复刻了机制，没用这个词。这恰好说明是自己重写的，不是照抄文档</text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:9px">
+        <div class="card violet">
+          <div class="card-head"><span class="card-dot violet"></span><h3>作者自己列了对称的「抄 6 条 / 不抄 6 条」</h3></div>
+          <ul>
+            <li><strong>抄</strong>：单事件循环 · 输出预算 · 结构化结果 · 一个工具注册表 · MCP · 分级审批</li>
+            <li><strong>不抄</strong>：哈希锚定编辑 · LSP/DAP 层 · 跨语言 worker · 自造 shell 与 coreutils · 跨会话记忆 · Bazel monorepo</li>
+          </ul>
+        </div>
+        <div class="card amber">
+          <div class="card-head"><span class="card-dot"></span><h3>一句话把差异全解释了（原文）</h3></div>
+          <ul>
+            <li><em>"oh-my-pi optimizes for changing code. 0xAF-Re optimizes for reading binaries. Almost every difference below follows from that one sentence."</em></li>
+            <li>改代码要能精准落笔，<strong>读二进制要能看清来源</strong> —— 后面每一条差异都是这句的推论</li>
+          </ul>
+        </div>
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>同页的代价：它自己的对比图数字对不上</h3></div>
+          <ul>
+            <li>那张 <em>07-vs-oh-my-pi.svg</em> 自称 <strong>64 文件 / 18,610 行</strong>；实测 HEAD 是 <strong>83 / 24,229</strong>，首 commit 是 66 / 19,936 —— <strong>哪个口径都对不上</strong></li>
+            <li>最可能取自提交前的工作区快照。<strong>本讲一律用实测值</strong>，不用它自己写的数</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">本地实测 · <b>926e615</b> · README.md · docs/diagrams/07-vs-oh-my-pi.svg · internal/skills/skills.go · 研究笔记 R01 §3–5</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

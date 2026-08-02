@@ -1,0 +1,2671 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>如何打造自己的 Agent · Chapter 4 · re-agent：把逆向写进骨架</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+/* ==========================================================================
+   《如何打造自己的 Agent》· 演示框架
+   设计系统：cocoonAI / architecture-diagram (dark slate + JetBrains Mono)
+   ========================================================================== */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg:        #020617;
+  --bg-soft:   #0f172a;
+  --line:      #1e293b;
+  --fg:        #ffffff;
+  --muted:     #94a3b8;
+  --dim:       #64748b;
+  --faint:     #475569;
+
+  --cyan:      #22d3ee;
+  --emerald:   #34d399;
+  --violet:    #a78bfa;
+  --amber:     #fbbf24;
+  --rose:      #fb7185;
+  --orange:    #fb923c;
+  --slate:     #94a3b8;
+
+  --cyan-fill:    rgba(8, 51, 68, .4);
+  --emerald-fill: rgba(6, 78, 59, .4);
+  --violet-fill:  rgba(76, 29, 149, .4);
+  --amber-fill:   rgba(120, 53, 15, .3);
+  --rose-fill:    rgba(136, 19, 55, .4);
+  --orange-fill:  rgba(251, 146, 60, .3);
+  --slate-fill:   rgba(30, 41, 59, .5);
+
+  --stage-w: 1280px;
+  --stage-h: 720px;
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'JetBrains Mono', 'PingFang SC', 'Noto Sans SC', 'Microsoft YaHei', monospace;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- 舞台：固定 1280x720，等比缩放铺满视口 ---------- */
+#stage-wrap {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#stage {
+  position: relative;
+  width: var(--stage-w);
+  height: var(--stage-h);
+  transform-origin: center center;
+  flex: none;
+}
+
+/* ---------- 幻灯片 ---------- */
+.slide {
+  position: absolute;
+  inset: 0;
+  padding: 46px 60px 54px;
+  display: none;
+  flex-direction: column;
+  background:
+    linear-gradient(180deg, rgba(2,6,23,0) 0%, rgba(2,6,23,.6) 100%),
+    repeating-linear-gradient(0deg,  transparent 0 39px, rgba(30,41,59,.55) 39px 40px),
+    repeating-linear-gradient(90deg, transparent 0 39px, rgba(30,41,59,.55) 39px 40px),
+    var(--bg);
+}
+.slide.active { display: flex; animation: slide-in .32s cubic-bezier(.22,.61,.36,1); }
+@keyframes slide-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* 封面 / 章扉页变体 */
+.slide.cover, .slide.chapter { justify-content: center; }
+.slide.cover::before, .slide.chapter::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 70% 55% at 22% 30%, rgba(34,211,238,.13), transparent 70%),
+              radial-gradient(ellipse 60% 50% at 80% 75%, rgba(167,139,250,.11), transparent 70%);
+  pointer-events: none;
+}
+
+/* ---------- 页眉 ---------- */
+.s-head { margin-bottom: 20px; flex: none; }
+.s-kicker {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--dim); margin-bottom: 10px;
+}
+.s-kicker .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--cyan); }
+.s-kicker .dot.emerald { background: var(--emerald); }
+.s-kicker .dot.violet  { background: var(--violet); }
+.s-kicker .dot.amber   { background: var(--amber); }
+.s-kicker .dot.rose    { background: var(--rose); }
+.s-kicker .dot.orange  { background: var(--orange); }
+
+h1.s-title {
+  font-size: 30px; font-weight: 700; letter-spacing: -.02em; line-height: 1.25;
+}
+h1.s-title .hl { color: var(--cyan); }
+h1.s-title .hl-v { color: var(--violet); }
+h1.s-title .hl-e { color: var(--emerald); }
+h1.s-title .hl-r { color: var(--rose); }
+h1.s-title .hl-a { color: var(--amber); }
+
+.s-sub {
+  margin-top: 9px; font-size: 13px; color: var(--muted); line-height: 1.7;
+  max-width: 1000px;
+}
+.s-sub code { color: var(--amber); font-size: 12px; }
+
+/* ---------- 主体 ---------- */
+.s-body { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 14px; }
+.s-body.center { justify-content: center; }
+
+/* SVG 始终等比缩放到容器内（letterbox），永不撑破版心 */
+.figure {
+  background: rgba(15,23,42,.5);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 14px;
+  flex: 1; min-height: 0; min-width: 0;
+  display: block; overflow: hidden;
+}
+.figure.plain { background: transparent; border: none; padding: 0; }
+.figure > svg { width: 100%; height: 100%; display: block; }
+.figure > table { width: 100%; }
+
+/* 两栏 */
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; flex: 1; min-height: 0; }
+.cols.c37 { grid-template-columns: 3fr 7fr; }
+.cols.c73 { grid-template-columns: 7fr 3fr; }
+.cols.c46 { grid-template-columns: 4fr 6fr; }
+.cols.c64 { grid-template-columns: 6fr 4fr; }
+
+/* ---------- 卡片 ---------- */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 12px; }
+.cards.c2 { grid-template-columns: repeat(2, 1fr); }
+.cards.c3 { grid-template-columns: repeat(3, 1fr); }
+.cards.c4 { grid-template-columns: repeat(4, 1fr); }
+.cards.c5 { grid-template-columns: repeat(5, 1fr); }
+
+.card {
+  background: rgba(15,23,42,.5);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 11px 14px;
+}
+.card.cyan    { border-color: rgba(34,211,238,.35);  background: var(--cyan-fill); }
+.card.emerald { border-color: rgba(52,211,153,.35);  background: var(--emerald-fill); }
+.card.violet  { border-color: rgba(167,139,250,.35); background: var(--violet-fill); }
+.card.amber   { border-color: rgba(251,191,36,.35);  background: var(--amber-fill); }
+.card.rose    { border-color: rgba(251,113,133,.35); background: var(--rose-fill); }
+.card.orange  { border-color: rgba(251,146,60,.35);  background: var(--orange-fill); }
+
+.card-head { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+.card-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; background: var(--slate); }
+.card-dot.cyan{background:var(--cyan)} .card-dot.emerald{background:var(--emerald)}
+.card-dot.violet{background:var(--violet)} .card-dot.amber{background:var(--amber)}
+.card-dot.rose{background:var(--rose)} .card-dot.orange{background:var(--orange)}
+.card h3 { font-size: 13px; font-weight: 600; letter-spacing: -.01em; }
+.card .card-num { margin-left: auto; font-size: 10px; color: var(--faint); }
+.card p  { font-size: 11.5px; color: var(--muted); line-height: 1.75; }
+.card ul { list-style: none; font-size: 11.5px; color: var(--muted); line-height: 1.7; }
+.card ul li { padding-left: 13px; position: relative; }
+.card ul li::before { content: '▸'; position: absolute; left: 0; color: var(--faint); }
+.card strong { color: var(--fg); font-weight: 600; }
+.card em { font-style: normal; color: var(--amber); }
+.card .note { display: block; margin-top: 3px; font-size: 9.5px; color: #7e8ea6; line-height: 1.65; }
+.cards { min-height: 0; }
+.s-body > .cards { align-content: stretch; }
+.s-body > .cards > .card { display: flex; flex-direction: column; }
+
+/* ---------- 要点列表 ---------- */
+ul.points { list-style: none; display: flex; flex-direction: column; gap: 11px; }
+ul.points > li {
+  font-size: 14px; line-height: 1.75; color: #cbd5e1;
+  padding-left: 26px; position: relative;
+}
+ul.points > li::before {
+  content: attr(data-n);
+  position: absolute; left: 0; top: 1px;
+  font-size: 10px; color: var(--cyan);
+  border: 1px solid rgba(34,211,238,.4); border-radius: 4px;
+  width: 18px; height: 18px; display: grid; place-items: center;
+}
+ul.points > li b { color: var(--fg); font-weight: 600; }
+ul.points > li .note { display: block; font-size: 11.5px; color: var(--dim); margin-top: 3px; }
+
+/* ---------- 表格 ---------- */
+table.t {
+  width: 100%; border-collapse: collapse; font-size: 11.5px;
+}
+table.t th {
+  text-align: left; padding: 8px 10px; color: var(--dim);
+  font-size: 10px; letter-spacing: .08em; text-transform: uppercase;
+  border-bottom: 1px solid var(--line); font-weight: 500;
+}
+table.t td {
+  padding: 8px 10px; color: var(--muted); border-bottom: 1px solid rgba(30,41,59,.55);
+  line-height: 1.6;
+}
+table.t tr:last-child td { border-bottom: none; }
+table.t.compact th { padding: 4px 9px; }
+table.t.compact td { padding: 4px 9px; font-size: 10.8px; line-height: 1.5; }
+table.t.compact .note { display: block; margin-top: 1px; font-size: 9px; color: #7e8ea6; }
+table.t td.k { color: var(--fg); font-weight: 600; }
+table.t td .tag {
+  display: inline-block; font-size: 9.5px; padding: 1px 6px; border-radius: 4px;
+  border: 1px solid var(--line); color: var(--dim);
+}
+table.t td .tag.cyan   { color: var(--cyan);    border-color: rgba(34,211,238,.4);  background: var(--cyan-fill); }
+table.t td .tag.emerald{ color: var(--emerald); border-color: rgba(52,211,153,.4);  background: var(--emerald-fill); }
+table.t td .tag.violet { color: var(--violet);  border-color: rgba(167,139,250,.4); background: var(--violet-fill); }
+table.t td .tag.amber  { color: var(--amber);   border-color: rgba(251,191,36,.4);  background: var(--amber-fill); }
+table.t td .tag.rose   { color: var(--rose);    border-color: rgba(251,113,133,.4); background: var(--rose-fill); }
+table.t td .tag.orange { color: var(--orange);  border-color: rgba(251,146,60,.4);  background: var(--orange-fill); }
+
+/* ---------- 引言 / 金句 ---------- */
+.quote {
+  border-left: 2px solid var(--cyan);
+  padding: 4px 0 4px 16px;
+  font-size: 15px; line-height: 1.8; color: #e2e8f0;
+}
+.quote .who { display: block; margin-top: 7px; font-size: 11px; color: var(--dim); }
+
+.takeaway {
+  margin-top: auto;
+  border: 1px solid rgba(52,211,153,.3);
+  background: rgba(6,78,59,.22);
+  border-radius: 10px;
+  padding: 11px 15px;
+  font-size: 12.5px; color: #d1fae5; line-height: 1.7;
+  flex: none;
+}
+.takeaway b { color: var(--emerald); }
+
+/* ---------- 页脚 ---------- */
+.s-foot {
+  position: absolute; left: 60px; right: 60px; bottom: 18px;
+  display: flex; align-items: center; gap: 12px;
+  font-size: 9.5px; color: var(--faint);
+  border-top: 1px solid rgba(30,41,59,.7); padding-top: 9px;
+}
+.s-foot .src { color: var(--faint); }
+.s-foot .src b { color: var(--dim); font-weight: 500; }
+.s-foot .spacer { flex: 1; }
+.s-foot .pg { color: var(--dim); letter-spacing: .1em; }
+
+/* ---------- 封面 ---------- */
+.cover-inner { position: relative; z-index: 1; }
+.cover-tag {
+  display: inline-flex; align-items: center; gap: 9px;
+  border: 1px solid var(--line); border-radius: 999px;
+  padding: 5px 14px; font-size: 10.5px; color: var(--muted);
+  letter-spacing: .1em; margin-bottom: 26px;
+}
+.cover-tag .pulse {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--cyan);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse { 0%,100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34,211,238,.5); }
+                   50% { opacity: .55; box-shadow: 0 0 0 7px rgba(34,211,238,0); } }
+.cover h1 { font-size: 54px; font-weight: 700; letter-spacing: -.03em; line-height: 1.18; }
+.cover h1 .accent { color: var(--cyan); }
+.cover .cover-sub { margin-top: 20px; font-size: 16px; color: var(--muted); line-height: 1.8; }
+.cover .cover-meta {
+  margin-top: 38px; display: flex; gap: 26px; font-size: 11px; color: var(--faint);
+  border-top: 1px solid var(--line); padding-top: 18px; max-width: 760px;
+}
+.cover .cover-meta b { color: var(--dim); font-weight: 500; }
+
+/* 章扉页 */
+.chapter-inner { position: relative; z-index: 1; text-align: left; display: grid;
+                 grid-template-columns: 5fr 5fr; gap: 46px; align-items: start; }
+.chapter .ch-no { font-size: 76px; font-weight: 700; color: rgba(148,163,184,.16); line-height: 1; }
+.chapter h1 { font-size: 38px; font-weight: 700; margin-top: -14px; letter-spacing: -.02em; }
+.chapter h1 .hl { color: var(--cyan); }
+.chapter .ch-q { margin-top: 18px; font-size: 15px; color: #cbd5e1; line-height: 1.8; }
+.chapter .ch-q b { color: var(--fg); }
+.chapter .ch-sub { margin-top: 16px; font-size: 12px; color: var(--dim); line-height: 1.9;
+                   border-left: 2px solid var(--line); padding-left: 14px; }
+.chapter .ch-sub b { color: var(--muted); font-weight: 500; }
+
+.ch-list { list-style: none; }
+.ch-list .ch-list-h { font-size: 10px; letter-spacing: .14em; color: var(--faint);
+                      text-transform: uppercase; margin-bottom: 12px; }
+.ch-list li { display: flex; gap: 12px; align-items: baseline;
+              padding: 7px 0; border-bottom: 1px solid rgba(30,41,59,.7); }
+.ch-list li:last-child { border-bottom: none; }
+.ch-list .n { font-size: 10px; color: var(--faint); min-width: 20px; flex: none; }
+.ch-list .t { font-size: 12.5px; color: #e2e8f0; line-height: 1.5; }
+.ch-list .t i { font-style: normal; display: block; font-size: 10px; color: var(--dim); margin-top: 2px; }
+
+.ch-prog { display: flex; gap: 5px; margin-top: 26px; }
+.ch-prog span { height: 3px; flex: 1; background: var(--line); border-radius: 2px; }
+.ch-prog span.on { background: var(--cyan); box-shadow: 0 0 8px rgba(34,211,238,.6); }
+.ch-prog span.done { background: var(--faint); }
+
+/* ---------- 导航 UI ---------- */
+#progress {
+  position: fixed; left: 0; top: 0; height: 2px; background: var(--cyan);
+  z-index: 90; transition: width .25s ease; box-shadow: 0 0 10px rgba(34,211,238,.7);
+}
+#hud {
+  position: fixed; right: 16px; bottom: 14px; z-index: 90;
+  display: flex; align-items: center; gap: 10px;
+  font-size: 10px; color: var(--faint); letter-spacing: .08em;
+}
+#hud button {
+  background: rgba(15,23,42,.8); border: 1px solid var(--line); color: var(--dim);
+  border-radius: 6px; width: 26px; height: 26px; cursor: pointer; font-size: 12px;
+  font-family: inherit; transition: .15s;
+}
+#hud button:hover { color: var(--cyan); border-color: rgba(34,211,238,.5); }
+
+/* 缩略图总览 */
+#overview {
+  position: fixed; inset: 0; z-index: 100; background: rgba(2,6,23,.97);
+  display: none; padding: 34px; overflow-y: auto;
+}
+#overview.on { display: block; }
+#overview h2 { font-size: 13px; color: var(--dim); margin-bottom: 18px; letter-spacing: .1em; }
+#ov-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(184px, 1fr)); gap: 12px; }
+.ov-item {
+  border: 1px solid var(--line); border-radius: 8px; padding: 11px 12px;
+  cursor: pointer; background: rgba(15,23,42,.55); transition: .15s;
+}
+.ov-item:hover { border-color: rgba(34,211,238,.55); background: rgba(8,51,68,.4); }
+.ov-item.cur { border-color: var(--cyan); }
+.ov-item .n { font-size: 9.5px; color: var(--faint); }
+.ov-item .t { font-size: 11.5px; color: #cbd5e1; margin-top: 5px; line-height: 1.5; }
+.ov-item .c { font-size: 9px; color: var(--dim); margin-top: 6px; }
+
+/* ---------- 打印 / PDF ---------- */
+@media print {
+  @page { size: 1280px 720px; margin: 0; }
+  /* Chrome 默认"省墨"会丢掉所有背景色，深色主题必须显式关掉 */
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  html, body { overflow: visible; height: auto; background: var(--bg); max-width: 100%; overflow-x: hidden; }
+  #stage-wrap { position: static; display: block; }
+  #stage { width: 1280px; height: auto; transform: none !important; }
+  .slide {
+    display: flex !important; position: relative; inset: auto;
+    width: 1280px; height: 720px; page-break-after: always; break-after: page;
+    animation: none;
+  }
+  #hud, #progress, #overview { display: none !important; }
+}
+
+/* ---------- 目录页 ---------- */
+.toc { display: grid; grid-template-columns: 1fr 1fr; gap: 11px 32px; flex: 1; min-height: 0; align-content: start; }
+.toc-ch { border-left: 2px solid var(--line); padding-left: 14px; }
+.toc-ch.cyan   { border-color: var(--cyan); }
+.toc-ch.amber  { border-color: var(--amber); }
+.toc-ch.violet { border-color: var(--violet); }
+.toc-ch.rose   { border-color: var(--rose); }
+.toc-ch.slate  { border-color: var(--slate); }
+.toc-ch.emerald{ border-color: var(--emerald); }
+.toc-ch.orange { border-color: var(--orange); }
+.toc-hd { display: flex; align-items: baseline; gap: 9px; }
+.toc-hd .no { font-size: 10px; color: var(--faint); letter-spacing: .1em; }
+.toc-hd .nm { font-size: 15px; font-weight: 700; color: var(--fg); }
+.toc-hd .pg { margin-left: auto; font-size: 10px; color: var(--faint); }
+.toc-q { font-size: 11px; color: var(--muted); margin-top: 2px; line-height: 1.5; }
+.toc-items { list-style: none; margin-top: 4px; }
+.toc-items li { font-size: 10.5px; color: var(--dim); line-height: 1.62; display: flex; gap: 8px; }
+.toc-items li b { color: #cbd5e1; font-weight: 400; }
+.toc-items li .p { color: var(--faint); min-width: 38px; flex: none; }
+.toc-items li em { font-style: normal; color: var(--amber); }
+
+/* 超紧凑表格：给行数多的对照表用 */
+table.t.micro th { padding: 3px 8px; font-size: 9.5px; }
+table.t.micro td { padding: 3px 8px; font-size: 10.2px; line-height: 1.45; }
+table.t.micro .note { display: block; margin-top: 0; font-size: 8.6px; color: #7e8ea6; line-height: 1.4; }
+
+  </style>
+</head>
+<body>
+  <div id="progress" style="width:0"></div>
+
+  <div id="stage-wrap">
+    <div id="stage">
+<!-- ===== s01-cover.html ===== -->
+<section class="slide cover" data-ch="封面" data-title="Build Your Own Agent · Chapter 4 · re-agent">
+  <div class="cover-inner">
+    <div class="cover-tag"><span class="pulse"></span>BUILD YOUR OWN AGENT · CHAPTER 4 · RE-AGENT</div>
+    <h1>把一个行业的规矩，<span class="accent">写进骨架</span></h1>
+    <div class="cover-sub">
+      第 (4) 讲 · 自建案例复盘：<b style="color:#e2e8f0">灵感来源</b>、<b style="color:#e2e8f0">实现原理</b>、<b style="color:#e2e8f0">功能点</b>、<b style="color:#e2e8f0">三方对比</b>、<b style="color:#e2e8f0">具体样例</b>、<b style="color:#e2e8f0">未来规划</b><br>
+      前三讲拆的是别人的 harness。这一讲拆一个<b style="color:#e2e8f0">从零写的</b>：<span style="color:#fbbf24">0xAF-Re</span>。<br>
+      本讲主讲人就是它的作者 —— <span style="color:#fb7185">所以对比章会先自我拆台</span>。
+    </div>
+    <div class="cover-meta">
+      <div><b>主张</b><br>通用层已开源，差异化在你敢焊死哪些领域约束</div>
+      <div><b>样本</b><br>overkazaf/re-agent · Go 单静态二进制 · 本地静态取证</div>
+      <div><b>落点</b><br>「只是配置」与「结构性」两栏分清楚</div>
+    </div>
+  </div>
+  <div class="s-foot">
+    <span class="src">取证基线 · <b>926e615</b> · 2026-07-31 · 全程只读代码，不执行二进制</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s01c-about.html ===== -->
+<section class="slide" data-ch="开篇" data-title="关于这一篇：四篇的位置，以及利益冲突声明">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot cyan"></span>开篇 · 关于这一篇</div>
+    <h1 class="s-title">前三讲拆别人的，<span class="hl">这一讲拆自己的</span></h1>
+    <div class="s-sub">所以先把话说在前面：<b style="color:#fb7185">本讲主讲人就是 re-agent 的作者</b>。夸自家项目的话不值钱，能核对的行号才值钱。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="ab-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#fb923c"/>
+            </marker>
+          </defs>
+
+          <text x="16" y="16" fill="#94a3b8" font-size="9.5" font-weight="600">四篇的分工 · 每一篇回答一个不同的问题</text>
+
+          <rect x="16" y="28" width="668" height="72" rx="7" fill="rgba(8,51,68,.26)" stroke="#22d3ee" stroke-width="1.2"/>
+          <text x="34" y="50" fill="#22d3ee" font-size="10.5" font-weight="700">Chapter 1 · Getting Started</text>
+          <text x="34" y="72" fill="#e2e8f0" font-size="11">地图 —— agent 是什么，造一个需要哪六样</text>
+          <text x="34" y="90" fill="#94a3b8" font-size="9">同时留下了一份「逆向工程的七道坎」清单，本讲要逐条回来交账</text>
+
+          <rect x="16" y="110" width="326" height="72" rx="7" fill="rgba(6,78,59,.26)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="34" y="132" fill="#34d399" font-size="10.5" font-weight="700">Chapter 2 · 解剖 pi</text>
+          <text x="34" y="153" fill="#e2e8f0" font-size="10.5">下限 —— 四个工具就能做 agent</text>
+          <text x="34" y="171" fill="#94a3b8" font-size="9">证明内核可以小到读得完</text>
+
+          <rect x="358" y="110" width="326" height="72" rx="7" fill="rgba(136,19,55,.26)" stroke="#fb7185" stroke-width="1.2"/>
+          <text x="376" y="132" fill="#fb7185" font-size="10.5" font-weight="700">Chapter 3 · 解剖 oh-my-pi</text>
+          <text x="376" y="153" fill="#e2e8f0" font-size="10.5">上限 —— 同一基座 6.45 倍体量</text>
+          <text x="376" y="171" fill="#94a3b8" font-size="9">证明改造的天花板有多贵</text>
+
+          <path d="M 350 190 L 350 212" stroke="#fb923c" stroke-width="1.4" marker-end="url(#ab-ar)"/>
+
+          <rect x="16" y="220" width="668" height="86" rx="7" fill="rgba(120,53,15,.28)" stroke="#fbbf24" stroke-width="1.5"/>
+          <text x="34" y="243" fill="#fbbf24" font-size="10.5" font-weight="700">Chapter 4 · re-agent（本讲）</text>
+          <text x="34" y="266" fill="#fff" font-size="11.5">落地 —— 把地图上的六样，按<tspan font-weight="700">一个行业的规矩</tspan>重新焊一遍</text>
+          <text x="34" y="286" fill="#cbd5e1" font-size="9.5">不 fork、不改造，从零用 Go 写一个。这个选择的账，第 09 页和第 28 页各算一次</text>
+          <text x="34" y="300" fill="#94a3b8" font-size="8.5">第一讲结尾承诺的「动手写：按自己的活造一个」，就是这一讲</text>
+
+          <path d="M 16 320 L 684 320" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="342" fill="#fb7185" font-size="10" font-weight="700">本讲的三条自律</text>
+
+          <rect x="16" y="352" width="216" height="66" rx="6" fill="rgba(2,6,23,.6)" stroke="#334155" stroke-width="1"/>
+          <text x="30" y="372" fill="#e2e8f0" font-size="9.5" font-weight="600">① 优点页配代价</text>
+          <text x="30" y="391" fill="#94a3b8" font-size="8.5">凡讲一条长处，同页必须</text>
+          <text x="30" y="407" fill="#94a3b8" font-size="8.5">给出它的局限或成本</text>
+
+          <rect x="242" y="352" width="216" height="66" rx="6" fill="rgba(2,6,23,.6)" stroke="#334155" stroke-width="1"/>
+          <text x="256" y="372" fill="#e2e8f0" font-size="9.5" font-weight="600">② 对比章先自我拆台</text>
+          <text x="256" y="391" fill="#94a3b8" font-size="8.5">能靠改配置得到的差异，</text>
+          <text x="256" y="407" fill="#94a3b8" font-size="8.5">一律不算差异，单列一页</text>
+
+          <rect x="468" y="352" width="216" height="66" rx="6" fill="rgba(2,6,23,.6)" stroke="#334155" stroke-width="1"/>
+          <text x="482" y="372" fill="#e2e8f0" font-size="9.5" font-weight="600">③ 规划分两栏</text>
+          <text x="482" y="391" fill="#94a3b8" font-size="8.5">仓库里明写的计划，和从</text>
+          <text x="482" y="407" fill="#94a3b8" font-size="8.5">代码缝里推的缺口，分开放</text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:10px">
+        <div class="card amber">
+          <div class="card-head"><span class="card-dot"></span><h3>本讲取证方式：只读，不跑</h3></div>
+          <ul>
+            <li>全程<strong>静态代码取证</strong> —— 不执行 <em>0xaf</em> 二进制、不联网、不跑 demo</li>
+            <li>所以本讲<strong>没有任何性能或成功率数字</strong>；凡是效果类说法一律标为「文档声称」</li>
+          </ul>
+        </div>
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>为什么这条自律特别重要</h3></div>
+          <ul>
+            <li>讲别人的项目，偏见会被读者的怀疑抵消；<strong>讲自己的项目，读者的怀疑往往还不够</strong></li>
+            <li>所以本讲的判据只有一个：<strong>你能不能照着行号自己翻开看一眼</strong></li>
+          </ul>
+        </div>
+        <div class="card cyan">
+          <div class="card-head"><span class="card-dot cyan"></span><h3>时间不够就抓两章</h3></div>
+          <ul>
+            <li><strong>CH3 实现原理</strong> —— 一个函数就是全部控制流，这套结构可以直接抄</li>
+            <li><strong>CH5 三方对比</strong> —— 特别是「哪些差异只是配置」那一页</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">前三讲的研究笔记同仓可查 · build-your-own-agent{,-2,-3}/research/</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s02-toc.html ===== -->
+<section class="slide" data-ch="开篇" data-title="目录：七章 29 页">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot"></span>目录 · CONTENTS</div>
+    <h1 class="s-title">七章 · 29 页 · 每章回答<span class="hl">一个问题</span></h1>
+    <div class="s-sub">越往后越不客气。<b style="color:#e2e8f0">时间不够就抓 CH3 和 CH5</b> —— 一个是能抄的结构，一个是挤干水分后的真话。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="toc">
+
+      <div class="toc-ch cyan">
+        <div class="toc-hd"><span class="no">CH 1</span><span class="nm">起手</span><span class="pg">P4 – 06</span></div>
+        <div class="toc-q">为什么还要第四个 harness？七道坎解了几条？</div>
+      </div>
+
+      <div class="toc-ch orange">
+        <div class="toc-hd"><span class="no">CH 4</span><span class="nm">功能点</span><span class="pg">P16 – 19</span></div>
+        <div class="toc-q">趁手的东西有哪些？哪些是不花钱的？</div>
+      </div>
+
+      <div class="toc-ch violet">
+        <div class="toc-hd"><span class="no">CH 2</span><span class="nm">灵感来源</span><span class="pg">P07 – 09</span></div>
+        <div class="toc-q">从哪里抄的？又刻意不抄什么？</div>
+      </div>
+
+      <div class="toc-ch slate">
+        <div class="toc-hd"><span class="no">CH 5</span><span class="nm">三方对比</span><span class="pg">P20 – 23　<em style="color:#fb7185">先自我拆台</em></span></div>
+        <div class="toc-q">和 pi、oh-my-pi 比，哪些是真差异，哪些只是配置？</div>
+      </div>
+
+      <div class="toc-ch emerald">
+        <div class="toc-hd"><span class="no">CH 3</span><span class="nm">实现原理</span><span class="pg">P10 – 15　<em style="color:#34d399">本场重头</em></span></div>
+        <div class="toc-q">一个人写的 agent 内核，长什么样？</div>
+      </div>
+
+      <div class="toc-ch amber">
+        <div class="toc-hd"><span class="no">CH 6</span><span class="nm">能干什么</span><span class="pg">P24 – 26</span></div>
+        <div class="toc-q">举得出具体例子吗？能不能自己跑一遍？</div>
+      </div>
+
+      <div class="toc-ch rose" style="grid-column: 2">
+        <div class="toc-hd"><span class="no">CH 7</span><span class="nm">代价与规划</span><span class="pg">P27 – 29　<em style="color:#fb923c">落点</em></span></div>
+        <div class="toc-q">洞在哪？接下来往哪走？四讲一起收一次。</div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">全场行号均基于 <b>926e615</b>（2026-07-31）· 六份研究笔记见 research/ · 按 <b>O</b> 打开缩略图总览跳转</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s03-ch1.html ===== -->
+<section class="slide chapter" data-ch="CH01 起手" data-title="第 01 章 · 起手">
+  <div class="chapter-inner">
+    <div>
+      <div class="ch-no">01</div>
+      <h1>起手</h1>
+      <div class="ch-q"><b>为什么还要第四个 harness？</b></div>
+      <div class="ch-sub">第一讲留了一份「逆向七道坎」清单。这一章先<b>逐条回来交账</b>，再把体量摊开。</div>
+      <div class="ch-prog"><span class="on"></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span></div>
+    </div>
+    <div>
+      <ul class="ch-list">
+        <div class="ch-list-h">本章内容</div>
+        <li><span class="n">05</span><span class="t">七道坎交账<i>四条已落地 · 两条只做了一半 · 一条有实打实的洞</i></span></li>
+        <li><span class="n">06</span><span class="t">体量与形态<i>两万四千行 · 一个外部依赖 · 五天 · 一个人</i></span></li>
+      </ul>
+      <div class="ch-sub" style="margin-top:22px;border-color:var(--cyan)">本讲每个数字都自己跑命令量过，<b>不引用项目自己写的数</b> —— 因为它自己那张对比图的数就对不上。</div>
+    </div>
+  </div>
+  <div class="s-foot">
+    <span class="src">第 01 章 / 共 7 章</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s04-hurdles.html ===== -->
+<section class="slide" data-ch="CH1 起手" data-title="七道坎回来交账：哪几条真落到代码里了">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot cyan"></span>CH 1 · 起手</div>
+    <h1 class="s-title">第一讲列的<span class="hl">七道坎</span> —— 现在逐条<span class="hl-r">回来交账</span></h1>
+    <div class="s-sub">第一讲的结论是：<b style="color:#e2e8f0">七条里能靠提示词缓解的只有一条，其余六条必须在 harness 层解</b>。那就看这个 harness 到底解了几条。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="figure plain">
+      <svg viewBox="0 0 1160 452" xmlns="http://www.w3.org/2000/svg">
+        <text x="16" y="16" fill="#94a3b8" font-size="10" font-weight="600">坎</text>
+        <text x="300" y="16" fill="#94a3b8" font-size="10" font-weight="600">re-agent 里对应的那段代码</text>
+        <text x="1000" y="16" fill="#94a3b8" font-size="10" font-weight="600">落地程度</text>
+        <path d="M 16 24 L 1144 24" stroke="#1e293b" stroke-width="1"/>
+
+        <rect x="16" y="32" width="1128" height="48" rx="5" fill="rgba(6,78,59,.2)"/>
+        <text x="30" y="52" fill="#e2e8f0" font-size="10" font-weight="600">① 二进制不是文本，算术不可信</text>
+        <text x="30" y="70" fill="#64748b" font-size="8.5">连 0x41424344 转 ASCII 都不能让模型自己算</text>
+        <text x="300" y="52" fill="#cbd5e1" font-size="9">进制换算 / 字符串抽取 / 哈希 / 符号提取<tspan fill="#fff">全部外包给确定性程序</tspan> —— 24 个工具里 21 个只读</text>
+        <text x="300" y="70" fill="#94a3b8" font-size="8.5">strings · hexdump · hash_file · extract_symbols · entropy_scan · find_bytes · carve_artifacts。模型只被允许读结果</text>
+        <text x="1000" y="60" fill="#34d399" font-size="10" font-weight="700">已落地</text>
+
+        <rect x="16" y="86" width="1128" height="48" rx="5" fill="rgba(120,53,15,.22)"/>
+        <text x="30" y="106" fill="#e2e8f0" font-size="10" font-weight="600">② 工具链是有状态的 GUI</text>
+        <text x="30" y="124" fill="#64748b" font-size="8.5">分析数据库里的重命名 / 类型 / 注释不在上下文里</text>
+        <text x="300" y="106" fill="#cbd5e1" font-size="9"><tspan fill="#fff">reverse_toolkit 白名单 20 个外部工具族</tspan>（r2 · rizin · jadx · ghidra · gdb · binwalk · yara · apktool …），动作固定不许任意注入</text>
+        <text x="300" y="124" fill="#fbbf24" font-size="8.5">但这是<tspan fill="#fff">无状态调用</tspan>，不是 supervisor + 常驻 worker 持有分析库那套。IDA 没接，分析库状态仍然不在回路里</text>
+        <text x="1000" y="112" fill="#fbbf24" font-size="10" font-weight="700">半条</text>
+
+        <rect x="16" y="140" width="1128" height="48" rx="5" fill="rgba(6,78,59,.2)"/>
+        <text x="30" y="160" fill="#e2e8f0" font-size="10" font-weight="600">③ 上下文一秒爆</text>
+        <text x="30" y="178" fill="#64748b" font-size="8.5">「请节约上下文」这种指令打不过模型的探索本能</text>
+        <text x="300" y="160" fill="#cbd5e1" font-size="9">三个物理手段：工具输出 <tspan fill="#fff">24k 字符硬闸</tspan>（超了 head 60% / tail 40% + 落 artifact 文件）· 每回合机械压缩 · 手动 /compact</text>
+        <text x="300" y="178" fill="#94a3b8" font-size="8.5">注释写明就是冲着 objdump -d 和大文件 strings 去的　internal/tools/output.go:3-7</text>
+        <text x="1000" y="168" fill="#34d399" font-size="10" font-weight="700">已落地</text>
+
+        <rect x="16" y="194" width="1128" height="48" rx="5" fill="rgba(6,78,59,.2)"/>
+        <text x="30" y="214" fill="#e2e8f0" font-size="10" font-weight="600">④ 过早收敛，或者永不收敛</text>
+        <text x="30" y="232" fill="#64748b" font-size="8.5">唯一一条提示词能缓解的 —— 但只能缓解</text>
+        <text x="300" y="214" fill="#cbd5e1" font-size="9">把判停从模型手里拿走一半：<tspan fill="#fff">规划与执行换不同模型、不同厂商</tspan>；再加一个 <tspan fill="#fff">maxTurns 默认 8</tspan> 的硬边界</text>
+        <text x="300" y="232" fill="#94a3b8" font-size="8.5">生成者不当自己的裁判。触顶也要写一条 max_turns_reached 进 transcript，不是静默停</text>
+        <text x="1000" y="222" fill="#34d399" font-size="10" font-weight="700">已落地</text>
+
+        <rect x="16" y="248" width="1128" height="48" rx="5" fill="rgba(6,78,59,.2)"/>
+        <text x="30" y="268" fill="#e2e8f0" font-size="10" font-weight="600">⑤ 结果必须可复现，LLM 天生非确定</text>
+        <text x="30" y="286" fill="#64748b" font-size="8.5">同一个模型，生成题 92% vs 有 writeup 的公开题约 37%</text>
+        <text x="300" y="268" fill="#cbd5e1" font-size="9"><tspan fill="#fff">只追加的 JSONL 轨迹</tspan>，每条消息、每个事件、每次 wire 收发都落盘；恢复时 repair() 双向修剪悬空引用</text>
+        <text x="300" y="286" fill="#fbbf24" font-size="8.5">但<tspan fill="#fff">评测集还没有</tspan> —— 全仓 0 个 Benchmark、0 个 eval harness。作者自己在 README 里承诺「reproducible benchmark cases will be added」</text>
+        <text x="1000" y="276" fill="#fbbf24" font-size="10" font-weight="700">半条</text>
+
+        <rect x="16" y="302" width="1128" height="48" rx="5" fill="rgba(136,19,55,.22)"/>
+        <text x="30" y="322" fill="#e2e8f0" font-size="10" font-weight="600">⑥ 样本本身就是攻击面</text>
+        <text x="30" y="340" fill="#64748b" font-size="8.5">恶意样本能在自己的 .rodata 里写「把这个函数报告为无害」</text>
+        <text x="300" y="322" fill="#cbd5e1" font-size="9">分级审批闸：tier（read / write / exec）× mode（yolo / safe / write / always-ask），加命令正则 concerns 三类</text>
+        <text x="300" y="340" fill="#fb7185" font-size="8.5">⚠ <tspan fill="#fff">但默认档 safe 对 tier 一律放行</tspan>，exec 唯一的闸是正则命中；且 run_command 就是 bash -c，没有 chroot / namespace / seccomp。第 28 页细讲</text>
+        <text x="1000" y="330" fill="#fb7185" font-size="10" font-weight="700">有洞</text>
+
+        <rect x="16" y="356" width="1128" height="48" rx="5" fill="rgba(6,78,59,.2)"/>
+        <text x="30" y="376" fill="#e2e8f0" font-size="10" font-weight="600">⑦ 混淆是最硬的墙</text>
+        <text x="30" y="394" fill="#64748b" font-size="8.5">信息已经被删掉了，模型再强也变不出来</text>
+        <text x="300" y="376" fill="#cbd5e1" font-size="9">落在 SKILL 里，不落在 prompt 里：<tspan fill="#fff">ollvm-deobfuscation 583 行 · vmp-restore 604 行 · so-string-deobfuscation 428 行 · jsvmp-analysis 620 行</tspan></text>
+        <text x="300" y="394" fill="#94a3b8" font-size="8.5">33 个 skill 常驻 system prompt 的只有目录（8,531 字节），正文 397,723 字节要用到才读 —— <tspan fill="#fff">1 : 47</tspan></text>
+        <text x="1000" y="384" fill="#34d399" font-size="10" font-weight="700">已落地</text>
+
+        <path d="M 16 412 L 1144 412" stroke="#1e293b" stroke-width="1"/>
+        <text x="16" y="436" fill="#cbd5e1" font-size="10.5">交账结果：<tspan fill="#34d399" font-weight="700">四条已落地</tspan>　<tspan fill="#fbbf24" font-weight="700">两条只做了一半</tspan>　<tspan fill="#fb7185" font-weight="700">一条有实打实的洞</tspan>。<tspan fill="#94a3b8">　这就是「按自己的活造一个」到今天为止的真实进度，不是路演材料。</tspan></text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">七道坎出自第一讲研究笔记 R09 Part B · 本页对照全部为 <b>926e615</b> 本地静态取证 · 研究笔记 R02 / R03 / R06</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s05-scale.html ===== -->
+<section class="slide" data-ch="CH1 起手" data-title="体量：两万四千行，五天，一个人，一个依赖">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot cyan"></span>CH 1 · 起手</div>
+    <h1 class="s-title">两万四千行 · <span class="hl">一个外部依赖</span> · 五天 · 一个人</h1>
+    <div class="s-sub">先把口径钉死：全场数字来自本地 <b style="color:#e2e8f0">find + wc -l + git log</b>（commit <b style="color:#e2e8f0">926e615</b>），<b style="color:#e2e8f0">不引用项目自己写的数</b>。「五天」指的是<b style="color:#e2e8f0">公开 git 史</b> —— 它前面还有一个没进 git 的版本，右下角有证据。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="14" fill="#94a3b8" font-size="9" font-weight="600">各包行数 · 实测</text>
+          <text x="500" y="14" fill="#64748b" font-size="8.5">合计 24,229 行 / 83 文件</text>
+          <path d="M 16 22 L 684 22" stroke="#1e293b" stroke-width="1"/>
+
+          <text x="16" y="48" fill="#e2e8f0" font-size="9.5" font-weight="600">internal/ui</text>
+          <rect x="150" y="39" width="372" height="12" rx="2" fill="#22d3ee" opacity=".55"/>
+          <text x="528" y="49" fill="#94a3b8" font-size="8.5">5,608 行 · 23%</text>
+          <text x="16" y="61" fill="#fb7185" font-size="8">最大的包 —— 不是内核，是界面</text>
+
+          <text x="16" y="86" fill="#e2e8f0" font-size="9.5" font-weight="600">internal/providers</text>
+          <rect x="150" y="77" width="219" height="12" rx="2" fill="#fbbf24" opacity=".55"/>
+          <text x="375" y="87" fill="#94a3b8" font-size="8.5">2,474 行 · 5 类后端</text>
+          <text x="16" y="99" fill="#64748b" font-size="8">clitmux.go 一个文件 731 行，是这里最大的</text>
+
+          <text x="16" y="124" fill="#e2e8f0" font-size="9.5" font-weight="600">internal/tools</text>
+          <rect x="150" y="115" width="200" height="12" rx="2" fill="#fb923c" opacity=".55"/>
+          <text x="356" y="125" fill="#94a3b8" font-size="8.5">24 个工具 + runner + 输出预算</text>
+
+          <text x="16" y="150" fill="#e2e8f0" font-size="9.5" font-weight="600">internal/app</text>
+          <rect x="150" y="141" width="170" height="12" rx="2" fill="#a78bfa" opacity=".55"/>
+          <text x="326" y="151" fill="#94a3b8" font-size="8.5">52 个斜杠命令 · REPL · 行编辑器</text>
+
+          <text x="16" y="176" fill="#e2e8f0" font-size="9.5" font-weight="600">internal/core</text>
+          <rect x="150" y="167" width="138" height="12" rx="2" fill="#34d399" opacity=".55"/>
+          <text x="294" y="177" fill="#94a3b8" font-size="8.5">2,086 行 —— 循环 · 会话 · 压缩</text>
+          <text x="16" y="189" fill="#34d399" font-size="8">整个 agent 内核在这里，agentloop.go 只有 640 行</text>
+
+          <text x="16" y="214" fill="#e2e8f0" font-size="9.5" font-weight="600">其余 12 个包</text>
+          <rect x="150" y="205" width="120" height="12" rx="2" fill="#94a3b8" opacity=".5"/>
+          <text x="276" y="215" fill="#94a3b8" font-size="8">types·util·plan·security·skills·knowledge·workflow·mcp·config·auth·assets·buildinfo</text>
+
+          <text x="16" y="240" fill="#e2e8f0" font-size="9.5" font-weight="600">cmd/0xaf/main.go</text>
+          <rect x="150" y="231" width="4" height="12" rx="2" fill="#e2e8f0" opacity=".8"/>
+          <text x="160" y="241" fill="#fff" font-size="8.5">17 行</text>
+
+          <path d="M 16 254 L 684 254" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="272" fill="#fbbf24" font-size="9.5" font-weight="600">四个把这个项目定性了的数字</text>
+
+          <rect x="16" y="282" width="162" height="62" rx="6" fill="rgba(6,78,59,.24)" stroke="#34d399" stroke-width="1.1"/>
+          <text x="97" y="308" fill="#fff" font-size="21" font-weight="700" text-anchor="middle">1</text>
+          <text x="97" y="325" fill="#34d399" font-size="8.5" text-anchor="middle">外部依赖</text>
+          <text x="97" y="338" fill="#64748b" font-size="7.5" text-anchor="middle">golang.org/x/term · go.sum 4 行</text>
+
+          <rect x="186" y="282" width="162" height="62" rx="6" fill="rgba(8,51,68,.26)" stroke="#22d3ee" stroke-width="1.1"/>
+          <text x="267" y="308" fill="#fff" font-size="21" font-weight="700" text-anchor="middle">5</text>
+          <text x="267" y="325" fill="#22d3ee" font-size="8.5" text-anchor="middle">天的公开历史</text>
+          <text x="267" y="338" fill="#64748b" font-size="7.5" text-anchor="middle">2026-07-27 → 07-31 · 24 commit</text>
+
+          <rect x="356" y="282" width="162" height="62" rx="6" fill="rgba(120,53,15,.26)" stroke="#fbbf24" stroke-width="1.1"/>
+          <text x="437" y="308" fill="#fff" font-size="21" font-weight="700" text-anchor="middle">17.2%</text>
+          <text x="437" y="325" fill="#fbbf24" font-size="8.5" text-anchor="middle">测试覆盖比</text>
+          <text x="437" y="338" fill="#64748b" font-size="7.5" text-anchor="middle">3,557 测试行 / 20,672 源码行</text>
+
+          <rect x="526" y="282" width="158" height="62" rx="6" fill="rgba(136,19,55,.26)" stroke="#fb7185" stroke-width="1.1"/>
+          <text x="605" y="308" fill="#fff" font-size="21" font-weight="700" text-anchor="middle">0</text>
+          <text x="605" y="325" fill="#fb7185" font-size="8.5" text-anchor="middle">CI · benchmark · TODO</text>
+          <text x="605" y="338" fill="#64748b" font-size="7.5" text-anchor="middle">无 .github/ · 手敲 make test vet</text>
+
+          <rect x="16" y="354" width="668" height="64" rx="6" fill="rgba(136,19,55,.16)" stroke="#fb7185" stroke-width="1.2"/>
+          <text x="30" y="374" fill="#fb7185" font-size="9.5" font-weight="700">顺手挖到一块化石 —— 这是这个项目「重写过一次」的硬证据</text>
+          <text x="30" y="393" fill="#e2e8f0" font-size="8.5">demos/README.md 至今写着 <tspan fill="#fff">bun src/cli.ts --welcome</tspan>，而 git 全历史<tspan fill="#fff">没有任何 .ts 文件</tspan></text>
+          <text x="30" y="410" fill="#94a3b8" font-size="8">说明存在一个没进 git 的 TypeScript/Bun 前身，Go 版是 rewrite。demo 文档是唯一没清理干净的地方</text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:9px">
+        <div class="card cyan">
+          <div class="card-head"><span class="card-dot cyan"></span><h3>为什么是 Go —— 唯一直白的理由</h3></div>
+          <ul>
+            <li><em>"Narrowness is the point: lab boxes rarely have a runtime, and you scp one file."</em></li>
+            <li><strong>实验机上通常没有运行时，你只想 scp 过去一个文件</strong>。<em>CGO_ENABLED=0</em>、四个交叉编译目标（linux/darwin × amd64/arm64）—— <strong>没有 Windows</strong></li>
+          </ul>
+        </div>
+        <div class="card amber">
+          <div class="card-head"><span class="card-dot"></span><h3>24 个 commit 里 10 个是 docs</h3></div>
+          <ul>
+            <li>占 <strong>41.7%</strong>。ARCHITECTURE.md 一篇 <strong>1,270 行</strong>，开头就写「每条断言都应该能对着某个文件核实」</li>
+            <li>本讲能这么写，一半靠这份文档；<strong>但本讲每条都自己重新量过一遍</strong></li>
+          </ul>
+        </div>
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>同页的代价：五天不是成熟度</h3></div>
+          <ul>
+            <li>24 个 commit 里 <strong>14 个的时间戳整齐等于 03:00:00 +0800</strong> —— 公开前 rebase 整理过历史</li>
+            <li>零 CI、零 lint 配置、<em>mcp</em> / <em>types</em> / <em>util</em> 三个包<strong>零测试</strong>（而 <em>util</em> 里正好住着路径包含检查）</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">本地实测 · <b>926e615</b> · 2026-07-31 · find/wc/git log 全部当场跑 · 研究笔记 R01 §1–2 · R06 §3</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s06-ch2.html ===== -->
+<section class="slide chapter" data-ch="CH02 灵感来源" data-title="第 02 章 · 灵感来源">
+  <div class="chapter-inner">
+    <div>
+      <div class="ch-no">02</div>
+      <h1>灵感来源</h1>
+      <div class="ch-q"><b>从哪里抄的，又刻意不抄什么？</b></div>
+      <div class="ch-sub">抄什么容易讲，<b>不抄什么才见判断</b>。这一章两页，一页讲流入，一页讲取舍。</div>
+      <div class="ch-prog"><span class="done"></span><span class="on"></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span></div>
+    </div>
+    <div>
+      <ul class="ch-list">
+        <div class="ch-list-h">本章内容</div>
+        <li><span class="n">08</span><span class="t">三条上游<i>pi 给结构 · omp 给代价意识 · Claude Code 给 skill 格式</i></span></li>
+        <li><span class="n">09</span><span class="t">四个不一样的选择<i>换语言 · 不造 provider · 换安全姿态 · 换优化目标</i></span></li>
+      </ul>
+      <div class="ch-sub" style="margin-top:22px;border-color:var(--violet)">硬证据：7 张架构图里<b>有 2 张画的不是自己</b>，而且首个 commit 就在 —— 研究竞品是设计输入。</div>
+    </div>
+  </div>
+  <div class="s-foot">
+    <span class="src">第 02 章 / 共 7 章</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s07-inspiration.html ===== -->
+<section class="slide" data-ch="CH2 灵感来源" data-title="灵感来源：三条上游，各抄了什么">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot violet"></span>CH 2 · 灵感来源</div>
+    <h1 class="s-title">三条上游 —— 而且<span class="hl">研究竞品是设计输入，不是事后比较</span></h1>
+    <div class="s-sub">证据：7 张架构图里 <b style="color:#e2e8f0">有 2 张画的不是自己</b>，画的是 oh-my-pi；且这两张<b style="color:#e2e8f0">在首个 commit 就存在</b>。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="in-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#a78bfa"/>
+            </marker>
+          </defs>
+
+          <text x="16" y="14" fill="#94a3b8" font-size="9" font-weight="600">三条上游 · 各自贡献了什么</text>
+
+          <rect x="16" y="24" width="212" height="96" rx="7" fill="rgba(6,78,59,.24)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="30" y="44" fill="#34d399" font-size="9.5" font-weight="700">pi（第二讲）</text>
+          <text x="30" y="63" fill="#e2e8f0" font-size="8.5">单事件驱动循环</text>
+          <text x="30" y="79" fill="#e2e8f0" font-size="8.5">一个工具注册表</text>
+          <text x="30" y="95" fill="#e2e8f0" font-size="8.5">结构化结果，不解析散文</text>
+          <text x="30" y="112" fill="#64748b" font-size="8">「内核可以小到读得完」</text>
+
+          <rect x="244" y="24" width="212" height="96" rx="7" fill="rgba(136,19,55,.24)" stroke="#fb7185" stroke-width="1.2"/>
+          <text x="258" y="44" fill="#fb7185" font-size="9.5" font-weight="700">oh-my-pi（第三讲）</text>
+          <text x="258" y="63" fill="#e2e8f0" font-size="8.5">输出预算当一等公民</text>
+          <text x="258" y="79" fill="#e2e8f0" font-size="8.5">分级审批（tiered approval）</text>
+          <text x="258" y="95" fill="#e2e8f0" font-size="8.5">「把每个决定的代价摊开」</text>
+          <text x="258" y="112" fill="#64748b" font-size="8">同时也贡献了「别抄」清单</text>
+
+          <rect x="472" y="24" width="212" height="96" rx="7" fill="rgba(120,53,15,.26)" stroke="#fbbf24" stroke-width="1.2"/>
+          <text x="486" y="44" fill="#fbbf24" font-size="9.5" font-weight="700">Claude Code</text>
+          <text x="486" y="63" fill="#e2e8f0" font-size="8.5">Agent Skills 格式逐字照搬</text>
+          <text x="486" y="79" fill="#e2e8f0" font-size="8.5">MCP 客户端</text>
+          <text x="486" y="95" fill="#e2e8f0" font-size="8.5">渐进式披露的机制</text>
+          <text x="486" y="112" fill="#64748b" font-size="8">而且它本身还是一个后端</text>
+
+          <path d="M 122 126 L 300 158" stroke="#a78bfa" stroke-width="1.2" marker-end="url(#in-ar)"/>
+          <path d="M 350 126 L 350 158" stroke="#a78bfa" stroke-width="1.2" marker-end="url(#in-ar)"/>
+          <path d="M 578 126 L 400 158" stroke="#a78bfa" stroke-width="1.2" marker-end="url(#in-ar)"/>
+
+          <rect x="16" y="166" width="668" height="52" rx="7" fill="rgba(76,29,149,.3)" stroke="#a78bfa" stroke-width="1.5"/>
+          <text x="350" y="188" fill="#a78bfa" font-size="11" font-weight="700" text-anchor="middle">0xAF-Re · 24,229 行 Go · 外部依赖 1 个</text>
+          <text x="350" y="208" fill="#cbd5e1" font-size="8.5" text-anchor="middle">golang.org/x/term —— go.sum 只有 4 行。没有任何 agent 框架</text>
+
+          <path d="M 16 232 L 684 232" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="250" fill="#fbbf24" font-size="9.5" font-weight="600">「渐进式披露」这条抄得最实在 —— 有量化证据</text>
+
+          <rect x="16" y="260" width="326" height="72" rx="6" fill="rgba(2,6,23,.65)" stroke="#334155" stroke-width="1"/>
+          <text x="30" y="280" fill="#e2e8f0" font-size="9" font-weight="600">常驻 system prompt 的部分</text>
+          <text x="30" y="302" fill="#fff" font-size="18" font-weight="700">8,531 <tspan font-size="10" fill="#94a3b8">字节</tspan></text>
+          <text x="30" y="322" fill="#94a3b8" font-size="8">33 条 skill description</text>
+
+          <rect x="358" y="260" width="326" height="72" rx="6" fill="rgba(76,29,149,.24)" stroke="#a78bfa" stroke-width="1.2"/>
+          <text x="372" y="280" fill="#e2e8f0" font-size="9" font-weight="600">用到才读的部分</text>
+          <text x="372" y="302" fill="#fff" font-size="18" font-weight="700">397,723 <tspan font-size="10" fill="#94a3b8">字节</tspan></text>
+          <text x="372" y="322" fill="#94a3b8" font-size="8">33 个 SKILL.md 全文</text>
+
+          <rect x="16" y="342" width="668" height="30" rx="5" fill="rgba(76,29,149,.2)"/>
+          <text x="350" y="362" fill="#a78bfa" font-size="11" font-weight="700" text-anchor="middle">1 : 47　—　常驻的只占 2.1%</text>
+
+          <rect x="16" y="382" width="668" height="36" rx="5" fill="rgba(2,6,23,.6)" stroke="#334155" stroke-width="1"/>
+          <text x="30" y="399" fill="#cbd5e1" font-size="8.5">机制在 <tspan fill="#fff">internal/skills/skills.go:108-131</tspan> + read_skill / list_skills 两个工具。</text>
+          <text x="30" y="413" fill="#94a3b8" font-size="8">但全仓 grep「progressive disclosure」<tspan fill="#fb7185">零命中</tspan> —— 复刻了机制，没用这个词。这恰好说明是自己重写的，不是照抄文档</text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:9px">
+        <div class="card violet">
+          <div class="card-head"><span class="card-dot violet"></span><h3>作者自己列了对称的「抄 6 条 / 不抄 6 条」</h3></div>
+          <ul>
+            <li><strong>抄</strong>：单事件循环 · 输出预算 · 结构化结果 · 一个工具注册表 · MCP · 分级审批</li>
+            <li><strong>不抄</strong>：哈希锚定编辑 · LSP/DAP 层 · 跨语言 worker · 自造 shell 与 coreutils · 跨会话记忆 · Bazel monorepo</li>
+          </ul>
+        </div>
+        <div class="card amber">
+          <div class="card-head"><span class="card-dot"></span><h3>一句话把差异全解释了（原文）</h3></div>
+          <ul>
+            <li><em>"oh-my-pi optimizes for changing code. 0xAF-Re optimizes for reading binaries. Almost every difference below follows from that one sentence."</em></li>
+            <li>改代码要能精准落笔，<strong>读二进制要能看清来源</strong> —— 后面每一条差异都是这句的推论</li>
+          </ul>
+        </div>
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>同页的代价：它自己的对比图数字对不上</h3></div>
+          <ul>
+            <li>那张 <em>07-vs-oh-my-pi.svg</em> 自称 <strong>64 文件 / 18,610 行</strong>；实测 HEAD 是 <strong>83 / 24,229</strong>，首 commit 是 66 / 19,936 —— <strong>哪个口径都对不上</strong></li>
+            <li>最可能取自提交前的工作区快照。<strong>本讲一律用实测值</strong>，不用它自己写的数</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">本地实测 · <b>926e615</b> · README.md · docs/diagrams/07-vs-oh-my-pi.svg · internal/skills/skills.go · 研究笔记 R01 §3–5</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s08-changes.html ===== -->
+<section class="slide" data-ch="CH2 灵感来源" data-title="改了什么：四个不一样的选择，每个给理由和账单">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot violet"></span>CH 2 · 灵感来源</div>
+    <h1 class="s-title">四个<span class="hl-v">不一样的选择</span> —— 每个都有理由，也都有账单</h1>
+    <div class="s-sub">抄什么容易讲，<b style="color:#e2e8f0">不抄什么才见判断</b>。这四条不是「更好」，是<b style="color:#e2e8f0">为另一种活付的另一笔账</b>。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="figure plain">
+      <svg viewBox="0 0 1160 452" xmlns="http://www.w3.org/2000/svg">
+        <text x="16" y="16" fill="#94a3b8" font-size="10" font-weight="600">选择</text>
+        <text x="330" y="16" fill="#34d399" font-size="10" font-weight="600">理由（可核对）</text>
+        <text x="770" y="16" fill="#fb7185" font-size="10" font-weight="600">账单（同页给出）</text>
+        <path d="M 16 24 L 1144 24" stroke="#1e293b" stroke-width="1"/>
+
+        <rect x="16" y="32" width="1128" height="94" rx="6" fill="rgba(8,51,68,.2)" stroke="#22d3ee" stroke-width="1.1"/>
+        <text x="30" y="54" fill="#22d3ee" font-size="11" font-weight="700">① 换语言：TypeScript → Go</text>
+        <text x="30" y="76" fill="#cbd5e1" font-size="9">pi 与 oh-my-pi 都是 TS 生态</text>
+        <text x="30" y="94" fill="#cbd5e1" font-size="9">这里从零写，且有过一个没进 git 的 TS 前身</text>
+        <text x="30" y="114" fill="#64748b" font-size="8">demos/README.md 里的 bun src/cli.ts 就是那具化石</text>
+        <text x="330" y="60" fill="#e2e8f0" font-size="9">原文：<tspan fill="#fff" font-style="italic">"lab boxes rarely have a runtime, and you scp one file."</tspan></text>
+        <text x="330" y="80" fill="#cbd5e1" font-size="9">逆向经常在<tspan fill="#fff">一台干净的、没网的、不归你管的机器上</tspan>干活 ——</text>
+        <text x="330" y="98" fill="#cbd5e1" font-size="9">「装个 node 先」在那个场景里是个真障碍</text>
+        <text x="330" y="116" fill="#94a3b8" font-size="8">CGO_ENABLED=0 · 四个交叉编译目标 · go:embed 把 prompts 和 33 个 skill 打进二进制</text>
+        <text x="770" y="60" fill="#e2e8f0" font-size="9">TS 那边的生态白扔了 —— </text>
+        <text x="770" y="78" fill="#cbd5e1" font-size="9">MCP 客户端、JSON-RPC、TUI、行编辑器<tspan fill="#fff">全得自己写</tspan></text>
+        <text x="770" y="96" fill="#cbd5e1" font-size="9">而且<tspan fill="#fff">没有 Windows 目标</tspan>（注释：the usual lab targets）</text>
+        <text x="770" y="116" fill="#94a3b8" font-size="8">「外部依赖只有 1 个」是结果，不是目标；它等于一笔预付的维护费</text>
+
+        <rect x="16" y="132" width="1128" height="94" rx="6" fill="rgba(120,53,15,.2)" stroke="#fbbf24" stroke-width="1.1"/>
+        <text x="30" y="154" fill="#fbbf24" font-size="11" font-weight="700">② 不造 provider：把 CLI 当后端</text>
+        <text x="30" y="176" fill="#cbd5e1" font-size="9">默认 planner = Codex CLI，executor = Claude Code CLI</text>
+        <text x="30" y="194" fill="#cbd5e1" font-size="9">在 detached tmux 里驱动，不直连 API</text>
+        <text x="30" y="214" fill="#64748b" font-size="8">clitmux.go 731 行，是 providers 里最大的文件</text>
+        <text x="330" y="160" fill="#e2e8f0" font-size="9">两家已经做好的工具集、权限提示、<tspan fill="#fff">订阅计费</tspan>一并白拿</text>
+        <text x="330" y="178" fill="#cbd5e1" font-size="9">而且模型这个主项<tspan fill="#fff">上游每几周免费涨一次</tspan> ——</text>
+        <text x="330" y="196" fill="#cbd5e1" font-size="9">理性做法是主项全额外包，工程量押在你唯一攥得住的次项上</text>
+        <text x="330" y="216" fill="#94a3b8" font-size="8">同时 Claude Code 既是灵感来源，又是一个可选后端 —— config.example.json:29-35</text>
+        <text x="770" y="160" fill="#e2e8f0" font-size="9"><tspan fill="#fff">依赖两个外部 CLI 的版本与登录态</tspan></text>
+        <text x="770" y="178" fill="#cbd5e1" font-size="9">上游一次 breaking change、一次登录过期，编排层集体罢工</text>
+        <text x="770" y="196" fill="#cbd5e1" font-size="9">而这两家的迭代节奏是<tspan fill="#fff">周级</tspan></text>
+        <text x="770" y="216" fill="#94a3b8" font-size="8">再叠一条：两套权限系统摞在一起，重叠处冗余、缝隙处漏，而你只审计了自己那层</text>
+
+        <rect x="16" y="232" width="1128" height="94" rx="6" fill="rgba(136,19,55,.2)" stroke="#fb7185" stroke-width="1.1"/>
+        <text x="30" y="254" fill="#fb7185" font-size="11" font-weight="700">③ 换默认安全姿态：从「锋利」到「先问」</text>
+        <text x="30" y="276" fill="#cbd5e1" font-size="9">第二讲实测过：pi 全仓 grep permission 三处命中</text>
+        <text x="30" y="294" fill="#cbd5e1" font-size="9">全是注释和许可证，<tspan fill="#fff">连路径沙箱都没有</tspan></text>
+        <text x="30" y="314" fill="#64748b" font-size="8">这里换成 tier × mode 的分级审批 + 命令正则 concerns</text>
+        <text x="330" y="260" fill="#e2e8f0" font-size="9">因为<tspan fill="#fff">样本本身就是攻击面</tspan> —— 被分析的二进制可以反过来攻击分析它的 agent</text>
+        <text x="330" y="278" fill="#cbd5e1" font-size="9">模型的安全对齐在这个场景近乎失效（八个前沿模型只有一个偶尔拒绝，拒绝率 0.86%）</text>
+        <text x="330" y="296" fill="#cbd5e1" font-size="9">所以防线只能建在 harness 层，<tspan fill="#fff">用开关，不用劝说</tspan></text>
+        <text x="330" y="316" fill="#94a3b8" font-size="8">读限工作区内 / 写要 --write / 联网要 --allow-network / 敏感路径要 --allow-sensitive</text>
+        <text x="770" y="260" fill="#e2e8f0" font-size="9"><tspan fill="#fff">这道闸目前是漏的，而且不止一处</tspan></text>
+        <text x="770" y="278" fill="#cbd5e1" font-size="9">默认档 safe 对 tier 一律放行；run_command 就是 bash -c，</text>
+        <text x="770" y="296" fill="#cbd5e1" font-size="9">无 chroot / namespace / seccomp；路径检查<tspan fill="#fff">不解 symlink</tspan></text>
+        <text x="770" y="316" fill="#94a3b8" font-size="8">第 28 页把七个洞逐个摊开 —— 这是本讲最不体面、也最该讲的一页</text>
+
+        <rect x="16" y="332" width="1128" height="80" rx="6" fill="rgba(76,29,149,.2)" stroke="#a78bfa" stroke-width="1.1"/>
+        <text x="30" y="354" fill="#a78bfa" font-size="11" font-weight="700">④ 换优化目标：从「改代码」到「读二进制」</text>
+        <text x="30" y="376" fill="#cbd5e1" font-size="9">六条不抄的里，四条是这句话的直接推论：</text>
+        <text x="30" y="394" fill="#cbd5e1" font-size="9">哈希锚定编辑 · LSP/DAP 层 · 跨语言 worker · 自造 shell</text>
+        <text x="330" y="360" fill="#e2e8f0" font-size="9">原文：<tspan fill="#fff" font-style="italic">"oh-my-pi optimizes for changing code. 0xAF-Re optimizes for reading binaries."</tspan></text>
+        <text x="330" y="380" fill="#cbd5e1" font-size="9">改代码要能精准落笔，所以要哈希锚定、要 LSP；</text>
+        <text x="330" y="398" fill="#cbd5e1" font-size="9"><tspan fill="#fff">读二进制只跑一次 strings，然后盯着结果看很久</tspan> —— 所以力气该花在看得清上</text>
+        <text x="770" y="360" fill="#e2e8f0" font-size="9">这句话被实测<tspan fill="#fff">独立验证了</tspan>：internal/ui 5,608 行，</text>
+        <text x="770" y="378" fill="#cbd5e1" font-size="9">是内核 internal/core（2,086 行）的 <tspan fill="#fff">2.7 倍</tspan></text>
+        <text x="770" y="398" fill="#94a3b8" font-size="8">代价是：它<tspan fill="#fff">不适合改代码</tspan>。想用它做日常编码，第一天就会撞墙 —— 这不是缺陷，是选型</text>
+
+        <rect x="16" y="420" width="1128" height="26" rx="5" fill="rgba(2,6,23,.6)" stroke="#334155" stroke-width="1"/>
+        <text x="30" y="438" fill="#cbd5e1" font-size="9.5">作者自己的总结（原文）：<tspan fill="#fff" font-style="italic">"The honest summary: oh-my-pi is a platform and 0xAF-Re is a tool."</tspan><tspan fill="#94a3b8">　平台和工具不比大小，比的是选对没有。</tspan></text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">本地实测 · <b>926e615</b> · README.md · docs/diagrams/07-vs-oh-my-pi.svg · Makefile · 研究笔记 R01 §3–5 · R06 §1 · 0.86% 拒绝率引自第一讲 R09 Part B</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s09-ch3.html ===== -->
+<section class="slide chapter" data-ch="CH03 实现原理" data-title="第 03 章 · 实现原理">
+  <div class="chapter-inner">
+    <div>
+      <div class="ch-no">03</div>
+      <h1>实现原理</h1>
+      <div class="ch-q"><b>一个人写的 agent 内核，长什么样？</b></div>
+      <div class="ch-sub">本章是全场重头。<b>五页拆完内核</b>：循环 · 包边界 · 双模型 · caveman · 上下文。</div>
+      <div class="ch-prog"><span class="done"></span><span class="done"></span><span class="on"></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span></div>
+    </div>
+    <div>
+      <ul class="ch-list">
+        <div class="ch-list-h">本章内容</div>
+        <li><span class="n">11</span><span class="t">一个函数就是全部控制流<i>241 行，骨架和教科书一模一样，差别全在包在外面那层</i></span></li>
+        <li><span class="n">12</span><span class="t">包依赖为什么这么指<i>最大的包不是内核，是界面 —— 而这正好是个设计声明</i></span></li>
+        <li><span class="n">13</span><span class="t">两个座位<i>规划一个模型，动手另一个，默认就跨厂商</i></span></li>
+        <li><span class="n">14</span><span class="t">caveman 模式<i>模型太谨慎不干活，解法不是换说法，是换结构</i></span></li>
+        <li><span class="n">15</span><span class="t">上下文三道闸<i>逆向最要命的是工具输出那道</i></span></li>
+      </ul>
+      <div class="ch-sub" style="margin-top:22px;border-color:var(--emerald)">时间不够，整场只抓这一章 —— <b>这五页的结构可以直接抄进你自己的 harness</b>。</div>
+    </div>
+  </div>
+  <div class="s-foot">
+    <span class="src">第 03 章 / 共 7 章</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s10-loop.html ===== -->
+<section class="slide" data-ch="CH3 实现原理" data-title="内核：一个 241 行的函数就是全部控制流">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot emerald"></span>CH 3 · 实现原理</div>
+    <h1 class="s-title">整个控制流就是<span class="hl">一个函数</span> —— 骨架和教科书一模一样</h1>
+    <div class="s-sub">`AgentLoop.Run` <b style="color:#e2e8f0">241 行</b>（<b style="color:#e2e8f0">agentloop.go:265-505</b>）。多出来的部分不在状态机，在<b style="color:#e2e8f0">每一步外面包的那层生产化</b>。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="14" fill="#94a3b8" font-size="9" font-weight="600">经典 6 行 while</text>
+          <rect x="16" y="22" width="316" height="126" rx="6" fill="rgba(2,6,23,.7)" stroke="#334155" stroke-width="1"/>
+          <text x="30" y="40" fill="#64748b" font-size="8.5">while True:</text>
+          <text x="30" y="56" fill="#64748b" font-size="8.5">　resp = llm(messages, tools)</text>
+          <text x="30" y="72" fill="#64748b" font-size="8.5">　messages.append(resp)</text>
+          <text x="30" y="88" fill="#64748b" font-size="8.5">　if not resp.tool_calls: break</text>
+          <text x="30" y="104" fill="#64748b" font-size="8.5">　for c in resp.tool_calls:</text>
+          <text x="30" y="120" fill="#64748b" font-size="8.5">　　messages.append(run_tool(c))</text>
+          <text x="30" y="140" fill="#475569" font-size="8">没有边界、没有预算、没有闸门</text>
+
+          <text x="356" y="14" fill="#34d399" font-size="9" font-weight="600">re-agent · agentloop.go:331-500</text>
+          <rect x="356" y="22" width="328" height="126" rx="6" fill="rgba(6,78,59,.22)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="370" y="40" fill="#cbd5e1" font-size="8.5">for ; turns &lt; maxTurns; turns++ {</text>
+          <text x="370" y="56" fill="#cbd5e1" font-size="8.5">　if ctx.Err() != nil { … }</text>
+          <text x="370" y="72" fill="#cbd5e1" font-size="8.5">　view := CompactHistory(msgs, budget)</text>
+          <text x="370" y="88" fill="#cbd5e1" font-size="8.5">　resp, err := provider.Complete(…)</text>
+          <text x="370" y="104" fill="#cbd5e1" font-size="8.5">　if len(resp.ToolCalls) == 0 { return }</text>
+          <text x="370" y="120" fill="#cbd5e1" font-size="8.5">　for _, call := range resp.ToolCalls { … }</text>
+          <text x="370" y="140" fill="#34d399" font-size="8">同构 —— 差别全在每行外面那层</text>
+
+          <path d="M 16 162 L 684 162" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="180" fill="#fbbf24" font-size="9.5" font-weight="600">那层「生产化」具体是什么 · 逐行对照</text>
+
+          <rect x="16" y="190" width="668" height="24" rx="4" fill="rgba(30,41,59,.5)"/>
+          <text x="28" y="206" fill="#64748b" font-size="8">while True</text>
+          <text x="180" y="206" fill="#e2e8f0" font-size="8.5">有界回合 + 每回合先查 ctx.Err()</text>
+          <text x="600" y="206" fill="#475569" font-size="8">332-336</text>
+
+          <rect x="16" y="218" width="668" height="24" rx="4" fill="rgba(30,41,59,.5)"/>
+          <text x="28" y="234" fill="#64748b" font-size="8">llm(...)</text>
+          <text x="180" y="234" fill="#e2e8f0" font-size="8.5">先按预算裁剪历史；发/收各一条 wire 遥测（模型·端点·耗时·token）</text>
+          <text x="600" y="234" fill="#475569" font-size="8">341-403</text>
+
+          <rect x="16" y="246" width="668" height="24" rx="4" fill="rgba(30,41,59,.5)"/>
+          <text x="28" y="262" fill="#64748b" font-size="8">append(resp)</text>
+          <text x="180" y="262" fill="#e2e8f0" font-size="8.5">内存与 JSONL <tspan fill="#fff">同步双写</tspan></text>
+          <text x="600" y="262" fill="#475569" font-size="8">405-419</text>
+
+          <rect x="16" y="274" width="668" height="24" rx="4" fill="rgba(136,19,55,.28)"/>
+          <text x="28" y="290" fill="#fb7185" font-size="8">run_tool(c)</text>
+          <text x="180" y="290" fill="#e2e8f0" font-size="8.5">审批闸插在 <tspan fill="#fff">tool.Execute 前一行</tspan>；中断也要给每个 call 补一条结果</text>
+          <text x="600" y="290" fill="#475569" font-size="8">428-493</text>
+
+          <rect x="16" y="302" width="668" height="24" rx="4" fill="rgba(30,41,59,.5)"/>
+          <text x="28" y="318" fill="#64748b" font-size="8">（原本没有）</text>
+          <text x="180" y="318" fill="#e2e8f0" font-size="8.5">回合触顶也写一条 max_turns_reached 进 transcript</text>
+          <text x="600" y="318" fill="#475569" font-size="8">500-504</text>
+
+          <rect x="16" y="336" width="668" height="80" rx="6" fill="rgba(136,19,55,.18)" stroke="#fb7185" stroke-width="1.2"/>
+          <text x="30" y="356" fill="#fb7185" font-size="9.5" font-weight="700">最硬的那条不变量 —— 注释自己写死了</text>
+          <text x="30" y="376" fill="#e2e8f0" font-size="8.5">// Every tool call must end up with a result, including on interrupt:</text>
+          <text x="30" y="391" fill="#e2e8f0" font-size="8.5">// providers reject a history where an assistant tool call dangles.</text>
+          <text x="30" y="409" fill="#94a3b8" font-size="8">所以按 ^C 时，没跑的每个 call 也要补一条「Interrupted by operator before this tool ran.」　agentloop.go:425-433</text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:9px">
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>三个停止条件，加一个触顶出口</h3></div>
+          <ul>
+            <li>ctx 被取消 · 回复里没有 tool call · 工具阶段被打断；第四个是 <strong>maxTurns 默认 8</strong>（<em>config.go:25</em>）</li>
+            <li>中断被当成<strong>结果而非失败</strong>：返回 <em>Interrupted:true</em> 且 <strong>err 为 nil</strong></li>
+          </ul>
+        </div>
+        <div class="card amber">
+          <div class="card-head"><span class="card-dot"></span><h3>8 个扩展钩子，不是 40 个</h3></div>
+          <ul>
+            <li>OnEvent / OnProgress / OnPlan / Confirm / OnPhase / OnChunk / OnFrame / Provider.Complete</li>
+            <li>对照：pi <strong>33 个</strong>，omp <strong>25+39 个</strong>。<strong>少一个数量级 —— 这是成本，也是可读性</strong></li>
+          </ul>
+        </div>
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>同页的代价：工具是串行的</h3></div>
+          <ul>
+            <li>分发就是线性查表 <em>findTool</em>，一个一个跑（<em>agentloop.go:439,556-563</em>）—— <strong>没有并行工具调用</strong></li>
+            <li>逆向里 <em>strings</em> 和 <em>entropy</em> 完全可以同时跑，这里跑不了。这是明确的<strong>未做</strong></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">本地实测 · <b>926e615</b> · internal/core/agentloop.go · 640 行 / Run 函数 241 行 · 研究笔记 R02 §2</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s11-packages.html ===== -->
+<section class="slide" data-ch="CH3 实现原理" data-title="包依赖：箭头为什么这么指，以及最大的包不是内核">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot emerald"></span>CH 3 · 实现原理</div>
+    <h1 class="s-title">最大的包<span class="hl-r">不是内核，是界面</span> —— 而这正好是个设计声明</h1>
+    <div class="s-sub"><b style="color:#e2e8f0">internal/ui 5,608 行</b>，是 <b style="color:#e2e8f0">internal/core（2,086 行）的 2.7 倍</b>。入口 <b style="color:#e2e8f0">main.go 只有 17 行</b>。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="pk-ar" markerWidth="7" markerHeight="5" refX="6.5" refY="2.5" orient="auto">
+              <polygon points="0 0, 7 2.5, 0 5" fill="#64748b"/>
+            </marker>
+          </defs>
+
+          <text x="16" y="14" fill="#94a3b8" font-size="9" font-weight="600">依赖只朝一个方向流 · 每层只准往下看</text>
+
+          <rect x="248" y="24" width="204" height="32" rx="6" fill="rgba(8,51,68,.3)" stroke="#22d3ee" stroke-width="1.3"/>
+          <text x="350" y="45" fill="#22d3ee" font-size="10" font-weight="700" text-anchor="middle">internal/app · 组合根</text>
+          <text x="466" y="45" fill="#64748b" font-size="8">唯一允许认识所有人的包</text>
+
+          <path d="M 350 58 L 350 72" stroke="#64748b" stroke-width="1" marker-end="url(#pk-ar)"/>
+
+          <rect x="16" y="76" width="150" height="62" rx="6" fill="rgba(6,78,59,.26)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="91" y="96" fill="#34d399" font-size="9.5" font-weight="700" text-anchor="middle">core</text>
+          <text x="91" y="113" fill="#cbd5e1" font-size="8" text-anchor="middle">循环 · 会话 · 压缩</text>
+          <text x="91" y="130" fill="#fff" font-size="10" font-weight="700" text-anchor="middle">2,086 行</text>
+
+          <rect x="176" y="76" width="150" height="62" rx="6" fill="rgba(120,53,15,.28)" stroke="#fbbf24" stroke-width="1.2"/>
+          <text x="251" y="96" fill="#fbbf24" font-size="9.5" font-weight="700" text-anchor="middle">providers</text>
+          <text x="251" y="113" fill="#cbd5e1" font-size="8" text-anchor="middle">5 类后端 · 归一化</text>
+          <text x="251" y="130" fill="#fff" font-size="10" font-weight="700" text-anchor="middle">2,474 行</text>
+
+          <rect x="336" y="76" width="150" height="62" rx="6" fill="rgba(251,146,60,.24)" stroke="#fb923c" stroke-width="1.2"/>
+          <text x="411" y="96" fill="#fb923c" font-size="9.5" font-weight="700" text-anchor="middle">tools</text>
+          <text x="411" y="113" fill="#cbd5e1" font-size="8" text-anchor="middle">24 个工具 · 输出预算</text>
+          <text x="411" y="130" fill="#fff" font-size="10" font-weight="700" text-anchor="middle">注册表 + runner</text>
+
+          <rect x="496" y="76" width="188" height="62" rx="6" fill="rgba(136,19,55,.26)" stroke="#fb7185" stroke-width="1.2"/>
+          <text x="590" y="96" fill="#fb7185" font-size="9.5" font-weight="700" text-anchor="middle">security</text>
+          <text x="590" y="113" fill="#cbd5e1" font-size="8" text-anchor="middle">命令模式 + 分级审批闸</text>
+          <text x="590" y="130" fill="#fff" font-size="10" font-weight="700" text-anchor="middle">4 种审批模式</text>
+
+          <rect x="16" y="152" width="668" height="46" rx="6" fill="rgba(2,6,23,.6)" stroke="#334155" stroke-width="1"/>
+          <text x="30" y="171" fill="#e2e8f0" font-size="9" font-weight="600">types（零 import 的叶子）　·　util　·　assets（go:embed）　·　plan　·　skills　·　knowledge　·　workflow　·　mcp　·　config　·　auth</text>
+          <text x="30" y="189" fill="#94a3b8" font-size="8">types 什么都不 import，所以人人可以 import 它。需要 os 或正则的助手一律去 util —— 这条规矩把循环依赖挡在门外</text>
+
+          <path d="M 16 212 L 684 212" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="230" fill="#22d3ee" font-size="9.5" font-weight="600">三条值得直接抄走的结构规矩</text>
+
+          <rect x="16" y="240" width="668" height="42" rx="5" fill="rgba(8,51,68,.22)"/>
+          <text x="30" y="257" fill="#22d3ee" font-size="9" font-weight="600">① ui → core，永不反向</text>
+          <text x="30" y="274" fill="#cbd5e1" font-size="8.5">循环只往外抛 <tspan fill="#fff">func(LoopEvent)</tspan>，完全不知道终端存在。所以 --print 模式能用同一批事件渲染纯文本，测试能不带渲染器直接驱动循环</text>
+
+          <rect x="16" y="288" width="668" height="42" rx="5" fill="rgba(251,146,60,.2)"/>
+          <text x="30" y="305" fill="#fb923c" font-size="9" font-weight="600">② core → tools，靠 ToolContext 做反转</text>
+          <text x="30" y="322" fill="#cbd5e1" font-size="8.5">工具要的东西（工作区 · 会话目录 · 策略 · ctx · Confirm · OnPlan）全从参数进来，<tspan fill="#fff">工具永远不回头找循环</tspan> —— 否则就是环</text>
+
+          <rect x="16" y="336" width="668" height="42" rx="5" fill="rgba(76,29,149,.22)"/>
+          <text x="30" y="353" fill="#a78bfa" font-size="9" font-weight="600">③ plan 单独成包，因为 core 和 tools 都要用</text>
+          <text x="30" y="370" fill="#cbd5e1" font-size="8.5">如果任务清单住在 core 里，tools 就用不了；而 core 已经 import tools —— <tspan fill="#fff">包边界是被依赖方向逼出来的，不是审美</tspan></text>
+
+          <rect x="16" y="386" width="668" height="32" rx="5" fill="rgba(136,19,55,.2)" stroke="#fb7185" stroke-width="1.1"/>
+          <text x="30" y="406" fill="#e2e8f0" font-size="9">所以 UI 比内核大 2.7 倍不是失衡 —— 作者原话：<tspan fill="#fff" font-style="italic">"A reverse agent runs strings once and then stares at the result."</tspan></text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:9px">
+        <div class="card cyan">
+          <div class="card-head"><span class="card-dot cyan"></span><h3>17 行的 main.go</h3></div>
+          <ul>
+            <li>入口只做一件事：调 <em>app.Run</em>。<strong>所有装配都在一个组合根里</strong>，读代码从那一个函数往下走就行</li>
+          </ul>
+        </div>
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>依赖只有 1 个</h3></div>
+          <ul>
+            <li>整棵树的外部依赖是 <strong>golang.org/x/term</strong>，<em>go.sum</em> 只有 4 行 —— MCP 客户端、JSON-RPC、TUI 全是自己写的</li>
+            <li>MCP 客户端从零写只花了 <strong>507 行 / 2 文件</strong>（协议版本 2024-11-05，只支持 tools）</li>
+          </ul>
+        </div>
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>同页的代价：这条路只有一个人走过</h3></div>
+          <ul>
+            <li>公开史 <strong>5 天 24 个 commit，1 位作者</strong>；5 个 tag 挤在 3 天内</li>
+            <li>零依赖意味着<strong>每个轮子的 bug 都归你</strong>。别把「依赖只有 1 个」当成优点讲，它是一笔预付的维护费</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">本地实测 · <b>926e615</b> · docs/ARCHITECTURE.md §2 · 各包行数 find + wc -l · 研究笔记 R01 §2 · R02 §1</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s12-two-seats.html ===== -->
+<section class="slide" data-ch="CH3 实现原理" data-title="双模型：两个座位，且路由不用模型">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot amber"></span>CH 3 · 实现原理</div>
+    <h1 class="s-title">两个座位：<span class="hl-a">规划一个模型，动手另一个</span> —— 默认就跨厂商</h1>
+    <div class="s-sub">planner = <b style="color:#e2e8f0">Codex CLI</b>，executor = <b style="color:#e2e8f0">Claude Code CLI</b>（<b style="color:#e2e8f0">config.go:20-23</b>）。都在 detached tmux 里跑，<b style="color:#e2e8f0">不直连 API</b>。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="ts-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#fbbf24"/>
+            </marker>
+          </defs>
+
+          <text x="16" y="14" fill="#94a3b8" font-size="9" font-weight="600">一句 prompt 进来，怎么决定去哪个座位</text>
+
+          <rect x="252" y="24" width="196" height="30" rx="6" fill="rgba(8,51,68,.3)" stroke="#22d3ee" stroke-width="1.2"/>
+          <text x="350" y="44" fill="#22d3ee" font-size="10" font-weight="700" text-anchor="middle">prompt</text>
+
+          <path d="M 350 56 L 350 74" stroke="#fbbf24" stroke-width="1.2" marker-end="url(#ts-ar)"/>
+
+          <rect x="176" y="78" width="348" height="58" rx="6" fill="rgba(120,53,15,.26)" stroke="#fbbf24" stroke-width="1.3"/>
+          <text x="350" y="97" fill="#fbbf24" font-size="9.5" font-weight="700" text-anchor="middle">route()　agentloop.go:530-543</text>
+          <text x="350" y="114" fill="#cbd5e1" font-size="8.5" text-anchor="middle">显式 role → 直接去那个座位；role=auto → 走关键词表</text>
+          <text x="350" y="129" fill="#fb7185" font-size="8.5" text-anchor="middle">关键词表是 substring 匹配，不是模型 —— 成本 0、可解释、可预测</text>
+
+          <path d="M 250 138 L 160 168" stroke="#fbbf24" stroke-width="1.2" marker-end="url(#ts-ar)"/>
+          <path d="M 450 138 L 540 168" stroke="#fbbf24" stroke-width="1.2" marker-end="url(#ts-ar)"/>
+
+          <rect x="16" y="172" width="290" height="92" rx="7" fill="rgba(76,29,149,.28)" stroke="#a78bfa" stroke-width="1.3"/>
+          <text x="161" y="192" fill="#a78bfa" font-size="10" font-weight="700" text-anchor="middle">planner 座位</text>
+          <text x="32" y="212" fill="#cbd5e1" font-size="8.5">默认 codex（Codex CLI · tmux）</text>
+          <text x="32" y="229" fill="#cbd5e1" font-size="8.5">产出：<tspan fill="#fff">自由文本</tspan>，按约定格式</text>
+          <text x="32" y="246" fill="#e2e8f0" font-size="8.5">　PLAN: 3–7 步　EXECUTOR_PACKET: …</text>
+          <text x="32" y="260" fill="#64748b" font-size="7.5">注意：internal/plan 不是它的输出结构，那是 UI 任务清单追踪器</text>
+
+          <rect x="394" y="172" width="290" height="92" rx="7" fill="rgba(6,78,59,.28)" stroke="#34d399" stroke-width="1.3"/>
+          <text x="539" y="192" fill="#34d399" font-size="10" font-weight="700" text-anchor="middle">executor 座位</text>
+          <text x="410" y="212" fill="#cbd5e1" font-size="8.5">默认 claude（Claude Code CLI · tmux）</text>
+          <text x="410" y="229" fill="#cbd5e1" font-size="8.5">吃：从上面那段文本里<tspan fill="#fff">正则抠出的 packet</tspan></text>
+          <text x="410" y="246" fill="#e2e8f0" font-size="8.5">　容忍四种写法，优先取围栏内内容</text>
+          <text x="410" y="260" fill="#64748b" font-size="7.5">delegate.go:102-137</text>
+
+          <text x="316" y="222" fill="#fbbf24" font-size="16" font-weight="700">→</text>
+
+          <path d="M 16 278 L 684 278" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="296" fill="#22d3ee" font-size="9.5" font-weight="600">六个入口都能改座位 · 其中四个是运行时热切</text>
+
+          <rect x="16" y="306" width="216" height="26" rx="4" fill="rgba(8,51,68,.24)"/>
+          <text x="30" y="323" fill="#e2e8f0" font-size="8.5">/planner &lt;provider&gt;</text>
+          <text x="150" y="323" fill="#64748b" font-size="7.5">commands.go:327</text>
+
+          <rect x="242" y="306" width="216" height="26" rx="4" fill="rgba(8,51,68,.24)"/>
+          <text x="256" y="323" fill="#e2e8f0" font-size="8.5">/executor &lt;provider&gt;</text>
+          <text x="376" y="323" fill="#64748b" font-size="7.5">commands.go:334</text>
+
+          <rect x="468" y="306" width="216" height="26" rx="4" fill="rgba(8,51,68,.24)"/>
+          <text x="482" y="323" fill="#e2e8f0" font-size="8.5">/researcher &lt;provider&gt;</text>
+          <text x="608" y="323" fill="#64748b" font-size="7.5">commands.go:341</text>
+
+          <rect x="16" y="336" width="216" height="26" rx="4" fill="rgba(30,41,59,.5)"/>
+          <text x="30" y="353" fill="#e2e8f0" font-size="8.5">/role planner|executor|auto</text>
+
+          <rect x="242" y="336" width="216" height="26" rx="4" fill="rgba(30,41,59,.5)"/>
+          <text x="256" y="353" fill="#e2e8f0" font-size="8.5">/agent &lt;provider&gt;（钉死）</text>
+
+          <rect x="468" y="336" width="216" height="26" rx="4" fill="rgba(30,41,59,.5)"/>
+          <text x="482" y="353" fill="#e2e8f0" font-size="8.5">--planner / --executor（启动期）</text>
+
+          <rect x="16" y="372" width="668" height="46" rx="6" fill="rgba(120,53,15,.22)" stroke="#fbbf24" stroke-width="1.1"/>
+          <text x="30" y="391" fill="#fbbf24" font-size="9" font-weight="700">为什么值这个复杂度 —— 作者自己的一句话</text>
+          <text x="30" y="409" fill="#e2e8f0" font-size="8.5" font-style="italic">"Vendor diversity is the lever: on a refusal, ask a different company."　—— 被一家拒了，换一家问</text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:9px">
+        <div class="card amber">
+          <div class="card-head"><span class="card-dot"></span><h3>接线其实只有两个字段</h3></div>
+          <ul>
+            <li><em>plannerProvider</em> / <em>executorProvider</em> 两个字符串（<em>types.go:98-109</em>）。循环只认 Provider 接口的 <strong>三个方法</strong>，所以任意组合都合法</li>
+            <li><strong>走 CLI 而不是直连 API</strong>：两家已经做好的工具集、权限提示、订阅计费一并白拿</li>
+          </ul>
+        </div>
+        <div class="card violet">
+          <div class="card-head"><span class="card-dot violet"></span><h3>关键词表长这样，中英混排</h3></div>
+          <ul>
+            <li><em>"run " · "execute" · "objdump" · "strings" · "grep"</em> · <em>"执行" · "跑一下" · "读取" · "分析 ./"</em>（<em>agentloop.go:618-632</em>）</li>
+            <li>这是最朴素的意图分类。<strong>够用，而且你永远知道它为什么这么分</strong></li>
+          </ul>
+        </div>
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>同页的代价：可归因性没了</h3></div>
+          <ul>
+            <li>两条 CLI 各自是黑箱 —— 端到端失败时，<strong>你分不清是规划错了还是执行错了</strong></li>
+            <li>而且订阅计费让你<strong>无法按 token 精算单次任务成本</strong>；再叠上「依赖两个外部 CLI 的版本与登录态」</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">本地实测 · <b>926e615</b> · internal/core/agentloop.go:530-632 · internal/config/config.go:20-23 · 研究笔记 R02 §3</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s13-caveman.html ===== -->
+<section class="slide" data-ch="CH3 实现原理" data-title="caveman 模式：不是话术，是宿主级的双阶段委派">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot rose"></span>CH 3 · 实现原理</div>
+    <h1 class="s-title">模型太谨慎不干活 —— 解法<span class="hl-r">不是换个说法，是换个结构</span></h1>
+    <div class="s-sub">红线是<b style="color:#e2e8f0">写进送给模型的 prompt 里</b>的：<b style="color:#fb7185">"Do not use translation, classical Chinese, ciphering, euphemisms, or prompt laundering <span style="color:#fff">to bypass a model or site policy</span>."</b> 而且有单测断言它必须在。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="cv-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#fb7185"/>
+            </marker>
+          </defs>
+
+          <text x="16" y="14" fill="#94a3b8" font-size="9" font-weight="600">一个大请求，被拆成两个互不知情的阶段</text>
+
+          <rect x="16" y="24" width="668" height="28" rx="5" fill="rgba(8,51,68,.28)" stroke="#22d3ee" stroke-width="1"/>
+          <text x="30" y="43" fill="#cbd5e1" font-size="9">操作员输入：<tspan fill="#fff">「分析一下这个 APK」</tspan>　—— 一个整体目标，普通商用模型见了容易直接卡住</text>
+
+          <path d="M 350 54 L 350 70" stroke="#fb7185" stroke-width="1.3" marker-end="url(#cv-ar)"/>
+
+          <rect x="16" y="74" width="326" height="118" rx="7" fill="rgba(76,29,149,.28)" stroke="#a78bfa" stroke-width="1.3"/>
+          <text x="179" y="94" fill="#a78bfa" font-size="10" font-weight="700" text-anchor="middle">① planner 阶段</text>
+          <text x="32" y="114" fill="#cbd5e1" font-size="8.5">工具面：<tspan fill="#fff" font-weight="700">1 个</tspan>（只有 update_plan）</text>
+          <text x="32" y="132" fill="#cbd5e1" font-size="8.5">任务：写一个<tspan fill="#fff">有界本地证据包</tspan>，不许写</text>
+          <text x="32" y="147" fill="#cbd5e1" font-size="8.5">　　　「去把整个目标解决掉」</text>
+          <text x="32" y="166" fill="#e2e8f0" font-size="8">允许要的东西：文件列表 · 类型 · 大小 · 哈希 ·</text>
+          <text x="32" y="181" fill="#e2e8f0" font-size="8">可打印字符串 · 字节偏移 · 熵 · 内嵌签名 · 导入表 · 符号</text>
+
+          <rect x="358" y="74" width="326" height="118" rx="7" fill="rgba(6,78,59,.28)" stroke="#34d399" stroke-width="1.3"/>
+          <text x="521" y="94" fill="#34d399" font-size="10" font-weight="700" text-anchor="middle">② executor 阶段（隔离）</text>
+          <text x="374" y="114" fill="#cbd5e1" font-size="8.5">工具面：24 → <tspan fill="#fff" font-weight="700">14 个只读</tspan></text>
+          <text x="374" y="132" fill="#cbd5e1" font-size="8.5"><tspan fill="#fb7185">run_command 和 write_file 被摘掉</tspan></text>
+          <text x="374" y="150" fill="#cbd5e1" font-size="8.5">换一套 system prompt · Isolated · FreshSession</text>
+          <text x="374" y="169" fill="#e2e8f0" font-size="8">而且每个工具的 description 被就地改写成中性描述</text>
+          <text x="374" y="184" fill="#64748b" font-size="7.5">delegate.go:145-162</text>
+
+          <path d="M 342 133 L 356 133" stroke="#fb7185" stroke-width="1.4" marker-end="url(#cv-ar)"/>
+
+          <rect x="16" y="202" width="668" height="52" rx="6" fill="rgba(136,19,55,.24)" stroke="#fb7185" stroke-width="1.3"/>
+          <text x="30" y="221" fill="#fb7185" font-size="9.5" font-weight="700">中间传的就是这一段，硬截 6000 字符（util.Clip，delegate.go:83-100）</text>
+          <text x="30" y="240" fill="#e2e8f0" font-size="8.5">Objective: collect local evidence about &lt;paths&gt;.　Scope: workspace-local, read-only inspection and summarization.</text>
+
+          <rect x="16" y="264" width="668" height="40" rx="6" fill="rgba(2,6,23,.7)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="30" y="282" fill="#34d399" font-size="9" font-weight="700">executor 的 system prompt 里有这么一句 —— 这才是整个设计的支点</text>
+          <text x="30" y="298" fill="#fff" font-size="10" font-style="italic">"You do not need the broader objective."　　执行方连整体目标都不知道　delegate.go:66-67</text>
+
+          <path d="M 16 318 L 684 318" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="336" fill="#fbbf24" font-size="9.5" font-weight="600">三个否决项 —— 有一个成立就不委派（delegate.go:14-22）</text>
+
+          <rect x="16" y="346" width="216" height="34" rx="5" fill="rgba(30,41,59,.5)"/>
+          <text x="30" y="366" fill="#e2e8f0" font-size="8.5">/agent 钉死了 provider</text>
+
+          <rect x="242" y="346" width="216" height="34" rx="5" fill="rgba(30,41,59,.5)"/>
+          <text x="256" y="366" fill="#e2e8f0" font-size="8.5">显式指定了 role（非 auto）</text>
+
+          <rect x="468" y="346" width="216" height="34" rx="5" fill="rgba(30,41,59,.5)"/>
+          <text x="482" y="366" fill="#e2e8f0" font-size="8.5">解析后的模式不是 caveman</text>
+
+          <rect x="16" y="388" width="668" height="30" rx="5" fill="rgba(136,19,55,.18)" stroke="#fb7185" stroke-width="1.1"/>
+          <text x="30" y="408" fill="#cbd5e1" font-size="8.5">单测把红线钉死：wrapped prompt <tspan fill="#fff">必须包含</tspan>「Do not use translation」和「prompt laundering」两句　<tspan fill="#64748b">workflow_test.go:56-58</tspan></text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:9px">
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>它解的是哪个失败模式</h3></div>
+          <ul>
+            <li>普通商用模型面对「逆向这个 APK」这类<strong>整体请求</strong>时会过度谨慎，或者把长上下文越滚越危险</li>
+            <li>解法不是骗模型，是<strong>缩小上下文 + 只要本地证据 + 按产物拆解</strong> —— 注释原话</li>
+          </ul>
+        </div>
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>这条可核对，且确实属实</h3></div>
+          <ul>
+            <li>「executor 的工具表是只读的」不是宣传语 —— <em>delegate.go:145</em> 是一张<strong>14 项白名单</strong>，写和执行两类工具压根不在表里</li>
+          </ul>
+        </div>
+        <div class="card amber">
+          <div class="card-head"><span class="card-dot"></span><h3>没有状态机，只有两次顺序调用</h3></div>
+          <ul>
+            <li>阶段推进写死在 <em>runDelegatedWorkflow</em> 里，就是<strong>两次 Loop.Run</strong>；planner 被打断就直接返回，不进 executor</li>
+            <li>合并后 provider 字段变成 <em>"codex-&gt;claude"</em>，turns 与 usage 相加 —— <strong>账仍然是一本</strong></li>
+          </ul>
+        </div>
+        <div class="card violet">
+          <div class="card-head"><span class="card-dot violet"></span><h3>同页的代价：交接靠正则抠文本</h3></div>
+          <ul>
+            <li>planner 产出是<strong>自由文本</strong>，靠 <em>ExtractExecutorPacket</em> 容忍四种写法去抠 —— 格式没写对就走本地兜底包</li>
+            <li>这是<strong>协议层的脆弱点</strong>，不是结构化交接</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">本地实测 · <b>926e615</b> · internal/workflow/{workflow.go,delegate.go,workflow_test.go} · 研究笔记 R02 §4</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s14-context.html ===== -->
+<section class="slide" data-ch="CH3 实现原理" data-title="上下文：三道闸，而逆向最要命的是第三道">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot violet"></span>CH 3 · 实现原理</div>
+    <h1 class="s-title">上下文有<span class="hl-v">三道闸</span> —— 逆向最要命的是<span class="hl">工具输出那道</span></h1>
+    <div class="s-sub">注释写得很直白：<b style="color:#e2e8f0">objdump -d / strings 这类命令就是会吐兆字节</b>，原样倒进 transcript 等于一次性烧掉整个窗口。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="14" fill="#94a3b8" font-size="9" font-weight="600">三道闸，按「离模型的远近」排列</text>
+
+          <rect x="16" y="24" width="668" height="106" rx="7" fill="rgba(251,146,60,.22)" stroke="#fb923c" stroke-width="1.4"/>
+          <text x="30" y="44" fill="#fb923c" font-size="10" font-weight="700">闸三 · 工具输出预算（最靠外，也最管用）　internal/tools/output.go</text>
+          <text x="30" y="64" fill="#e2e8f0" font-size="9">默认上限 <tspan fill="#fff" font-weight="700">24,000 字符</tspan>；超了按 <tspan fill="#fff" font-weight="700">头 60% / 尾 40%</tspan> 切，全文落到 &lt;sessionDir&gt;/artifacts/</text>
+          <text x="30" y="82" fill="#cbd5e1" font-size="8.5">模型拿到的是「头 + 尾 + 文件路径」—— 它想看中间，自己去读那个文件</text>
+          <text x="30" y="103" fill="#94a3b8" font-size="8">// Reverse engineering commands are exactly the kind that emit megabytes (`objdump -d`, `strings` on a fat binary),</text>
+          <text x="30" y="119" fill="#94a3b8" font-size="8">// and a raw dump into the transcript costs the whole context window.　　output.go:3-7</text>
+
+          <rect x="16" y="140" width="668" height="100" rx="7" fill="rgba(76,29,149,.26)" stroke="#a78bfa" stroke-width="1.3"/>
+          <text x="30" y="160" fill="#a78bfa" font-size="10" font-weight="700">闸二 · 机械压缩（每回合自动跑，两遍，先便宜的）　internal/core/compaction.go</text>
+          <text x="30" y="180" fill="#e2e8f0" font-size="8.5">第一遍：把<tspan fill="#fff">老 tool result 的正文省略掉</tspan>（超 400 字符才算候选）—— 逆向会话的大头就在这里</text>
+          <text x="30" y="198" fill="#e2e8f0" font-size="8.5">第二遍：整段最老的对话<tspan fill="#fff">丢掉</tspan>，换成一条 compaction marker</text>
+          <text x="30" y="218" fill="#cbd5e1" font-size="8.5">预算 <tspan fill="#fff">48,000 token</tspan>（"塞得进 deepseek-chat 的 64k"）· 最近 8 条优先保留 · <tspan fill="#fff">最后一轮是硬底，永远不动</tspan></text>
+          <text x="30" y="234" fill="#94a3b8" font-size="8">两遍都守同一条不变量：<tspan fill="#fff">带 tool call 的 assistant 消息，永远不和它的结果分开</tspan></text>
+
+          <rect x="16" y="250" width="668" height="70" rx="7" fill="rgba(136,19,55,.22)" stroke="#fb7185" stroke-width="1.3"/>
+          <text x="30" y="270" fill="#fb7185" font-size="10" font-weight="700">闸一 · 模型压缩（手动 /compact，摧毁式）　agentloop.go:138-184</text>
+          <text x="30" y="290" fill="#e2e8f0" font-size="8.5">整段会话丢给模型总结，替换成一条 <tspan fill="#fff">[session summary — earlier turns compacted]</tspan></text>
+          <text x="30" y="309" fill="#cbd5e1" font-size="8.5">注释直说 <tspan fill="#fff" font-style="italic">Destructive by design: the detail lives on in the JSONL</tspan> —— 内存里没了，盘上还在</text>
+
+          <path d="M 16 334 L 684 334" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="352" fill="#fbbf24" font-size="9.5" font-weight="600">两个「不体面但诚实」的实现细节</text>
+
+          <rect x="16" y="362" width="326" height="56" rx="6" fill="rgba(2,6,23,.65)" stroke="#334155" stroke-width="1"/>
+          <text x="30" y="380" fill="#e2e8f0" font-size="9" font-weight="600">token 估算没有 tokenizer</text>
+          <text x="30" y="398" fill="#cbd5e1" font-size="8.5">拉丁 4 字符/token、中日韩 1.5 字符/token</text>
+          <text x="30" y="413" fill="#94a3b8" font-size="8">每条消息再 +4 的信封开销。够用，但别当精确值</text>
+
+          <rect x="358" y="362" width="326" height="56" rx="6" fill="rgba(2,6,23,.65)" stroke="#334155" stroke-width="1"/>
+          <text x="372" y="380" fill="#e2e8f0" font-size="9" font-weight="600">marker 自己的 token 是实测不是估算</text>
+          <text x="372" y="398" fill="#cbd5e1" font-size="8.5">注释：<tspan font-style="italic">otherwise the budget is quietly overshot</tspan></text>
+          <text x="372" y="413" fill="#94a3b8" font-size="8">压缩用的标记自己也占额度 —— 这个坑踩过才会写</text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:9px">
+        <div class="card violet">
+          <div class="card-head"><span class="card-dot violet"></span><h3>会话是只追加的 JSONL</h3></div>
+          <ul>
+            <li>每行一条 <em>{Type, Timestamp, Data}</em>，三种类型：session / message / event。<em>O_APPEND</em> + mutex，文件名带 UTC 时间戳</li>
+          </ul>
+        </div>
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>恢复路径处理得很硬核</h3></div>
+          <ul>
+            <li>解析失败的行<strong>静默跳过</strong>，注释：<em>「会话被写到一半杀掉时，末行截断是预期内的」</em></li>
+            <li><em>repair()</em> 双向修剪：<strong>有 call 无 result 就摘掉 call，有 result 无 call 就丢掉 result</strong> —— 两种都会被 provider 拒收</li>
+          </ul>
+        </div>
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>同页的代价：三道闸都是「丢信息」</h3></div>
+          <ul>
+            <li>省略掉的 tool result、丢掉的老对话、被 head/tail 切走的中段 —— <strong>模型都看不见了</strong></li>
+            <li>逆向恰恰是<strong>两小时前那个不起眼的字符串突然变关键</strong>的场景。这里没有语义索引，只有<strong>「你自己记得去读那个 artifact 文件」</strong></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">本地实测 · <b>926e615</b> · internal/core/compaction.go · internal/tools/output.go · internal/core/session.go · 研究笔记 R02 §6</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s15-ch4.html ===== -->
+<section class="slide chapter" data-ch="CH04 功能点" data-title="第 04 章 · 功能点">
+  <div class="chapter-inner">
+    <div>
+      <div class="ch-no">04</div>
+      <h1>功能点</h1>
+      <div class="ch-q"><b>它到底给了你哪些趁手的东西？</b></div>
+      <div class="ch-sub">三页：<b>不花钱的那条路</b>、工具与知识、以及「你能看着它干活」。</div>
+      <div class="ch-prog"><span class="done"></span><span class="done"></span><span class="done"></span><span class="on"></span><span class=""></span><span class=""></span><span class=""></span></div>
+    </div>
+    <div>
+      <ul class="ch-list">
+        <div class="ch-list-h">本章内容</div>
+        <li><span class="n">17</span><span class="t">廉价路<i>52 个命令里约 49 个零 token，11 个直接绕过 agent loop</i></span></li>
+        <li><span class="n">18</span><span class="t">工具 · skill · 知识库<i>24 / 33 / 而幻觉引用被显式记了账</i></span></li>
+        <li><span class="n">19</span><span class="t">看着它干活<i>回合还在跑，你就能插话、改任务、换模型</i></span></li>
+      </ul>
+      <div class="ch-sub" style="margin-top:22px;border-color:var(--orange)">本章每页仍然配一条代价 —— <b>零 token 很爽，但绕过 loop 也绕过了 loop 上的闸</b>。</div>
+    </div>
+  </div>
+  <div class="s-foot">
+    <span class="src">第 04 章 / 共 7 章</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s16-free-path.html ===== -->
+<section class="slide" data-ch="CH4 功能点" data-title="廉价路：52 个命令里 49 个不花 token">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot orange"></span>CH 4 · 功能点</div>
+    <h1 class="s-title">52 个命令里，<span class="hl-a">大约 49 个一个 token 都不花</span></h1>
+    <div class="s-sub">帮助里归为 direct tools 的有 <b style="color:#e2e8f0">16 条</b>，其中 <b style="color:#e2e8f0">11 条走 runDirectTool</b> —— 直接调工具函数，<b style="color:#e2e8f0">完全绕过 agent loop</b>。你只在真想让它「想一下」的时候才付钱。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="14" fill="#94a3b8" font-size="9" font-weight="600">这些「零 token」的命令，背后到底算了什么</text>
+
+          <rect x="16" y="24" width="668" height="88" rx="7" fill="rgba(251,146,60,.2)" stroke="#fb923c" stroke-width="1.3"/>
+          <text x="30" y="44" fill="#fb923c" font-size="10" font-weight="700">/decode —— 8 个模式，核心是一个五项加权的打分函数（decode.go:281-306）</text>
+          <text x="30" y="63" fill="#e2e8f0" font-size="8.5">score = 可打印比例</text>
+          <text x="30" y="79" fill="#cbd5e1" font-size="8.5">　　　+ 1.0　命中 \b(flag|ctf|password|secret|token)\b</text>
+          <text x="30" y="95" fill="#cbd5e1" font-size="8.5">　　　+ 1.2　命中 [a-z]{3,}\{[^}]{2,}\}　← <tspan fill="#fff">flag 的花括号形状</tspan>　　+ 0.5 命中 https?://　　+ 0.3 全部可打印</text>
+          <text x="30" y="107" fill="#94a3b8" font-size="7.5">xor_bruteforce 穷举 256 个单字节 key，按这个分数排序取前 8。auto 顺序：base64 → base64url → hex → url → rot13 → 单字节 XOR　decode.go:264-306</text>
+
+          <rect x="16" y="122" width="326" height="82" rx="6" fill="rgba(76,29,149,.24)" stroke="#a78bfa" stroke-width="1.2"/>
+          <text x="30" y="142" fill="#a78bfa" font-size="9.5" font-weight="700">/carve —— 13 个魔数，逐个 bytes.Index 扫</text>
+          <text x="30" y="160" fill="#cbd5e1" font-size="8">ELF · MZ · DEX · ZIP · PNG · JPEG · GIF · PDF · gzip</text>
+          <text x="30" y="175" fill="#cbd5e1" font-size="8">SQLite · Mach-O(LE/BE) · WASM</text>
+          <text x="30" y="192" fill="#e2e8f0" font-size="8">切片规则：第 i 个命中切到第 i+1 个的 offset，末尾切到文件尾</text>
+
+          <rect x="358" y="122" width="326" height="82" rx="6" fill="rgba(6,78,59,.24)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="372" y="142" fill="#34d399" font-size="9.5" font-weight="700">/apk —— 7 类加壳 + 8 类框架识别</text>
+          <text x="372" y="160" fill="#cbd5e1" font-size="8">加壳：360 加固 · 腾讯乐固 · Bangcle · 爱加密 · SecNeo</text>
+          <text x="372" y="175" fill="#cbd5e1" font-size="8">　　　网易易盾 · DexGuard/ProGuard</text>
+          <text x="372" y="192" fill="#e2e8f0" font-size="7.5">框架：RN · Flutter · Unity · Cordova · Xamarin · Cocos2d · UniApp · 小程序</text>
+
+          <rect x="16" y="214" width="668" height="76" rx="6" fill="rgba(120,53,15,.22)" stroke="#fbbf24" stroke-width="1.2"/>
+          <text x="30" y="234" fill="#fbbf24" font-size="9.5" font-weight="700">/mitigations —— 不依赖 checksec，并联四个外部命令再正则打分</text>
+          <text x="30" y="252" fill="#cbd5e1" font-size="8.5">file -b　·　nm/readelf/objdump/otool 四路全试取符号　·　readelf -h -l -d -s　·　otool -hv -l -Iv</text>
+          <text x="30" y="268" fill="#cbd5e1" font-size="8.5">判 stripped / PIE / NX / canary / RELRO，外加 <tspan fill="#fff">17 个危险导入符号</tspan>全词匹配（gets · strcpy · sprintf · system · execve · mprotect …）</text>
+          <text x="30" y="284" fill="#fb7185" font-size="8.5">输出结尾固定写死一句：<tspan fill="#fff" font-style="italic">"Treat unknown as a prompt for deeper tool-specific analysis, not as absence."</tspan>　—— 把「没证据」和「没有」明确分开</text>
+
+          <path d="M 16 302 L 684 302" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="320" fill="#22d3ee" font-size="9.5" font-weight="600">为什么这条路值得单独设计 —— 逆向的前二十分钟根本不需要模型</text>
+
+          <rect x="16" y="330" width="216" height="46" rx="5" fill="rgba(8,51,68,.22)"/>
+          <text x="30" y="349" fill="#e2e8f0" font-size="9">这是什么文件？多大？熵多少？</text>
+          <text x="30" y="366" fill="#94a3b8" font-size="8">/scan · /entropy —— 确定性程序秒答</text>
+
+          <rect x="242" y="330" width="216" height="46" rx="5" fill="rgba(8,51,68,.22)"/>
+          <text x="256" y="349" fill="#e2e8f0" font-size="9">里面藏了别的文件吗？</text>
+          <text x="256" y="366" fill="#94a3b8" font-size="8">/carve —— 13 个魔数扫一遍就知道</text>
+
+          <rect x="468" y="330" width="216" height="46" rx="5" fill="rgba(8,51,68,.22)"/>
+          <text x="482" y="349" fill="#e2e8f0" font-size="9">这段乱码是 base64 还是 XOR？</text>
+          <text x="482" y="366" fill="#94a3b8" font-size="8">/decode auto —— 打分排序直接给答案</text>
+
+          <rect x="16" y="386" width="668" height="32" rx="5" fill="rgba(2,6,23,.6)" stroke="#334155" stroke-width="1"/>
+          <text x="30" y="406" fill="#cbd5e1" font-size="9">把这些交给模型，你付的是 token、延迟，还有<tspan fill="#fff">它算错进制的风险</tspan>。<tspan fill="#94a3b8">　第一讲那条「算术全部外包给确定性程序」，落地就是这一屏。</tspan></text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:9px">
+        <div class="card orange">
+          <div class="card-head"><span class="card-dot"></span><h3>一张表同时驱动三件事</h3></div>
+          <ul>
+            <li><em>ui/help.go:23-88</em> 那张 54 行的表，<strong>同时喂给帮助、Tab 补全和命令面板</strong> —— 加命令只改一处，三处不会漂</li>
+          </ul>
+        </div>
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>reverse_toolkit 是白名单动作，不是命令注入</h3></div>
+          <ul>
+            <li><strong>20 个外部工具族</strong>（r2 · rizin · jadx · ghidra · gdb · binwalk · yara · apktool · frida · angr …），<strong>动作固定</strong>：info / sections / symbols / imports / strings / functions / disasm</li>
+            <li><em>angr / unicorn / unidbg / burp / mitmproxy</em> 五个<strong>只产出模板，从不真的起进程</strong>（<em>retool.go:164</em>）</li>
+          </ul>
+        </div>
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>同页的代价：这条路也是审计盲区</h3></div>
+          <ul>
+            <li><em>reverse_toolkit</em> 申请审批时<strong>不带 concerns</strong>（<em>retool.go:838</em>）—— 全仓只有 3 处会填 Concerns，这里不在其中</li>
+            <li>实际后果没有传言那么大：burp 与 mitmproxy 只吐模板；<strong>真会起进程的是 frida</strong>（<em>frida-ls-devices / frida-ps -Uai</em>）—— 它在 <em>--allow-network</em> 关着时照跑</li>
+            <li>零 token 很爽，但<strong>「绕过 loop」也绕过了 loop 上的那道闸</strong></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">本地实测 · <b>926e615</b> · internal/tools/{decode.go,binary.go,retool.go} · internal/ui/help.go · 研究笔记 R03 §1 §3 · R06 §1</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s17-tools-skills.html ===== -->
+<section class="slide" data-ch="CH4 功能点" data-title="工具 24 个 · skill 33 个 · 知识库把幻觉引用记账">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot orange"></span>CH 4 · 功能点</div>
+    <h1 class="s-title">24 个工具 · 33 个 skill · 而知识库<span class="hl-r">把模型编的引用记了账</span></h1>
+    <div class="s-sub">「幻觉」在这里不是靠提示词祈祷压下去的，是<b style="color:#e2e8f0">被显式检出、命名为 inventedCitations、写进会话事件</b>。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="14" fill="#94a3b8" font-size="9" font-weight="600">24 个工具，按风险分三层</text>
+
+          <rect x="16" y="22" width="440" height="34" rx="5" fill="rgba(6,78,59,.28)" stroke="#34d399" stroke-width="1.1"/>
+          <text x="30" y="43" fill="#34d399" font-size="9.5" font-weight="700">21 个只读</text>
+          <text x="120" y="43" fill="#cbd5e1" font-size="8">list_files · read_file · grep · file_info · strings · hexdump · hash_file · extract_symbols …</text>
+
+          <rect x="464" y="22" width="100" height="34" rx="5" fill="rgba(120,53,15,.28)" stroke="#fbbf24" stroke-width="1.1"/>
+          <text x="514" y="43" fill="#fbbf24" font-size="9" font-weight="700" text-anchor="middle">1 个写</text>
+
+          <rect x="572" y="22" width="112" height="34" rx="5" fill="rgba(136,19,55,.28)" stroke="#fb7185" stroke-width="1.1"/>
+          <text x="628" y="43" fill="#fb7185" font-size="9" font-weight="700" text-anchor="middle">2 个执行</text>
+
+          <text x="16" y="74" fill="#64748b" font-size="8">MCP 导入的工具一律标 RiskWrite —— 外来的东西默认按最坏情况算　mcp/tools.go:103-105</text>
+
+          <path d="M 16 84 L 684 84" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="102" fill="#a78bfa" font-size="9.5" font-weight="600">33 个 skill —— 渐进式披露发生在「上下文层」，不是「IO 层」</text>
+
+          <rect x="16" y="112" width="326" height="76" rx="6" fill="rgba(76,29,149,.24)" stroke="#a78bfa" stroke-width="1.2"/>
+          <text x="30" y="131" fill="#a78bfa" font-size="9" font-weight="600">启动时：全部读进内存</text>
+          <text x="30" y="150" fill="#cbd5e1" font-size="8.5">33 份 SKILL.md 整份进 Skill.Body</text>
+          <text x="30" y="167" fill="#e2e8f0" font-size="8.5">但注入 system prompt 的只有<tspan fill="#fff">一行目录</tspan>：</text>
+          <text x="30" y="182" fill="#94a3b8" font-size="8">- name: description [tags]　× 33 行</text>
+
+          <rect x="358" y="112" width="326" height="76" rx="6" fill="rgba(6,78,59,.24)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="372" y="131" fill="#34d399" font-size="9" font-weight="600">正文什么时候进上下文</text>
+          <text x="372" y="150" fill="#cbd5e1" font-size="8.5">模型主动调 <tspan fill="#fff">read_skill</tspan>，或操作员 /skill &lt;name&gt;</text>
+          <text x="372" y="167" fill="#e2e8f0" font-size="8.5">/skill &lt;name&gt; &lt;task&gt; 时正文<tspan fill="#fff">硬截 32,000 字符</tspan></text>
+          <text x="372" y="182" fill="#94a3b8" font-size="8">frontmatter 只认 name / description / tags，手写解析器，没上 YAML 库</text>
+
+          <rect x="16" y="196" width="668" height="28" rx="5" fill="rgba(76,29,149,.18)"/>
+          <text x="350" y="215" fill="#a78bfa" font-size="10" font-weight="700" text-anchor="middle">常驻 8,531 字节　vs　全文 397,723 字节　=　1 : 47</text>
+
+          <path d="M 16 236 L 684 236" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="254" fill="#fb7185" font-size="9.5" font-weight="600">知识库：检索很土，但对「模型说了不该说的」处理得很狠</text>
+
+          <rect x="16" y="264" width="326" height="70" rx="6" fill="rgba(30,41,59,.6)" stroke="#334155" stroke-width="1"/>
+          <text x="30" y="283" fill="#e2e8f0" font-size="9" font-weight="600">检索：关键词加权 contains</text>
+          <text x="30" y="301" fill="#cbd5e1" font-size="8.5">标题 +8　标签 +6　路径 +3　摘要 +1</text>
+          <text x="30" y="318" fill="#fb7185" font-size="8.5"><tspan fill="#fff">无 embedding · 无 BM25 · 无 IDF · 无词干</tspan></text>
+          <text x="30" y="331" fill="#64748b" font-size="7.5">每次检索都整份重读 JSON，无缓存无数据库</text>
+
+          <rect x="358" y="264" width="326" height="70" rx="6" fill="rgba(136,19,55,.24)" stroke="#fb7185" stroke-width="1.2"/>
+          <text x="372" y="283" fill="#fb7185" font-size="9" font-weight="600">但答案被套了四段中文契约</text>
+          <text x="372" y="301" fill="#e2e8f0" font-size="8.5">### 结论　### 步骤　### 坑　### 出处</text>
+          <text x="372" y="318" fill="#cbd5e1" font-size="8.5">「出处」<tspan fill="#fff">只准写供给条目里字面出现过的 id</tspan></text>
+          <text x="372" y="331" fill="#64748b" font-size="7.5">不许写路径、URL、标题；「坑」没内容就写「- 无」</text>
+
+          <rect x="16" y="344" width="668" height="74" rx="6" fill="rgba(251,146,60,.2)" stroke="#fb923c" stroke-width="1.3"/>
+          <text x="30" y="364" fill="#fb923c" font-size="9.5" font-weight="700">然后最关键的一步：编造的 id 被抓出来，落进会话日志</text>
+          <text x="30" y="383" fill="#cbd5e1" font-size="8.5">{"type":"knowledge", "query":…, "matched":…, "used":…, "citations":…, <tspan fill="#fff">"inventedCitations"</tspan>:…, "parsed":…}</text>
+          <text x="30" y="401" fill="#e2e8f0" font-size="8.5"><tspan fill="#fff">幻觉引用是被显式度量并留痕的</tspan> —— 有了这个数，你才谈得上「这个知识库到底靠不靠谱」</text>
+          <text x="30" y="414" fill="#94a3b8" font-size="7.5">answer.go:203 · commands.go:747-752</text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:9px">
+        <div class="card violet">
+          <div class="card-head"><span class="card-dot violet"></span><h3>skill 内容不是壳，是真东西</h3></div>
+          <ul>
+            <li>radare2-reverse <strong>733 行</strong> · analyze-sign <strong>750 行</strong> · gdb <strong>706 行</strong> · ghidra <strong>670 行</strong> · crypto-identification <strong>647 行</strong></li>
+            <li>七大类：Android/APK · Frida · 静态反汇编 · 模拟执行 · 反混淆脱壳 · Web/JS/WASM · 密码学签名</li>
+          </ul>
+        </div>
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>知识库打包有个好细节</h3></div>
+          <ul>
+            <li>只有<strong>前 3 条内联全文</strong>，其余给元数据；某条超预算被跳过后<strong>继续打包后面的</strong></li>
+            <li>注释原话：<em>「一条超大的正文，不该让它后面每一条命中的廉价元数据都陪葬」</em></li>
+          </ul>
+        </div>
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>同页的代价：知识库开箱是空的</h3></div>
+          <ul>
+            <li><em>knowledge/</em> 目录里<strong>只有一个 README</strong>，索引 JSON 不入库 —— 你得先跑 <em>cmd/import-knowledge</em> 指向自己的笔记</li>
+            <li>换句话说：<strong>这套机制的价值全在你自己那堆文档上</strong>，项目只提供管道</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">本地实测 · <b>926e615</b> · internal/{tools,skills,knowledge}/ · 研究笔记 R03 §2 §4 §5</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s18-live.html ===== -->
+<section class="slide" data-ch="CH4 功能点" data-title="看着它干活：UI 比内核大 2.7 倍，值不值">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot cyan"></span>CH 4 · 功能点</div>
+    <h1 class="s-title">回合还在跑，<span class="hl">你就能插话、改任务、换模型</span></h1>
+    <div class="s-sub">这就是 <b style="color:#e2e8f0">UI 5,608 行 vs 内核 2,086 行</b> 换来的东西。<b style="color:#e2e8f0">值不值，看你信不信「盯着结果看」才是逆向的主要动作</b>。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="14" fill="#94a3b8" font-size="9" font-weight="600">一个回合跑起来，屏幕上实时有什么</text>
+
+          <rect x="16" y="22" width="668" height="128" rx="7" fill="rgba(2,6,23,.75)" stroke="#22d3ee" stroke-width="1.2"/>
+          <text x="30" y="42" fill="#22d3ee" font-size="8.5">［路由 chip］</text>
+          <text x="120" y="42" fill="#a78bfa" font-size="8.5">codex · planner</text>
+          <text x="222" y="42" fill="#64748b" font-size="8.5">→</text>
+          <text x="240" y="42" fill="#34d399" font-size="8.5" font-weight="700">claude · executor ●</text>
+          <text x="400" y="42" fill="#64748b" font-size="8">高亮的是「此刻正在作答的那一方」</text>
+
+          <text x="30" y="62" fill="#fbbf24" font-size="8.5">［阶段］</text>
+          <text x="120" y="62" fill="#e2e8f0" font-size="8.5">⠋ thinking　t+12.4s</text>
+          <text x="400" y="62" fill="#64748b" font-size="8">转轮 + 计时；同一帧内所有步骤读同一个 Now</text>
+
+          <text x="30" y="82" fill="#fbbf24" font-size="8.5">［token］</text>
+          <text x="120" y="82" fill="#e2e8f0" font-size="8.5">in 48.2k　out 3.1k　think 1.9k　cacheR 31k　$0.42</text>
+          <text x="470" y="82" fill="#34d399" font-size="8.5">▁▂▃▅▇▆▃▂</text>
+          <text x="546" y="82" fill="#64748b" font-size="8">输出 token 增量火花线</text>
+
+          <text x="30" y="104" fill="#fbbf24" font-size="8.5">［任务清单］</text>
+          <text x="120" y="104" fill="#34d399" font-size="8.5">✓ 1. 定位 native 库　　3.2s</text>
+          <text x="330" y="104" fill="#22d3ee" font-size="8.5">▸ 2. 抽符号表　　　运行中 8.1s</text>
+          <text x="120" y="120" fill="#64748b" font-size="8.5">　 3. 定位签名函数</text>
+          <text x="330" y="120" fill="#64748b" font-size="8.5">　 4. 写 frida hook</text>
+          <text x="530" y="112" fill="#64748b" font-size="8">每步带耗时</text>
+
+          <text x="30" y="142" fill="#fbbf24" font-size="8.5">［队列］</text>
+          <text x="120" y="142" fill="#e2e8f0" font-size="8.5">queued 2　draft: 顺便看下 assets 里有没有…</text>
+          <text x="470" y="142" fill="#fb923c" font-size="8">← 你正在敲的字也显示出来</text>
+
+          <path d="M 16 160 L 684 160" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="178" fill="#fb923c" font-size="9.5" font-weight="600">回合跑着的时候，键盘上还能做三件事</text>
+
+          <rect x="16" y="188" width="216" height="62" rx="6" fill="rgba(251,146,60,.2)" stroke="#fb923c" stroke-width="1.1"/>
+          <text x="30" y="207" fill="#fb923c" font-size="9" font-weight="600">① 裸文本 → 自动入队</text>
+          <text x="30" y="225" fill="#cbd5e1" font-size="8">敲一句话回车，回执</text>
+          <text x="30" y="240" fill="#e2e8f0" font-size="8">queued #N for the next turn</text>
+
+          <rect x="242" y="188" width="216" height="62" rx="6" fill="rgba(8,51,68,.24)" stroke="#22d3ee" stroke-width="1.1"/>
+          <text x="256" y="207" fill="#22d3ee" font-size="9" font-weight="600">② 5 个命令即时生效</text>
+          <text x="256" y="225" fill="#e2e8f0" font-size="8">/queue　/tasks　/think　/model　/version</text>
+          <text x="256" y="240" fill="#94a3b8" font-size="8">白名单只有这 5 个，其余排队</text>
+
+          <rect x="468" y="188" width="216" height="62" rx="6" fill="rgba(136,19,55,.24)" stroke="#fb7185" stroke-width="1.1"/>
+          <text x="482" y="207" fill="#fb7185" font-size="9" font-weight="600">③ ^C 打断</text>
+          <text x="482" y="225" fill="#cbd5e1" font-size="8">提示：<tspan fill="#fff">partial work kept in the transcript</tspan></text>
+          <text x="482" y="240" fill="#94a3b8" font-size="8">已产生的成果不丢，中断不是失败</text>
+
+          <rect x="16" y="260" width="668" height="52" rx="6" fill="rgba(120,53,15,.22)" stroke="#fbbf24" stroke-width="1.2"/>
+          <text x="30" y="279" fill="#fbbf24" font-size="9.5" font-weight="700">/model 为什么能中途生效 —— 一个指针的事</text>
+          <text x="30" y="297" fill="#cbd5e1" font-size="8.5">provider 持有 <tspan fill="#fff">*ProviderConfig 指针</tspan>，每次 Complete 现读 p.config.Model。所以 UI 如实提示 <tspan fill="#fff" font-style="italic">"applies to the next provider turn"</tspan></text>
+          <text x="30" y="310" fill="#fb7185" font-size="8">⚠ 注意别搞混：/think expand 只是 UI 显示开关，<tspan fill="#fff">不影响请求</tspan>；调推理强度的命令是 /effort</text>
+
+          <path d="M 16 324 L 684 324" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="342" fill="#a78bfa" font-size="9.5" font-weight="600">两个折叠语义上的巧思 —— 这种细节骗不了人，只有天天用的人才会写</text>
+
+          <rect x="16" y="352" width="326" height="66" rx="6" fill="rgba(76,29,149,.22)" stroke="#a78bfa" stroke-width="1.1"/>
+          <text x="30" y="371" fill="#a78bfa" font-size="9" font-weight="600">折叠 think，但不折叠 think 的计数</text>
+          <text x="30" y="389" fill="#cbd5e1" font-size="8">注释：Collapsed hides the text but not the think token counter</text>
+          <text x="30" y="405" fill="#e2e8f0" font-size="8"><tspan fill="#fff">收起来的 HUD 仍然告诉你「它在想」</tspan> —— 消失的只是字</text>
+
+          <rect x="358" y="352" width="326" height="66" rx="6" fill="rgba(76,29,149,.22)" stroke="#a78bfa" stroke-width="1.1"/>
+          <text x="372" y="371" fill="#a78bfa" font-size="9" font-weight="600">你主动展开的内容，排在丢弃顺序的最后</text>
+          <text x="372" y="389" fill="#cbd5e1" font-size="8">屏幕行数不够时 HUD 会主动丢内容</text>
+          <text x="372" y="405" fill="#e2e8f0" font-size="8">注释：<tspan fill="#fff">content you asked for should not be the first thing dropped</tspan></text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:9px">
+        <div class="card cyan">
+          <div class="card-head"><span class="card-dot cyan"></span><h3>/queue edit 确实存在</h3></div>
+          <ul>
+            <li>完整动作集：<em>list / add / edit &lt;id&gt; &lt;task&gt; / cancel / rm / drop / clear / run</em> —— <strong>能改一条已排队但还没执行的任务</strong></li>
+            <li><em>/queue run</em> 在回合中只回「排完这轮再继续」，<strong>不打断当前回合</strong></li>
+          </ul>
+        </div>
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>四种可视化档位</h3></div>
+          <ul>
+            <li><em>full</em>（图 + trace）· <em>flow</em>（只要图）· <em>trace</em>（只要行）· <em>off</em>；选择落盘到 UI 偏好文件</li>
+            <li>trace 每行带<strong>耗时条和参数摘要</strong>，是永久 scrollback，不是刷掉的动画</li>
+          </ul>
+        </div>
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>同页的代价：这 5,608 行几乎没测</h3></div>
+          <ul>
+            <li><em>internal/ui</em> 的测试覆盖只有 <strong>10.7%</strong>；<em>internal/tools</em> 更低，<strong>8.8%</strong></li>
+            <li>UI 是最容易悄悄坏掉又最难写测试的地方 —— <strong>这里目前主要靠作者自己天天用来兜底</strong></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">本地实测 · <b>926e615</b> · internal/ui/{hud.go,live.go,flow.go,trace.go} · internal/app/repl.go · 研究笔记 R03 §6 · R02 §7</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s19-ch5.html ===== -->
+<section class="slide chapter" data-ch="CH05 三方对比" data-title="第 05 章 · 三方对比">
+  <div class="chapter-inner">
+    <div>
+      <div class="ch-no">05</div>
+      <h1>三方对比</h1>
+      <div class="ch-q"><b>和 pi、oh-my-pi 比，差异到底在哪？</b></div>
+      <div class="ch-sub">本章顺序是刻意的：<b>先摆矩阵 → 再拆自己的台 → 最后才说剩下什么</b>。</div>
+      <div class="ch-prog"><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="on"></span><span class=""></span><span class=""></span></div>
+    </div>
+    <div>
+      <ul class="ch-list">
+        <div class="ch-list-h">本章内容</div>
+        <li><span class="n">21</span><span class="t">三方对比矩阵<i>三个仓库都在本机，同一批命令量一遍</i></span></li>
+        <li><span class="n">22</span><span class="t">自我拆台<i>六条其实只是配置，十条明确落后</i></span></li>
+        <li><span class="n">23</span><span class="t">剩下四条<i>换语言换分发 · 把别的 agent 当 provider · 隔离委派 · 一个 interface</i></span></li>
+      </ul>
+      <div class="ch-sub" style="margin-top:22px;border-color:var(--slate)">讲自家项目最大的风险是读者的怀疑不够。<b>所以先花一整页把水分挤干。</b></div>
+    </div>
+  </div>
+  <div class="s-foot">
+    <span class="src">第 05 章 / 共 7 章</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s20-matrix.html ===== -->
+<section class="slide" data-ch="CH5 三方对比" data-title="三方对比矩阵：全部实测，口径写在页脚">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot slate"></span>CH 5 · 与 pi / oh-my-pi 的区别</div>
+    <h1 class="s-title">三个都在本机，<span class="hl">同一批命令量一遍</span></h1>
+    <div class="s-sub">pi 与 oh-my-pi 的数复用第二、三讲的实测并抽查复核，<b style="color:#e2e8f0">来源均已标注</b>。commit 数三家口径不同，<b style="color:#fb7185">不可横比，本页不列</b>。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="figure plain">
+      <svg viewBox="0 0 1160 452" xmlns="http://www.w3.org/2000/svg">
+        <text x="16" y="18" fill="#94a3b8" font-size="10" font-weight="600">维度</text>
+        <text x="300" y="18" fill="#fbbf24" font-size="10.5" font-weight="700">re-agent</text>
+        <text x="600" y="18" fill="#34d399" font-size="10.5" font-weight="700">pi（第二讲）</text>
+        <text x="880" y="18" fill="#fb7185" font-size="10.5" font-weight="700">oh-my-pi（第三讲）</text>
+        <path d="M 16 26 L 1144 26" stroke="#334155" stroke-width="1.2"/>
+
+        <text x="16" y="48" fill="#e2e8f0" font-size="9.5">语言 / 分发</text>
+        <text x="300" y="48" fill="#fff" font-size="9">Go · 静态单二进制 · 交叉编译 4 平台</text>
+        <text x="600" y="48" fill="#cbd5e1" font-size="9">TypeScript · npm 为主</text>
+        <text x="880" y="48" fill="#cbd5e1" font-size="9">TS + Rust + Python · npm + 原生 addon</text>
+
+        <rect x="16" y="56" width="1128" height="22" rx="3" fill="rgba(30,41,59,.45)"/>
+        <text x="16" y="71" fill="#e2e8f0" font-size="9.5">源码行数（非测试）</text>
+        <text x="300" y="71" fill="#fff" font-size="9">20,672 · 58 文件</text>
+        <text x="600" y="71" fill="#cbd5e1" font-size="9">112,232 · 495 文件</text>
+        <text x="880" y="71" fill="#cbd5e1" font-size="9">TS 723,921 + 自研 Rust 83,443 + Py 83,434</text>
+
+        <text x="16" y="94" fill="#e2e8f0" font-size="9.5"><tspan fill="#22d3ee" font-weight="700">直接外部依赖</tspan></text>
+        <text x="300" y="94" fill="#22d3ee" font-size="10" font-weight="700">1 个</text>
+        <text x="600" y="94" fill="#cbd5e1" font-size="9">27 个</text>
+        <text x="880" y="94" fill="#cbd5e1" font-size="9">664 个 npm 包 + 912 个 crate</text>
+
+        <rect x="16" y="102" width="1128" height="22" rx="3" fill="rgba(136,19,55,.24)"/>
+        <text x="16" y="117" fill="#e2e8f0" font-size="9.5"><tspan fill="#fb7185" font-weight="700">测试 / 源码</tspan></text>
+        <text x="300" y="117" fill="#fb7185" font-size="10" font-weight="700">0.17×</text>
+        <text x="600" y="117" fill="#cbd5e1" font-size="9">0.885×</text>
+        <text x="880" y="117" fill="#cbd5e1" font-size="9">0.74×　　<tspan fill="#fb7185">← 这一格 re-agent 差一个量级，不能洗</tspan></text>
+
+        <text x="16" y="140" fill="#e2e8f0" font-size="9.5">主循环形状</text>
+        <text x="300" y="140" fill="#fff" font-size="9">单层 for，Run 函数 241 行</text>
+        <text x="600" y="140" fill="#cbd5e1" font-size="9">双层 while</text>
+        <text x="880" y="140" fill="#cbd5e1" font-size="9">双层 while（近乎逐字继承 pi），全文件 2,869 行</text>
+
+        <rect x="16" y="148" width="1128" height="22" rx="3" fill="rgba(136,19,55,.24)"/>
+        <text x="16" y="163" fill="#e2e8f0" font-size="9.5"><tspan fill="#fb7185" font-weight="700">迭代上限</tspan></text>
+        <text x="300" y="163" fill="#fb7185" font-size="9" font-weight="700">有，默认 8　← 真实 RE 任务很容易撞顶</text>
+        <text x="600" y="163" fill="#cbd5e1" font-size="9">无</text>
+        <text x="880" y="163" fill="#cbd5e1" font-size="9">无</text>
+
+        <rect x="16" y="176" width="1128" height="22" rx="3" fill="rgba(136,19,55,.24)"/>
+        <text x="16" y="191" fill="#e2e8f0" font-size="9.5"><tspan fill="#fb7185" font-weight="700">重试策略</tspan></text>
+        <text x="300" y="191" fill="#fb7185" font-size="9" font-weight="700">完全没有（grep retry/backoff → 0 命中）</text>
+        <text x="600" y="191" fill="#cbd5e1" font-size="9">三层：HTTP / 语义 / 产品</text>
+        <text x="880" y="191" fill="#cbd5e1" font-size="9">两层 + 1,787 行专职 TurnRecovery，默认 maxRetries=10</text>
+
+        <text x="16" y="214" fill="#e2e8f0" font-size="9.5">一次请求用几个模型</text>
+        <text x="300" y="214" fill="#fff" font-size="9">一 turn 一个，但一次请求可跨两家厂商</text>
+        <text x="600" y="214" fill="#cbd5e1" font-size="9">一 turn 一个，turn 间可换</text>
+        <text x="880" y="214" fill="#cbd5e1" font-size="9">10 个 model role，含端侧 ONNX 小模型</text>
+
+        <rect x="16" y="222" width="1128" height="22" rx="3" fill="rgba(30,41,59,.45)"/>
+        <text x="16" y="237" fill="#e2e8f0" font-size="9.5">provider 数 / 模型清单来源</text>
+        <text x="300" y="237" fill="#fff" font-size="9">5 类后端 · 手写 JSON，无发现机制</text>
+        <text x="600" y="237" fill="#cbd5e1" font-size="9">38 个 → 10 种 wire API · 构建期快照</text>
+        <text x="880" y="237" fill="#cbd5e1" font-size="9">63 provider / 4,106 条模型记录 · 生成，明令禁止手改</text>
+
+        <text x="16" y="260" fill="#e2e8f0" font-size="9.5"><tspan fill="#a78bfa" font-weight="700">自动压缩</tspan></text>
+        <text x="300" y="260" fill="#a78bfa" font-size="9" font-weight="700">纯机械两趟，一个 token 都不花</text>
+        <text x="600" y="260" fill="#cbd5e1" font-size="9">调模型摘要 + 切点吸附</text>
+        <text x="880" y="260" fill="#cbd5e1" font-size="9">snapcompact：把历史画成点阵 PNG 让视觉模型读回来</text>
+
+        <rect x="16" y="268" width="1128" height="22" rx="3" fill="rgba(30,41,59,.45)"/>
+        <text x="16" y="283" fill="#e2e8f0" font-size="9.5">基线 system prompt</text>
+        <text x="300" y="283" fill="#fff" font-size="9">≈2,850 token（含 33 条 skill 目录）</text>
+        <text x="600" y="283" fill="#cbd5e1" font-size="9">630 token（裸态 4 工具）</text>
+        <text x="880" y="283" fill="#cbd5e1" font-size="9">≈4,900 token + 69 个条件注入片段</text>
+
+        <rect x="16" y="296" width="1128" height="22" rx="3" fill="rgba(136,19,55,.24)"/>
+        <text x="16" y="311" fill="#e2e8f0" font-size="9.5"><tspan fill="#fb7185" font-weight="700">会话结构</tspan></text>
+        <text x="300" y="311" fill="#fb7185" font-size="9" font-weight="700">线性，无分叉无回退</text>
+        <text x="600" y="311" fill="#cbd5e1" font-size="9">树 + 3 版迁移 + 3 种可插拔存储（含 SQLite WAL）</text>
+        <text x="880" y="311" fill="#cbd5e1" font-size="9">树 + 5 种分叉回退机制</text>
+
+        <text x="16" y="334" fill="#e2e8f0" font-size="9.5">扩展点</text>
+        <text x="300" y="334" fill="#fff" font-size="9">全仓 <tspan font-weight="700">1 个 interface</tspan>（types.Provider）+ 8 个回调</text>
+        <text x="600" y="334" fill="#cbd5e1" font-size="9">33 个钩子</text>
+        <text x="880" y="334" fill="#cbd5e1" font-size="9">25+39 钩子 + 5 类扩展点 + 14×17 能力矩阵</text>
+
+        <rect x="16" y="342" width="1128" height="22" rx="3" fill="rgba(30,41,59,.45)"/>
+        <text x="16" y="357" fill="#e2e8f0" font-size="9.5">工具数 / 权限</text>
+        <text x="300" y="357" fill="#fff" font-size="9">24（真正的领域原语只有 7 个）· tier×mode</text>
+        <text x="600" y="357" fill="#cbd5e1" font-size="9">写 7 个默认给 4 个 · 无权限弹窗、无路径沙箱</text>
+        <text x="880" y="357" fill="#cbd5e1" font-size="8.5">29+2，xd:// 常驻 15 个 · tier×mode + 每工具 allow/deny</text>
+
+        <path d="M 16 372 L 1144 372" stroke="#334155" stroke-width="1.2"/>
+        <text x="16" y="394" fill="#fbbf24" font-size="10" font-weight="700">这张表最该被记住的一格，不是「小」</text>
+        <text x="16" y="416" fill="#e2e8f0" font-size="10">源码是 pi 的 <tspan fill="#fff" font-weight="700">18.4%</tspan>、是 omp TypeScript 部分的 <tspan fill="#fff" font-weight="700">2.9%</tspan> —— 但真正拉开的是那一格：<tspan fill="#22d3ee" font-weight="700">直接外部依赖 1 : 27 : 664+912</tspan>。</text>
+        <text x="16" y="438" fill="#94a3b8" font-size="9.5">它不是「更小的 pi」，是<tspan fill="#fff">依赖面积几乎为零的静态单二进制</tspan>。这个差别只在一个场景里真的重要：<tspan fill="#fff">scp 到一台离线的、不归你管的分析机</tspan>。</text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">re-agent <b>926e615</b> 现场点算 · pi/omp 引用第二讲 P01–P10 与第三讲 R01–R09 并抽查复核 · 三家 commit 数口径不同故不列 · 研究笔记 R04 §1</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s21-just-config.html ===== -->
+<section class="slide" data-ch="CH5 三方对比" data-title="自我拆台：六条其实只是配置，十条明确落后">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot rose"></span>CH 5 · 与 pi / oh-my-pi 的区别</div>
+    <h1 class="s-title">先拆自己的台：<span class="hl-r">这六条别当卖点讲</span></h1>
+    <div class="s-sub">判据只有一条：<b style="color:#e2e8f0">把 pi 或 omp 拿来，只允许改配置、写 SKILL.md、装现成扩展 —— 能不能得到同样的东西？</b> 能，就不算差异。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="14" fill="#fbbf24" font-size="9.5" font-weight="700">🟡 只是配置 / 皮肤（6 条）</text>
+
+          <rect x="16" y="22" width="668" height="42" rx="5" fill="rgba(120,53,15,.2)"/>
+          <text x="30" y="39" fill="#e2e8f0" font-size="9" font-weight="600">C1　「33 个 RE skill」</text>
+          <text x="30" y="56" fill="#94a3b8" font-size="8.5">pi <tspan fill="#fff">原生就有 skills</tspan>，omp 还会主动去扫别家的 skill 目录，机制一模一样。有价值的是那 397 KB <tspan fill="#fff">内容</tspan>，不是机制</text>
+
+          <rect x="16" y="68" width="668" height="42" rx="5" fill="rgba(120,53,15,.2)"/>
+          <text x="30" y="85" fill="#e2e8f0" font-size="9" font-weight="600">C2　「RE 专用 system prompt + 三个 role prompt」</text>
+          <text x="30" y="102" fill="#94a3b8" font-size="8.5">四个 md 加起来 5,222 字节。pi 一行配置就能整体替换；omp 的 system prompt 本来就是 <tspan fill="#fff">69 个 md 片段</tspan>拼的</text>
+
+          <rect x="16" y="114" width="668" height="52" rx="5" fill="rgba(120,53,15,.2)"/>
+          <text x="30" y="131" fill="#e2e8f0" font-size="9" font-weight="600">C3　「24 个工具，比 pi 的 7 个多」　—— 这个数字对比毫无意义</text>
+          <text x="30" y="148" fill="#94a3b8" font-size="8.5">24 个里 10 个是通用文件/命令工具，5 个是基础设施工具，1 个是 hook 模板生成器，reverse_toolkit 本质是<tspan fill="#fff">参数白名单化的 shell 调度器</tspan>。</text>
+          <text x="30" y="161" fill="#fb7185" font-size="8.5">真正的领域原语只有 <tspan fill="#fff">7 个</tspan>：entropy · find_bytes · carve · decode · triage · mitigations · apk_inspect</text>
+
+          <rect x="16" y="170" width="668" height="42" rx="5" fill="rgba(120,53,15,.2)"/>
+          <text x="30" y="187" fill="#e2e8f0" font-size="9" font-weight="600">C4　「planner / executor 双模型」</text>
+          <text x="30" y="204" fill="#94a3b8" font-size="8.5">概念上就是两次调用加一个 prompt 契约。<tspan fill="#fff">omp 有 10 个 model role</tspan>，含专用小模型和端侧 ONNX —— 双座位是弱化版</text>
+
+          <rect x="16" y="216" width="668" height="52" rx="5" fill="rgba(136,19,55,.24)" stroke="#fb7185" stroke-width="1.1"/>
+          <text x="30" y="233" fill="#fb7185" font-size="9" font-weight="600">C5　「tier × mode 分级审批闸」　—— 这条最该拆</text>
+          <text x="30" y="250" fill="#94a3b8" font-size="8.5">omp 有<tspan fill="#fff">形状几乎一模一样</tspan>的 {read,write,exec} × {always-ask,write,yolo}，还加每工具 allow/deny/prompt。</text>
+          <text x="30" y="263" fill="#94a3b8" font-size="8.5">pi 的 permission-gate.ts 只有 34 行且是<tspan fill="#fff">官方现成 example</tspan>。这是收敛设计，<tspan fill="#fff">不是发明</tspan></text>
+
+          <rect x="16" y="272" width="668" height="34" rx="5" fill="rgba(120,53,15,.2)"/>
+          <text x="30" y="289" fill="#e2e8f0" font-size="9" font-weight="600">C6　「有 MCP」</text>
+          <text x="30" y="302" fill="#94a3b8" font-size="8.5">omp 有，且做得更细（xd:// 挂载 + 把工具描述当敌意输入截断到 200 字符）。<tspan fill="#fff">相对 pi 有，相对 omp 是平手</tspan></text>
+
+          <path d="M 16 316 L 684 316" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="336" fill="#fb7185" font-size="9.5" font-weight="700">🔵 而这些地方是明确落后的（挑五条最要命的）</text>
+
+          <rect x="16" y="344" width="220" height="34" rx="4" fill="rgba(136,19,55,.24)"/>
+          <text x="28" y="360" fill="#fff" font-size="8.5" font-weight="600">零重试</text>
+          <text x="28" y="373" fill="#94a3b8" font-size="7.5">429/5xx/超时 → 整个 turn 丢弃</text>
+
+          <rect x="242" y="344" width="220" height="34" rx="4" fill="rgba(136,19,55,.24)"/>
+          <text x="254" y="360" fill="#fff" font-size="8.5" font-weight="600">maxTurns 只有 8</text>
+          <text x="254" y="373" fill="#94a3b8" font-size="7.5">另两家根本没有迭代上限</text>
+
+          <rect x="468" y="344" width="216" height="34" rx="4" fill="rgba(136,19,55,.24)"/>
+          <text x="480" y="360" fill="#fff" font-size="8.5" font-weight="600">会话线性，无树无回退</text>
+          <text x="480" y="373" fill="#94a3b8" font-size="7.5">pi 有树 + SQLite；omp 有 5 种分叉</text>
+
+          <rect x="16" y="382" width="220" height="34" rx="4" fill="rgba(136,19,55,.24)"/>
+          <text x="28" y="398" fill="#fff" font-size="8.5" font-weight="600">工具严格串行</text>
+          <text x="28" y="411" fill="#94a3b8" font-size="7.5">omp 有 per-tool 并发调度 + 写屏障</text>
+
+          <rect x="242" y="382" width="442" height="34" rx="4" fill="rgba(136,19,55,.3)" stroke="#fb7185" stroke-width="1.1"/>
+          <text x="254" y="398" fill="#fff" font-size="8.5" font-weight="600">role=auto 的关键词路由 —— 全仓最脆的一段</text>
+          <text x="254" y="411" fill="#fb7185" font-size="7.5">29 个关键词 substring 匹配。举个反例：<tspan fill="#fff">「我不想执行任何命令」会被路由到 executor</tspan></text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:9px">
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>作者的那句自我叙事，也被拆了</h3></div>
+          <ul>
+            <li>原话：<em>「几乎每一条差异都是『读二进制 vs 改代码』这句话的推论」</em></li>
+            <li>逐条核过之后：<strong>大约只有三分之一的差异真的从那句话推得出来</strong>；另外三分之二是<strong>「一个人 5 天」对「团队 246 天 / 82 天」的工程成熟度差</strong>，跟领域无关</li>
+          </ul>
+        </div>
+        <div class="card amber">
+          <div class="card-head"><span class="card-dot"></span><h3>安全那条也别吹</h3></div>
+          <ul>
+            <li>三家<strong>都没有操作系统级隔离</strong>。re-agent 确实多一个 pi/omp 都没有的工作区路径收敛，但只覆盖结构化工具</li>
+            <li>而且实际生效的沙箱，很大程度上是<strong>默认 provider 也就是 Codex CLI 自带的 <em>--sandbox read-only</em></strong> —— 别人的功劳</li>
+          </ul>
+        </div>
+        <div class="card cyan">
+          <div class="card-head"><span class="card-dot cyan"></span><h3>为什么要花一整页拆自己</h3></div>
+          <ul>
+            <li>因为下一页那四条<strong>才是真的</strong>。不先把水分挤干，四条真的也会被当成吹的</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">三仓本地对照 · <b>926e615</b> / pi / oh-my-pi · 判据与逐条证据见研究笔记 R04 §2（🟡 6 条 · 🔵 10 条）</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s22-structural.html ===== -->
+<section class="slide" data-ch="CH5 三方对比" data-title="挤干水分之后，剩下四条配置到达不了的选择">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot slate"></span>CH 5 · 与 pi / oh-my-pi 的区别</div>
+    <h1 class="s-title">水分挤完，剩下<span class="hl-a">四条</span> —— 配置到不了的地方</h1>
+    <div class="s-sub">每一条都必须满足：<b style="color:#e2e8f0">要么换语言，要么换分发形态，要么重写内核</b>。改配置、写 SKILL.md、装扩展，都到不了。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cards c2" style="gap:12px">
+
+      <div class="card cyan">
+        <div class="card-head"><span class="card-num">S1</span><h3>分发形态：1 个依赖的静态单二进制</h3></div>
+        <ul>
+          <li><em>CGO_ENABLED=0</em> 交叉编译四平台，<em>go:embed</em> 把 <strong>397 KB 的 skill（加 prompts 共约 403 KB）打进二进制</strong>，<strong>目标机零运行时</strong></li>
+          <li>对照：pi 是 npm + 27 个依赖；omp 是 npm + 原生 addon + <strong>664 个 npm 包 + 912 个 crate</strong></li>
+          <li><strong>为什么配不出来</strong>：这是换语言才能得到的东西。而它只在一个场景里真的重要 —— <strong>scp 到一台离线的、受限的、不归你管的分析机</strong></li>
+        </ul>
+      </div>
+
+      <div class="card amber">
+        <div class="card-head"><span class="card-num">S2</span><h3>把别的 agent 当模型用</h3></div>
+        <ul>
+          <li><em>cli-tmux</em> provider <strong>1,443 行</strong>：tmux 生命周期 + 三种私有 JSONL 事件格式 + 原生 session 续接 + Claude 任务表状态机</li>
+          <li>注释原话：<em>「在 detached tmux 里跑一个本地 coding CLI，tail 它的 JSONL stdout，让操作员实时看到推理、工具活动和 token 计数」</em></li>
+          <li><strong>为什么是结构性的</strong>：pi/omp 的 provider 契约不覆盖这种形态。它把 re-agent 从「一个 agent」变成<strong>「别人 agent 的编排者」</strong>，顺带<strong>改了计费模型 —— 吃订阅，不吃 API token</strong></li>
+        </ul>
+      </div>
+
+      <div class="card rose">
+        <div class="card-head"><span class="card-num">S3</span><h3>为「模型拒答」设计的两阶段隔离</h3></div>
+        <ul>
+          <li>四个开关<strong>同时打在 RunOptions 上</strong>：<em>Isolated</em> + <em>FreshSession</em> + 独立 system prompt + 收窄到 14 个只读工具 —— <strong>内核级支持，不是外挂</strong></li>
+          <li><strong>这是四条里唯一一条能直接从领域推出来的架构</strong>。omp 的 11 种 dialect 是同一架构家族，但它解的是<strong>能力</strong>问题，不是<strong>拒答</strong>问题</li>
+          <li>而且红线写死在代码和单测里：不许翻译、不许暗语、不许 prompt laundering</li>
+        </ul>
+      </div>
+
+      <div class="card violet">
+        <div class="card-head"><span class="card-num">S4</span><h3>扩展性方向：把几十个钩子压成 1 个 interface</h3></div>
+        <ul>
+          <li>全仓<strong>只有一个 interface</strong>（<em>types.Provider</em>，三个方法）+ 8 个回调。对照 pi 的 33 个钩子、omp 的 25+39 钩子 + 5 类扩展点 + 14×17 能力矩阵</li>
+          <li>pi 和 omp 把权限、plan mode、todo、MCP、上下文发现<strong>全推到扩展层</strong>；re-agent <strong>全焊进内核</strong>，扩展只剩数据（JSON / md / MCP）</li>
+          <li><strong>这是两个互相配置不到的极点。</strong>没有谁对谁错 —— 一个赌「别人会来扩展」，一个赌「只有我自己会改」</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="takeaway" style="border-color:rgba(251,191,36,.42); background:rgba(120,53,15,.24); color:#fde68a; line-height:1.7">
+      <b style="color:#fbbf24">整章一句话 →</b>
+      re-agent <b style="color:#fff">不是「更小的 pi」，也不是「配了 RE prompt 的 pi」</b>。它在四件事上做了配置到达不了的选择：<b style="color:#fff">换语言换分发形态、把别的 agent 当 provider、为拒答设计两阶段隔离、把扩展面压成一个 interface</b>。<br>
+      <span style="color:#94a3b8">除此之外 —— skill、prompt、工具清单、审批闸、MCP —— <b style="color:#fff">全是 pi/omp 用现成机制就能复刻的配置层</b>；而重试、会话树、并发调度、quirk 表、中断模型这五项，<b style="color:#fff">它是明确落后的</b>。<b style="color:#fff">这就是「一个人写一个 harness」到今天能到的真实位置。</b></span>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">判据：只改配置 / SKILL.md / 现成扩展能否复刻 · 逐条证据见研究笔记 R04 §2 🔴 S1–S4</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s23-ch6.html ===== -->
+<section class="slide chapter" data-ch="CH06 能干什么" data-title="第 06 章 · 能干什么">
+  <div class="chapter-inner">
+    <div>
+      <div class="ch-no">06</div>
+      <h1>能干什么</h1>
+      <div class="ch-q"><b>具体能干什么？举得出例子吗？</b></div>
+      <div class="ch-sub">两页：一个<b>端到端的完整链路</b>，四个<b>能对回 skill 原文行号</b>的场景。</div>
+      <div class="ch-prog"><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="on"></span><span class=""></span></div>
+    </div>
+    <div>
+      <ul class="ch-list">
+        <div class="ch-list-h">本章内容</div>
+        <li><span class="n">25</span><span class="t">端到端案例<i>最值钱的不是它解出来了，是它反例也跑了一次</i></span></li>
+        <li><span class="n">26</span><span class="t">四个场景<i>CTF 分诊 · APK 签名 · SO 转服务 · 混淆墙</i></span></li>
+      </ul>
+      <div class="ch-sub" style="margin-top:22px;border-color:var(--amber)">本章取证等级是全场最低的一章 —— <b>旗舰案例的 transcript 不在仓库里，标 [B]</b>，页上写明。</div>
+    </div>
+  </div>
+  <div class="s-foot">
+    <span class="src">第 06 章 / 共 7 章</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s24-endtoend.html ===== -->
+<section class="slide" data-ch="CH6 能干什么" data-title="端到端：一句话进去，正例反例各跑一次出来">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot emerald"></span>CH 6 · 能干什么</div>
+    <h1 class="s-title">最值钱的不是它解出来了 —— 是它<span class="hl">反例也跑了一次</span></h1>
+    <div class="s-sub">结论从「我读源码读出来是 X」降级成「<b style="color:#e2e8f0">我观察到了 X</b>」。这一步是逆向和猜谜的分界线。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="figure plain">
+      <svg viewBox="0 0 1160 452" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="e2-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#34d399"/>
+          </marker>
+        </defs>
+
+        <rect x="16" y="14" width="1128" height="34" rx="6" fill="rgba(8,51,68,.26)" stroke="#22d3ee" stroke-width="1.1"/>
+        <text x="30" y="36" fill="#cbd5e1" font-size="9.5">操作员输入的<tspan fill="#fff">全部内容</tspan>：<tspan fill="#22d3ee" font-style="italic">"Recover the expected token from chall.js, verify it by actually running the checker, and explain how the check works."</tspan></text>
+
+        <path d="M 580 50 L 580 62" stroke="#34d399" stroke-width="1.3" marker-end="url(#e2-ar)"/>
+
+        <rect x="16" y="66" width="360" height="118" rx="7" fill="rgba(76,29,149,.26)" stroke="#a78bfa" stroke-width="1.2"/>
+        <text x="30" y="86" fill="#a78bfa" font-size="10" font-weight="700">① planner（codex）先落 4 步</text>
+        <text x="30" y="106" fill="#cbd5e1" font-size="8.5">PLAN 0/4 · via codex</text>
+        <text x="30" y="123" fill="#e2e8f0" font-size="8.5">1　定位 chall.js，判定运行时与校验接口</text>
+        <text x="30" y="139" fill="#e2e8f0" font-size="8.5">2　逆出校验逻辑，推导预期 token</text>
+        <text x="30" y="155" fill="#e2e8f0" font-size="8.5">3　用推出来的 token 真跑一次 checker</text>
+        <text x="30" y="171" fill="#e2e8f0" font-size="8.5">4　把校验方式写成简短解题笔记</text>
+
+        <rect x="392" y="66" width="452" height="118" rx="7" fill="rgba(6,78,59,.26)" stroke="#34d399" stroke-width="1.2"/>
+        <text x="406" y="86" fill="#34d399" font-size="10" font-weight="700">② executor 逐条执行 —— 七条都是受策略约束的真实工具调用</text>
+        <text x="406" y="105" fill="#cbd5e1" font-size="8.5">1　rg --files</text>
+        <text x="560" y="105" fill="#64748b" font-size="8">盘点工作区</text>
+        <text x="406" y="121" fill="#cbd5e1" font-size="8.5">2　file chall.js　　3　node -v</text>
+        <text x="560" y="121" fill="#64748b" font-size="8">判类型 · <tspan fill="#94a3b8">不假设环境存在</tspan></text>
+        <text x="406" y="137" fill="#cbd5e1" font-size="8.5">4　sed -n '1,240p' chall.js</text>
+        <text x="560" y="137" fill="#64748b" font-size="8">读校验逻辑</text>
+        <text x="406" y="153" fill="#fbbf24" font-size="8.5">5　sha256sum chall.js &amp;&amp; wc -c chall.js</text>
+        <text x="620" y="153" fill="#fbbf24" font-size="8">钉住本次检查的<tspan fill="#fff">确切字节</tspan></text>
+        <text x="406" y="169" fill="#34d399" font-size="8.5">6　node chall.js '0xaf{warmup_deck}'　→ accepted, exit=0</text>
+        <text x="406" y="182" fill="#fb7185" font-size="8.5">7　node chall.js 'wrong'　　　　　　　 → rejected, exit=1</text>
+
+        <rect x="860" y="66" width="284" height="118" rx="7" fill="rgba(136,19,55,.24)" stroke="#fb7185" stroke-width="1.3"/>
+        <text x="874" y="86" fill="#fb7185" font-size="10" font-weight="700">这个案例的全部说服力</text>
+        <text x="874" y="108" fill="#e2e8f0" font-size="9">第 6 步是<tspan fill="#fff">正例</tspan>，第 7 步是<tspan fill="#fff">反例</tspan></text>
+        <text x="874" y="128" fill="#cbd5e1" font-size="8.5">它没停在「我读出来是 X」，</text>
+        <text x="874" y="144" fill="#cbd5e1" font-size="8.5">而是<tspan fill="#fff">两边都跑一次</tspan></text>
+        <text x="874" y="166" fill="#94a3b8" font-size="8">加上第 5 步的 sha256 —— 这三步合起来</text>
+        <text x="874" y="180" fill="#94a3b8" font-size="8">才让这条结论<tspan fill="#fff">别人能原样重放</tspan></text>
+
+        <rect x="16" y="196" width="828" height="104" rx="7" fill="rgba(2,6,23,.75)" stroke="#334155" stroke-width="1.1"/>
+        <text x="30" y="216" fill="#e2e8f0" font-size="9.5" font-weight="600">③ 答案带着证据一起给出</text>
+        <text x="30" y="236" fill="#cbd5e1" font-size="8.5">Recovered token:　0xaf{warmup_deck}</text>
+        <text x="30" y="252" fill="#cbd5e1" font-size="8.5">Verification run:　node chall.js '0xaf{warmup_deck}' → accepted, exit=0</text>
+        <text x="30" y="272" fill="#94a3b8" font-size="8.5">How it works: chall.js:3 存了一个整数数组，每个字节和 0x2a 异或。解出来就是那个 token。脚本再把 process.argv[2] 与解出的字符串直接比较 ——</text>
+        <text x="30" y="286" fill="#94a3b8" font-size="8.5">完全相等打印 accepted 并 exit 0，否则 rejected 并 exit 1。</text>
+
+        <rect x="860" y="196" width="284" height="104" rx="7" fill="rgba(120,53,15,.24)" stroke="#fbbf24" stroke-width="1.2"/>
+        <text x="874" y="216" fill="#fbbf24" font-size="9.5" font-weight="600">回合页脚（原样）</text>
+        <text x="874" y="240" fill="#e2e8f0" font-size="8.5">via codex · role auto · turns 1</text>
+        <text x="874" y="258" fill="#e2e8f0" font-size="8.5">took 1m34s</text>
+        <text x="874" y="276" fill="#e2e8f0" font-size="8.5">in 162k　out 2.2k</text>
+        <text x="874" y="292" fill="#e2e8f0" font-size="8.5">think 895　cache 122k</text>
+
+        <path d="M 16 312 L 1144 312" stroke="#1e293b" stroke-width="1"/>
+        <text x="16" y="332" fill="#fb7185" font-size="10" font-weight="700">必须同页说清的三件事 —— 这一页的取证等级是本讲最低的</text>
+
+        <rect x="16" y="342" width="368" height="62" rx="6" fill="rgba(136,19,55,.2)" stroke="#fb7185" stroke-width="1.1"/>
+        <text x="30" y="361" fill="#fb7185" font-size="9" font-weight="600">① transcript 不在仓库里</text>
+        <text x="30" y="379" fill="#cbd5e1" font-size="8.5">README 说这一轮的 plan / 命令 / 耗时 / 答案</text>
+        <text x="30" y="395" fill="#cbd5e1" font-size="8.5">都是从 session 记录抄出来的，但<tspan fill="#fff">记录本身没提交</tspan> —— 无法复核</text>
+
+        <rect x="396" y="342" width="368" height="62" rx="6" fill="rgba(120,53,15,.22)" stroke="#fbbf24" stroke-width="1.1"/>
+        <text x="410" y="361" fill="#fbbf24" font-size="9" font-weight="600">② 它自己写了复现免责声明</text>
+        <text x="410" y="379" fill="#cbd5e1" font-size="8.5">这一轮需要真的 planner 和 executor；</text>
+        <text x="410" y="395" fill="#e2e8f0" font-size="8.5"><tspan fill="#fff">--smoke 和 mock provider 只验线路，跑不出这个结果</tspan></text>
+
+        <rect x="776" y="342" width="368" height="62" rx="6" fill="rgba(6,78,59,.22)" stroke="#34d399" stroke-width="1.1"/>
+        <text x="790" y="361" fill="#34d399" font-size="9" font-weight="600">③ 但 A 版是可以零成本自己验的</text>
+        <text x="790" y="379" fill="#cbd5e1" font-size="8.5">同一道题还有一条<tspan fill="#fff">完全不用模型</tspan>的解法：</text>
+        <text x="790" y="395" fill="#e2e8f0" font-size="8.5">/read chall.js → ! 直接跑 node 一行 XOR → 得同一个 token</text>
+
+        <rect x="16" y="414" width="1128" height="30" rx="5" fill="rgba(2,6,23,.6)" stroke="#334155" stroke-width="1"/>
+        <text x="30" y="434" fill="#cbd5e1" font-size="9.5">把这套搬到真样本，README 给了映射：<tspan fill="#fff">/scan 定性 → /hex &lt;file&gt; 0x20 读文件头 → /carve 抠内嵌载荷 → /r2 &lt;file&gt; 上反汇编器</tspan>　<tspan fill="#94a3b8">前三步零 token。</tspan></text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">README.md:232-339（doc-claimed，标 [B]）· 案例 A 与命令映射为 [A] 逐字引用 · 本讲未执行二进制 · 研究笔记 R05 §2</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s25-scenarios.html ===== -->
+<section class="slide" data-ch="CH6 能干什么" data-title="四个场景：每一步都能对到 skill 原文">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot emerald"></span>CH 6 · 能干什么</div>
+    <h1 class="s-title">四个场景 —— 每一步都能<span class="hl">对回 skill 原文的行号</span></h1>
+    <div class="s-sub">这些不是「它应该能做」，是 <b style="color:#e2e8f0">SKILL.md 里写死的步骤和命令</b>。判据是：你能不能照着自己跑一遍。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cards c2" style="gap:12px">
+
+      <div class="card cyan">
+        <div class="card-head"><span class="card-dot cyan"></span><h3>① CTF 未知样本首轮分诊　<span style="color:#64748b;font-weight:400">ctf-first-pass</span></h3></div>
+        <ul>
+          <li><strong>零 token 五连</strong>：<em>/scan ./artifact</em> → <em>/entropy</em> → <em>/carve</em> → <em>/findbytes ./artifact flag{</em> → <em>/decode auto</em></li>
+          <li><strong>五条判据表</strong>（skill 原文，可直接背）：高熵 + 低可打印率 → 加壳/压缩/加密；危险导入或 <em>/bin/sh</em> → 走 pwn；base64 串挨着 crypto 词 → 先解码再看 key/IV/mode；多个 magic 偏移 → 走取证 carving；见 APK/DEX/SO → 转 Android 那条线</li>
+          <li>收敛成<strong>一句假设</strong>：类别 + 可能的 primitive + <strong>最小的下一步实验</strong>。不给结论，给下一步</li>
+        </ul>
+      </div>
+
+      <div class="card emerald">
+        <div class="card-head"><span class="card-dot emerald"></span><h3>② APK 签名算法逆向　<span style="color:#64748b;font-weight:400">android-apk-frida</span></h3></div>
+        <ul>
+          <li><em>/apk ./app.apk</em> 出加固壳与框架 → 对可疑 so 跑 <em>/scan</em> → <em>jadx -d jadx_out</em> 后 <em>rg -n "Cipher|MessageDigest|sign|token|encrypt"</em></li>
+          <li><strong>先定死 class/method，才生成 hook 脚手架</strong> —— 三种目标写法：<em>com.example.Crypto.sign(java.lang.String, byte[])</em> / <em>libfoo.so!Java_com_example_Crypto_sign</em> / <em>libfoo.so+0x1234</em></li>
+          <li>模板输出有<strong>单测钉死</strong>：给 android_ssl_pinning 必须吐 <em>CertificatePinner</em> + <em>TrustManagerImpl</em>（<em>tools_test.go:271-300</em>）—— 比文档更硬的证据</li>
+          <li><strong>纪律条款</strong>：先观察后改写 —— 先打参数/返回/调用栈/字节数组，<strong>假设被验证过才去改返回值</strong></li>
+        </ul>
+      </div>
+
+      <div class="card violet">
+        <div class="card-head"><span class="card-dot violet"></span><h3>③ SO 里的 native 函数变成可调服务　<span style="color:#64748b;font-weight:400">unidbg</span></h3></div>
+        <ul>
+          <li><strong>选型分界线写得很清楚</strong>：要 Java/JNI 上下文、framework 取值、文件系统 mock → unidbg；只是一段没有 Java 依赖的独立指令区间 → unicorn</li>
+          <li>流程：先攒证据（包名/类/方法/ABI/偏移）→ 写<strong>最小</strong> harness → 第一次开 verbose，<strong>只补失败日志里真正缺的 JNI 回调</strong> → 稳定 Android 状态 → 定点 trace（全量指令 trace 很贵）</li>
+          <li><em>armeabi-v7a → for32Bit()</em>，<em>arm64-v8a → for64Bit()</em>。交付物包含<strong>「仍然缺哪些回调」</strong> —— 把没做完的部分也写进报告</li>
+        </ul>
+      </div>
+
+      <div class="card rose">
+        <div class="card-head"><span class="card-dot rose"></span><h3>④ 混淆墙：OLLVM / VMP / JSVMP</h3></div>
+        <ul>
+          <li>这是第一讲第 ⑦ 道坎的落点，全部住在 skill 里而不是 prompt 里：<strong>ollvm-deobfuscation 583 行 · vmp-restore 604 行 · jsvmp-analysis 620 行 · so-string-deobfuscation 428 行</strong></li>
+          <li>顺序是强制的：<strong>传统去混淆和符号恢复先跑完，模型只上最后一公里</strong> —— 因为混淆是信息论层面的删除，模型再强也变不出被删掉的信息</li>
+          <li>Web 那条线接得也很实：<em>web-wasm-crypto</em> 的 fetch / WASM hook，加 jsvmp 的六特征探测脚本</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="takeaway" style="border-color:rgba(251,113,133,.42); background:rgba(136,19,55,.24); color:#fecdd3; line-height:1.7">
+      <b style="color:#fb7185">但这一页必须配一句实话 →</b>
+      这四个场景<b style="color:#fff">全部没有成功率数字</b>。全仓 <b style="color:#fff">0 个 Benchmark、0 个 eval harness、没有 CI</b>，只有 164 个正确性单测。<br>
+      <span style="color:#94a3b8">所以准确的说法是：<b style="color:#fff">这四条路径被写成了可执行的步骤，而不是被证明了有效。</b> 作者自己在 README 里承诺要补「可复现的评测样例」—— 那是下一步，不是现状。</span>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">skills/{ctf-first-pass,android-apk-frida,unidbg,ollvm-deobfuscation}/SKILL.md 逐字取证 · internal/tools/tools_test.go:271-300 · 研究笔记 R05 §5 §6</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s26-ch7.html ===== -->
+<section class="slide chapter" data-ch="CH07 代价与规划" data-title="第 07 章 · 代价与规划">
+  <div class="chapter-inner">
+    <div>
+      <div class="ch-no">07</div>
+      <h1>代价与规划</h1>
+      <div class="ch-q"><b>洞在哪，接下来往哪走？</b></div>
+      <div class="ch-sub">两页收口：<b>先把安全闸的洞摊开</b>，再谈规划；最后把四讲一起收一次。</div>
+      <div class="ch-prog"><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="on"></span></div>
+    </div>
+    <div>
+      <ul class="ch-list">
+        <div class="ch-list-h">本章内容</div>
+        <li><span class="n">28</span><span class="t">代价页与规划页<i>七个洞 · 明写的规划只有一句 · 其余是我从代码缝里推的</i></span></li>
+        <li><span class="n">29</span><span class="t">四讲收口<i>通用层开源之后，壁垒到底在哪</i></span></li>
+      </ul>
+      <div class="ch-sub" style="margin-top:22px;border-color:var(--rose)">规划分两栏是硬规矩：<b>项目承诺的，和我推断的，不许混为一谈。</b></div>
+    </div>
+  </div>
+  <div class="s-foot">
+    <span class="src">第 07 章 / 共 7 章</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s27-roadmap.html ===== -->
+<section class="slide" data-ch="CH7 代价与规划" data-title="代价页与规划页：明说的只有一句，其余是缝">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot rose"></span>CH 7 · 代价与未来规划</div>
+    <h1 class="s-title">先把洞摊开，<span class="hl-r">再谈规划</span> —— 而明写的规划只有一句</h1>
+    <div class="s-sub">仓库里<b style="color:#e2e8f0">没有 ROADMAP.md、没有 issue 模板、没有 milestone</b>。所以左边是实测的洞，右边分两栏：<b style="color:#e2e8f0">明说的</b> 和 <b style="color:#e2e8f0">从代码缝里推的</b>。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c46">
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:9px">
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>安全闸的七个洞（挑最要命的四个）</h3></div>
+          <ul>
+            <li><strong>默认档就不安全</strong>：<em>AutoApproves</em> 对 yolo <strong>和 safe 都无视 tier 一律放行</strong> —— 而 safe 是默认。架构文档自己承认了这一点</li>
+            <li><strong>run_command 就是 bash -c</strong>，没有 chroot / namespace / seccomp。<em>python3 -c</em> 一行就能绕过 <em>--write</em> 和 <em>--allow-network</em></li>
+            <li><strong>路径包含检查不解 symlink</strong>：<em>util.ResolveInside</em> 只做 <em>Clean</em> + 前缀比对（全仓唯一一处 <em>EvalSymlinks</em> 在 <em>assets.go:52</em>，与它无关）。而这个函数所在的 <em>util</em> 包<strong>零测试</strong></li>
+            <li><em>reverse_toolkit</em> 申请审批时<strong>不带 concerns</strong> —— 其中 <strong>frida 会真的起进程</strong>，在 <em>--allow-network</em> 关着时照跑（burp / mitmproxy 只吐模板，这条别夸大）</li>
+          </ul>
+        </div>
+        <div class="card amber">
+          <div class="card-head"><span class="card-dot"></span><h3>还有三个「说了但没兑现到底」</h3></div>
+          <ul>
+            <li>写盘有两处<strong>绕过写闸门</strong>（output 落 artifact、retool 落产物）；<em>!cd</em> 用 bash 解析并能<strong>把工作区搬走</strong>；knowledge 和 skills 绕过包含检查读盘</li>
+            <li><em>security.ValidateCommand</em> 是<strong>零调用点的死代码</strong> —— 写了，但没接上</li>
+          </ul>
+        </div>
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>但有一条经得起验：executor 的只读表</h3></div>
+          <ul>
+            <li>「委派出去的 executor 只能读」不是宣传语，<em>delegate.go:145</em> 是一张 <strong>14 项白名单</strong>，写和执行两类工具压根不在表里 —— <strong>这条属实</strong></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="14" fill="#34d399" font-size="9.5" font-weight="700">A · 仓库里明写的计划 —— 只有一件事，出现在三处</text>
+
+          <rect x="16" y="22" width="668" height="58" rx="6" fill="rgba(6,78,59,.26)" stroke="#34d399" stroke-width="1.3"/>
+          <text x="30" y="42" fill="#e2e8f0" font-size="9.5">① 接<tspan fill="#fff">本地模型 route</tspan>　②补一套<tspan fill="#fff">可复现的评测样例</tspan>，用来横向量各家 provider</text>
+          <text x="30" y="61" fill="#94a3b8" font-size="8.5">英文 README、中文 README、项目主页卡片，三处说的是同一件事　README.md:135</text>
+          <text x="30" y="75" fill="#64748b" font-size="8">而最后两个 commit 正好指向「把手工转录的案例变成自动评测集」—— 方向对得上</text>
+
+          <path d="M 16 92 L 684 92" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="112" fill="#fbbf24" font-size="9.5" font-weight="700">B · 代码缝里露出来的缺口 —— <tspan fill="#fb7185">这些不是项目承诺，是我推的</tspan></text>
+
+          <rect x="16" y="120" width="326" height="30" rx="4" fill="rgba(120,53,15,.22)"/>
+          <text x="28" y="139" fill="#e2e8f0" font-size="8.5">没有真沙箱（bash -c 裸跑）</text>
+          <rect x="358" y="120" width="326" height="30" rx="4" fill="rgba(120,53,15,.22)"/>
+          <text x="370" y="139" fill="#e2e8f0" font-size="8.5">没有重试（grep retry/backoff 零命中）</text>
+
+          <rect x="16" y="154" width="326" height="30" rx="4" fill="rgba(120,53,15,.22)"/>
+          <text x="28" y="173" fill="#e2e8f0" font-size="8.5">symlink 未解，util 包零测试</text>
+          <rect x="358" y="154" width="326" height="30" rx="4" fill="rgba(120,53,15,.22)"/>
+          <text x="370" y="173" fill="#e2e8f0" font-size="8.5">审批记忆不落盘，每次重来</text>
+
+          <rect x="16" y="188" width="326" height="30" rx="4" fill="rgba(120,53,15,.22)"/>
+          <text x="28" y="207" fill="#e2e8f0" font-size="8.5">没有 CI、没有 lint 配置</text>
+          <rect x="358" y="188" width="326" height="30" rx="4" fill="rgba(120,53,15,.22)"/>
+          <text x="370" y="207" fill="#e2e8f0" font-size="8.5">mcp / types / util 三个包零测试</text>
+
+          <rect x="16" y="222" width="326" height="30" rx="4" fill="rgba(120,53,15,.22)"/>
+          <text x="28" y="241" fill="#e2e8f0" font-size="8.5">MCP 生态空（唯一示例 disabled:true）</text>
+          <rect x="358" y="222" width="326" height="30" rx="4" fill="rgba(120,53,15,.22)"/>
+          <text x="370" y="241" fill="#e2e8f0" font-size="8.5">没有 Windows 目标</text>
+
+          <rect x="16" y="256" width="668" height="30" rx="4" fill="rgba(136,19,55,.26)" stroke="#fb7185" stroke-width="1.1"/>
+          <text x="28" y="275" fill="#fff" font-size="8.5" font-weight="600">最该先补的一条：会话线性无回退 —— 逆向就是不断走死路再退回来，这个缺口和领域直接冲突</text>
+
+          <path d="M 16 300 L 684 300" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="320" fill="#22d3ee" font-size="9.5" font-weight="700">C · 分发与社区的真实状态</text>
+
+          <rect x="16" y="328" width="326" height="44" rx="5" fill="rgba(8,51,68,.22)"/>
+          <text x="28" y="346" fill="#e2e8f0" font-size="8.5">GitHub Pages 项目页 · 7 张架构图 · 14 张截图</text>
+          <text x="28" y="363" fill="#94a3b8" font-size="8">3 段动画 · 11 张竖版卡，素材由 scripts/ 脚本化生产</text>
+
+          <rect x="358" y="328" width="326" height="44" rx="5" fill="rgba(136,19,55,.2)"/>
+          <text x="370" y="346" fill="#e2e8f0" font-size="8.5">但仓库里<tspan fill="#fff">没有 Dockerfile、没有 brew formula</tspan></text>
+          <text x="370" y="363" fill="#94a3b8" font-size="8">README 只给 go install 一条路；「没有 Releases 二进制」是站点侧事实，标 [B]</text>
+
+          <rect x="16" y="380" width="668" height="38" rx="5" fill="rgba(2,6,23,.6)" stroke="#334155" stroke-width="1"/>
+          <text x="30" y="399" fill="#cbd5e1" font-size="9">讽刺的地方在这儿：<tspan fill="#fff">卖点是「静态单二进制，scp 过去就能用」，但安装说明只给 go install</tspan>。</text>
+          <text x="30" y="413" fill="#94a3b8" font-size="8">你得先在一台<tspan fill="#fff">有 Go 工具链</tspan>的机器上把它编出来 —— 这条缝，把整个 S1 的价值主张削掉了一半</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">本地实测 · <b>926e615</b> · internal/security/{approval.go,policy.go} · util/util.go:112 · README.md:135 · git log 全 24 条 · 研究笔记 R06</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+<!-- ===== s28-close.html ===== -->
+<section class="slide" data-ch="CH7 代价与规划" data-title="四讲收口：通用层开源之后，壁垒到底在哪">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot orange"></span>四讲 · 收口</div>
+    <h1 class="s-title">通用层已经做完并开源了 —— <span class="hl-a">剩下的那层只能内行自己焊</span></h1>
+    <div class="s-sub">这不是「AI 让人人都能创业」的鸡汤。是一个具体判断，而且这四讲把它<b style="color:#e2e8f0">拆成了可核对的四段</b>。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="figure plain">
+      <svg viewBox="0 0 1160 452" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="cl-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#fb923c"/>
+          </marker>
+        </defs>
+
+        <text x="16" y="16" fill="#fb923c" font-size="10.5" font-weight="700">四讲各收一句</text>
+
+        <rect x="16" y="26" width="1128" height="28" rx="4" fill="rgba(8,51,68,.24)"/>
+        <text x="32" y="45" fill="#22d3ee" font-size="9.5" font-weight="600">第一讲 · 地图</text>
+        <text x="150" y="45" fill="#cbd5e1" font-size="9">造一个能干活的 agent 要六样，<tspan fill="#fff">六样都是壳的事 —— 换模型，一样都省不掉</tspan></text>
+
+        <rect x="16" y="58" width="1128" height="28" rx="4" fill="rgba(6,78,59,.24)"/>
+        <text x="32" y="77" fill="#34d399" font-size="9.5" font-weight="600">第二讲 · 下限</text>
+        <text x="150" y="77" fill="#cbd5e1" font-size="9">教科书循环 6 行，真实产品 121 + 517 行 —— <tspan fill="#fff">多出来的九成在处理「跑到一半，世界变了」</tspan></text>
+
+        <rect x="16" y="90" width="1128" height="28" rx="4" fill="rgba(136,19,55,.24)"/>
+        <text x="32" y="109" fill="#fb7185" font-size="9.5" font-weight="600">第三讲 · 上限</text>
+        <text x="150" y="109" fill="#cbd5e1" font-size="9">同一份代码基座加到一百五十万行 —— <tspan fill="#fff">它的价值不在做了什么，在把每个决定的代价都摊开给你看了</tspan></text>
+
+        <rect x="16" y="122" width="1128" height="28" rx="4" fill="rgba(120,53,15,.26)"/>
+        <text x="32" y="141" fill="#fbbf24" font-size="9.5" font-weight="600">第四讲 · 落地</text>
+        <text x="150" y="141" fill="#cbd5e1" font-size="9">一个人两万四千行（公开史 5 天，另有一个没进 git 的前身）—— <tspan fill="#fff">挤干水分之后，配置到不了的地方只有四条；落后的地方有十条</tspan></text>
+
+        <path d="M 580 156 L 580 172" stroke="#fb923c" stroke-width="1.4" marker-end="url(#cl-ar)"/>
+
+        <rect x="16" y="176" width="1128" height="74" rx="7" fill="rgba(251,146,60,.2)" stroke="#fb923c" stroke-width="1.5"/>
+        <text x="580" y="200" fill="#fb923c" font-size="12.5" font-weight="700" text-anchor="middle">所以，一个人现在到底能干什么，不能干什么</text>
+        <text x="580" y="224" fill="#e2e8f0" font-size="10" text-anchor="middle">能干的：<tspan fill="#fff">把你这行的流程焊成代码</tspan>　—— 那 397 KB 的 skill、那 7 个领域原语、那五条判据表，大厂堆不出来</text>
+        <text x="580" y="242" fill="#94a3b8" font-size="9.5" text-anchor="middle">干不了的：<tspan fill="#fff">重试、会话树、并发调度、quirk 表、中断模型、真沙箱、CI、评测集</tspan> —— 这八样是团队按年堆出来的，一个人短期堆不出来</text>
+
+        <path d="M 16 264 L 1144 264" stroke="#1e293b" stroke-width="1"/>
+        <text x="16" y="286" fill="#22d3ee" font-size="10" font-weight="700">如果你也要造一个 —— 从这四讲里能直接抄走的方法，其实只有三条</text>
+
+        <rect x="16" y="296" width="368" height="86" rx="7" fill="rgba(8,51,68,.24)" stroke="#22d3ee" stroke-width="1.2"/>
+        <text x="34" y="318" fill="#22d3ee" font-size="10" font-weight="700">① 先挑那条流程，别先挑技术</text>
+        <text x="34" y="340" fill="#cbd5e1" font-size="8.5">挑你每天卡住、干得最烦、</text>
+        <text x="34" y="357" fill="#cbd5e1" font-size="8.5">而且<tspan fill="#fff">错了一眼能看出来</tspan>的那条</text>
+        <text x="34" y="375" fill="#64748b" font-size="8">「错了一眼能看出来」是硬条件 —— 没有它你没法判断有没有进步</text>
+
+        <rect x="396" y="296" width="368" height="86" rx="7" fill="rgba(6,78,59,.24)" stroke="#34d399" stroke-width="1.2"/>
+        <text x="414" y="318" fill="#34d399" font-size="10" font-weight="700">② 内核抄现成的，力气花在边界上</text>
+        <text x="414" y="340" fill="#cbd5e1" font-size="8.5">循环三家一模一样，抄就行</text>
+        <text x="414" y="357" fill="#cbd5e1" font-size="8.5">真正花时间的是<tspan fill="#fff">闸门、预算、可观测</tspan></text>
+        <text x="414" y="375" fill="#64748b" font-size="8">这一讲的样本把 23% 的代码花在了「看得清」上，不是在循环上</text>
+
+        <rect x="776" y="296" width="368" height="86" rx="7" fill="rgba(136,19,55,.24)" stroke="#fb7185" stroke-width="1.2"/>
+        <text x="794" y="318" fill="#fb7185" font-size="10" font-weight="700">③ 先造评测，再造功能</text>
+        <text x="794" y="340" fill="#cbd5e1" font-size="8.5">这一讲的样本正好演示了<tspan fill="#fff">不这么做的下场</tspan>：</text>
+        <text x="794" y="357" fill="#cbd5e1" font-size="8.5">四个场景全都<tspan fill="#fff">没有成功率数字</tspan></text>
+        <text x="794" y="375" fill="#64748b" font-size="8">所以只能说「路径被写成了可执行的步骤」，不能说「被证明了有效」</text>
+
+        <rect x="16" y="392" width="1128" height="30" rx="5" fill="rgba(2,6,23,.6)" stroke="#334155" stroke-width="1"/>
+        <text x="30" y="412" fill="#cbd5e1" font-size="9.5">这一讲的方法本身也可以抄：<tspan fill="#fff">钉一个 commit、所有数字自己跑命令、每条断言留路径行号、讲自家项目时先花一整页拆自己的台。</tspan></text>
+
+        <text x="16" y="442" fill="#94a3b8" font-size="9.5">六份研究笔记全部开源，每份带命令原文和「待核实」表。<tspan fill="#fff">发现哪条错了，直接提 Issue</tspan> —— 这类东西越多人挑越好。</text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">github.com/overkazaf/share-slides · 本讲研究笔记 R01–R06 · 取证基线 <b>926e615</b> · 2026-07-31 · 全程只读代码，未执行二进制</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
+    </div>
+  </div>
+
+  <div id="hud">
+    <span id="counter">01/29</span>
+    <button id="btn-prev" title="上一页 ←">‹</button>
+    <button id="btn-next" title="下一页 →">›</button>
+    <button id="btn-ov" title="总览 O">⊞</button>
+  </div>
+
+  <div id="overview">
+    <h2>总览 · 点击跳转 · ESC 返回</h2>
+    <div id="ov-grid"></div>
+  </div>
+
+  <script>
+/* 演示框架运行时：等比缩放 / 键盘导航 / 缩略图总览 */
+(function () {
+  var stage = document.getElementById('stage');
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var progress = document.getElementById('progress');
+  var counter = document.getElementById('counter');
+  var overview = document.getElementById('overview');
+  var ovGrid = document.getElementById('ov-grid');
+  var cur = 0;
+
+  /* --- 等比缩放到视口 --- */
+  function fit() {
+    var pad = 0;
+    var sx = (window.innerWidth - pad) / 1280;
+    var sy = (window.innerHeight - pad) / 720;
+    var s = Math.min(sx, sy);
+    stage.style.transform = 'scale(' + s + ')';
+  }
+  window.addEventListener('resize', fit);
+  fit();
+
+  /* --- 页码 / 页脚注入 --- */
+  slides.forEach(function (el, i) {
+    var foot = el.querySelector('.s-foot .pg');
+    if (foot) foot.textContent = String(i + 1).padStart(2, '0') + ' / ' + String(slides.length).padStart(2, '0');
+  });
+
+  function show(i) {
+    if (i < 0) i = 0;
+    if (i > slides.length - 1) i = slides.length - 1;
+    slides[cur].classList.remove('active');
+    cur = i;
+    slides[cur].classList.add('active');
+    progress.style.width = ((cur + 1) / slides.length * 100) + '%';
+    counter.textContent = String(cur + 1).padStart(2, '0') + '/' + slides.length;
+    if (location.hash !== '#' + (cur + 1)) history.replaceState(null, '', '#' + (cur + 1));
+    Array.prototype.forEach.call(ovGrid.children, function (c, j) {
+      c.classList.toggle('cur', j === cur);
+    });
+  }
+
+  /* --- 缩略图总览 --- */
+  slides.forEach(function (el, i) {
+    var d = document.createElement('div');
+    d.className = 'ov-item';
+    d.innerHTML = '<div class="n">' + String(i + 1).padStart(2, '0') + '</div>' +
+      '<div class="t">' + (el.dataset.title || '') + '</div>' +
+      '<div class="c">' + (el.dataset.ch || '') + '</div>';
+    d.onclick = function () { toggleOverview(false); show(i); };
+    ovGrid.appendChild(d);
+  });
+  function toggleOverview(on) {
+    if (on === undefined) on = !overview.classList.contains('on');
+    overview.classList.toggle('on', on);
+  }
+
+  /* --- 键盘 --- */
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { toggleOverview(false); return; }
+    if (e.key === 'o' || e.key === 'O') { toggleOverview(); return; }
+    if (overview.classList.contains('on')) return;
+    switch (e.key) {
+      case 'ArrowRight': case 'ArrowDown': case ' ': case 'PageDown': case 'n':
+        e.preventDefault(); show(cur + 1); break;
+      case 'ArrowLeft': case 'ArrowUp': case 'PageUp': case 'p':
+        e.preventDefault(); show(cur - 1); break;
+      case 'Home': show(0); break;
+      case 'End': show(slides.length - 1); break;
+      case 'f': case 'F':
+        if (document.fullscreenElement) document.exitFullscreen();
+        else document.documentElement.requestFullscreen();
+        break;
+    }
+  });
+
+  /* --- 点击左右半屏翻页 --- */
+  document.getElementById('stage-wrap').addEventListener('click', function (e) {
+    if (overview.classList.contains('on')) return;
+    if (e.target.closest('#hud')) return;
+    show(e.clientX < window.innerWidth * 0.32 ? cur - 1 : cur + 1);
+  });
+
+  document.getElementById('btn-prev').onclick = function (e) { e.stopPropagation(); show(cur - 1); };
+  document.getElementById('btn-next').onclick = function (e) { e.stopPropagation(); show(cur + 1); };
+  document.getElementById('btn-ov').onclick = function (e) { e.stopPropagation(); toggleOverview(); };
+
+  var start = parseInt((location.hash || '#1').slice(1), 10);
+  show(isNaN(start) ? 0 : start - 1);
+})();
+
+  </script>
+
+<script>
+window.addEventListener('load', function(){
+  setTimeout(function(){
+    var out=[], slides=document.querySelectorAll('.slide');
+    slides.forEach(function(sl,i){
+      var prev=sl.style.display; sl.style.display='flex';
+      var sb=sl.getBoundingClientRect();
+      // 1) HTML 元素越界
+      sl.querySelectorAll('*').forEach(function(el){
+        if(el.tagName==='svg'||el.closest('svg')) return;
+        var r=el.getBoundingClientRect();
+        if(r.width===0&&r.height===0) return;
+        if(r.bottom>sb.bottom-8||r.right>sb.right-4||r.top<sb.top-4||r.left<sb.left-4){
+          out.push('S'+(i+1)+' OVERFLOW <'+el.tagName.toLowerCase()+' class="'+(el.className&&el.className.baseVal===undefined?el.className:'')+'"> '+
+            'box='+Math.round(r.left-sb.left)+','+Math.round(r.top-sb.top)+','+Math.round(r.right-sb.left)+','+Math.round(r.bottom-sb.top)+
+            ' txt="'+(el.textContent||'').trim().slice(0,40)+'"');
+        }
+      });
+      // 2) 主体溢出容器（滚动条）
+      sl.querySelectorAll('.cards,.s-body,.figure,table').forEach(function(el){
+        if(el.scrollHeight>el.clientHeight+3) out.push('S'+(i+1)+' SCROLL-Y '+el.className+' '+el.scrollHeight+'>'+el.clientHeight);
+        if(el.scrollWidth>el.clientWidth+3) out.push('S'+(i+1)+' SCROLL-X '+el.className+' '+el.scrollWidth+'>'+el.clientWidth);
+      });
+      // 3) SVG 内 text 超出 viewBox
+      sl.querySelectorAll('svg').forEach(function(svg){
+        var vb=(svg.getAttribute('viewBox')||'').split(/\s+/).map(Number);
+        if(vb.length!==4) return;
+        svg.querySelectorAll('text').forEach(function(t){
+          try{
+            var bb=t.getBBox();
+            if(bb.x+bb.width>vb[0]+vb[2]+1||bb.y+bb.height>vb[1]+vb[3]+1||bb.x<vb[0]-1){
+              out.push('S'+(i+1)+' SVG-TEXT-OUT x='+Math.round(bb.x)+' w='+Math.round(bb.width)+' end='+Math.round(bb.x+bb.width)+'/'+ (vb[0]+vb[2]) +
+                ' y='+Math.round(bb.y+bb.height)+'/'+(vb[1]+vb[3])+' "'+t.textContent.slice(0,34)+'"');
+            }
+          }catch(e){}
+        });
+      });
+      sl.style.display=prev;
+    });
+    var pre=document.createElement('pre'); pre.id='qa-out';
+    pre.textContent='QA_BEGIN\n'+(out.length?out.join('\n'):'CLEAN')+'\nQA_END';
+    document.body.appendChild(pre);
+  }, 900);
+});
+</script>
+
+</body>
+</html>

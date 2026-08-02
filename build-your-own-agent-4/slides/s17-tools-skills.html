@@ -1,0 +1,98 @@
+<section class="slide" data-ch="CH4 功能点" data-title="工具 24 个 · skill 33 个 · 知识库把幻觉引用记账">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot orange"></span>CH 4 · 功能点</div>
+    <h1 class="s-title">24 个工具 · 33 个 skill · 而知识库<span class="hl-r">把模型编的引用记了账</span></h1>
+    <div class="s-sub">「幻觉」在这里不是靠提示词祈祷压下去的，是<b style="color:#e2e8f0">被显式检出、命名为 inventedCitations、写进会话事件</b>。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cols c64">
+      <div class="figure">
+        <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+          <text x="16" y="14" fill="#94a3b8" font-size="9" font-weight="600">24 个工具，按风险分三层</text>
+
+          <rect x="16" y="22" width="440" height="34" rx="5" fill="rgba(6,78,59,.28)" stroke="#34d399" stroke-width="1.1"/>
+          <text x="30" y="43" fill="#34d399" font-size="9.5" font-weight="700">21 个只读</text>
+          <text x="120" y="43" fill="#cbd5e1" font-size="8">list_files · read_file · grep · file_info · strings · hexdump · hash_file · extract_symbols …</text>
+
+          <rect x="464" y="22" width="100" height="34" rx="5" fill="rgba(120,53,15,.28)" stroke="#fbbf24" stroke-width="1.1"/>
+          <text x="514" y="43" fill="#fbbf24" font-size="9" font-weight="700" text-anchor="middle">1 个写</text>
+
+          <rect x="572" y="22" width="112" height="34" rx="5" fill="rgba(136,19,55,.28)" stroke="#fb7185" stroke-width="1.1"/>
+          <text x="628" y="43" fill="#fb7185" font-size="9" font-weight="700" text-anchor="middle">2 个执行</text>
+
+          <text x="16" y="74" fill="#64748b" font-size="8">MCP 导入的工具一律标 RiskWrite —— 外来的东西默认按最坏情况算　mcp/tools.go:103-105</text>
+
+          <path d="M 16 84 L 684 84" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="102" fill="#a78bfa" font-size="9.5" font-weight="600">33 个 skill —— 渐进式披露发生在「上下文层」，不是「IO 层」</text>
+
+          <rect x="16" y="112" width="326" height="76" rx="6" fill="rgba(76,29,149,.24)" stroke="#a78bfa" stroke-width="1.2"/>
+          <text x="30" y="131" fill="#a78bfa" font-size="9" font-weight="600">启动时：全部读进内存</text>
+          <text x="30" y="150" fill="#cbd5e1" font-size="8.5">33 份 SKILL.md 整份进 Skill.Body</text>
+          <text x="30" y="167" fill="#e2e8f0" font-size="8.5">但注入 system prompt 的只有<tspan fill="#fff">一行目录</tspan>：</text>
+          <text x="30" y="182" fill="#94a3b8" font-size="8">- name: description [tags]　× 33 行</text>
+
+          <rect x="358" y="112" width="326" height="76" rx="6" fill="rgba(6,78,59,.24)" stroke="#34d399" stroke-width="1.2"/>
+          <text x="372" y="131" fill="#34d399" font-size="9" font-weight="600">正文什么时候进上下文</text>
+          <text x="372" y="150" fill="#cbd5e1" font-size="8.5">模型主动调 <tspan fill="#fff">read_skill</tspan>，或操作员 /skill &lt;name&gt;</text>
+          <text x="372" y="167" fill="#e2e8f0" font-size="8.5">/skill &lt;name&gt; &lt;task&gt; 时正文<tspan fill="#fff">硬截 32,000 字符</tspan></text>
+          <text x="372" y="182" fill="#94a3b8" font-size="8">frontmatter 只认 name / description / tags，手写解析器，没上 YAML 库</text>
+
+          <rect x="16" y="196" width="668" height="28" rx="5" fill="rgba(76,29,149,.18)"/>
+          <text x="350" y="215" fill="#a78bfa" font-size="10" font-weight="700" text-anchor="middle">常驻 8,531 字节　vs　全文 397,723 字节　=　1 : 47</text>
+
+          <path d="M 16 236 L 684 236" stroke="#1e293b" stroke-width="1"/>
+          <text x="16" y="254" fill="#fb7185" font-size="9.5" font-weight="600">知识库：检索很土，但对「模型说了不该说的」处理得很狠</text>
+
+          <rect x="16" y="264" width="326" height="70" rx="6" fill="rgba(30,41,59,.6)" stroke="#334155" stroke-width="1"/>
+          <text x="30" y="283" fill="#e2e8f0" font-size="9" font-weight="600">检索：关键词加权 contains</text>
+          <text x="30" y="301" fill="#cbd5e1" font-size="8.5">标题 +8　标签 +6　路径 +3　摘要 +1</text>
+          <text x="30" y="318" fill="#fb7185" font-size="8.5"><tspan fill="#fff">无 embedding · 无 BM25 · 无 IDF · 无词干</tspan></text>
+          <text x="30" y="331" fill="#64748b" font-size="7.5">每次检索都整份重读 JSON，无缓存无数据库</text>
+
+          <rect x="358" y="264" width="326" height="70" rx="6" fill="rgba(136,19,55,.24)" stroke="#fb7185" stroke-width="1.2"/>
+          <text x="372" y="283" fill="#fb7185" font-size="9" font-weight="600">但答案被套了四段中文契约</text>
+          <text x="372" y="301" fill="#e2e8f0" font-size="8.5">### 结论　### 步骤　### 坑　### 出处</text>
+          <text x="372" y="318" fill="#cbd5e1" font-size="8.5">「出处」<tspan fill="#fff">只准写供给条目里字面出现过的 id</tspan></text>
+          <text x="372" y="331" fill="#64748b" font-size="7.5">不许写路径、URL、标题；「坑」没内容就写「- 无」</text>
+
+          <rect x="16" y="344" width="668" height="74" rx="6" fill="rgba(251,146,60,.2)" stroke="#fb923c" stroke-width="1.3"/>
+          <text x="30" y="364" fill="#fb923c" font-size="9.5" font-weight="700">然后最关键的一步：编造的 id 被抓出来，落进会话日志</text>
+          <text x="30" y="383" fill="#cbd5e1" font-size="8.5">{"type":"knowledge", "query":…, "matched":…, "used":…, "citations":…, <tspan fill="#fff">"inventedCitations"</tspan>:…, "parsed":…}</text>
+          <text x="30" y="401" fill="#e2e8f0" font-size="8.5"><tspan fill="#fff">幻觉引用是被显式度量并留痕的</tspan> —— 有了这个数，你才谈得上「这个知识库到底靠不靠谱」</text>
+          <text x="30" y="414" fill="#94a3b8" font-size="7.5">answer.go:203 · commands.go:747-752</text>
+        </svg>
+      </div>
+
+      <div class="cards" style="grid-template-columns:1fr; align-content:start; gap:9px">
+        <div class="card violet">
+          <div class="card-head"><span class="card-dot violet"></span><h3>skill 内容不是壳，是真东西</h3></div>
+          <ul>
+            <li>radare2-reverse <strong>733 行</strong> · analyze-sign <strong>750 行</strong> · gdb <strong>706 行</strong> · ghidra <strong>670 行</strong> · crypto-identification <strong>647 行</strong></li>
+            <li>七大类：Android/APK · Frida · 静态反汇编 · 模拟执行 · 反混淆脱壳 · Web/JS/WASM · 密码学签名</li>
+          </ul>
+        </div>
+        <div class="card emerald">
+          <div class="card-head"><span class="card-dot emerald"></span><h3>知识库打包有个好细节</h3></div>
+          <ul>
+            <li>只有<strong>前 3 条内联全文</strong>，其余给元数据；某条超预算被跳过后<strong>继续打包后面的</strong></li>
+            <li>注释原话：<em>「一条超大的正文，不该让它后面每一条命中的廉价元数据都陪葬」</em></li>
+          </ul>
+        </div>
+        <div class="card rose">
+          <div class="card-head"><span class="card-dot rose"></span><h3>同页的代价：知识库开箱是空的</h3></div>
+          <ul>
+            <li><em>knowledge/</em> 目录里<strong>只有一个 README</strong>，索引 JSON 不入库 —— 你得先跑 <em>cmd/import-knowledge</em> 指向自己的笔记</li>
+            <li>换句话说：<strong>这套机制的价值全在你自己那堆文档上</strong>，项目只提供管道</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">本地实测 · <b>926e615</b> · internal/{tools,skills,knowledge}/ · 研究笔记 R03 §2 §4 §5</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

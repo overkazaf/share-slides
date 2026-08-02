@@ -1,0 +1,80 @@
+<section class="slide" data-ch="CH2 灵感来源" data-title="改了什么：四个不一样的选择，每个给理由和账单">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot violet"></span>CH 2 · 灵感来源</div>
+    <h1 class="s-title">四个<span class="hl-v">不一样的选择</span> —— 每个都有理由，也都有账单</h1>
+    <div class="s-sub">抄什么容易讲，<b style="color:#e2e8f0">不抄什么才见判断</b>。这四条不是「更好」，是<b style="color:#e2e8f0">为另一种活付的另一笔账</b>。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="figure plain">
+      <svg viewBox="0 0 1160 452" xmlns="http://www.w3.org/2000/svg">
+        <text x="16" y="16" fill="#94a3b8" font-size="10" font-weight="600">选择</text>
+        <text x="330" y="16" fill="#34d399" font-size="10" font-weight="600">理由（可核对）</text>
+        <text x="770" y="16" fill="#fb7185" font-size="10" font-weight="600">账单（同页给出）</text>
+        <path d="M 16 24 L 1144 24" stroke="#1e293b" stroke-width="1"/>
+
+        <rect x="16" y="32" width="1128" height="94" rx="6" fill="rgba(8,51,68,.2)" stroke="#22d3ee" stroke-width="1.1"/>
+        <text x="30" y="54" fill="#22d3ee" font-size="11" font-weight="700">① 换语言：TypeScript → Go</text>
+        <text x="30" y="76" fill="#cbd5e1" font-size="9">pi 与 oh-my-pi 都是 TS 生态</text>
+        <text x="30" y="94" fill="#cbd5e1" font-size="9">这里从零写，且有过一个没进 git 的 TS 前身</text>
+        <text x="30" y="114" fill="#64748b" font-size="8">demos/README.md 里的 bun src/cli.ts 就是那具化石</text>
+        <text x="330" y="60" fill="#e2e8f0" font-size="9">原文：<tspan fill="#fff" font-style="italic">"lab boxes rarely have a runtime, and you scp one file."</tspan></text>
+        <text x="330" y="80" fill="#cbd5e1" font-size="9">逆向经常在<tspan fill="#fff">一台干净的、没网的、不归你管的机器上</tspan>干活 ——</text>
+        <text x="330" y="98" fill="#cbd5e1" font-size="9">「装个 node 先」在那个场景里是个真障碍</text>
+        <text x="330" y="116" fill="#94a3b8" font-size="8">CGO_ENABLED=0 · 四个交叉编译目标 · go:embed 把 prompts 和 33 个 skill 打进二进制</text>
+        <text x="770" y="60" fill="#e2e8f0" font-size="9">TS 那边的生态白扔了 —— </text>
+        <text x="770" y="78" fill="#cbd5e1" font-size="9">MCP 客户端、JSON-RPC、TUI、行编辑器<tspan fill="#fff">全得自己写</tspan></text>
+        <text x="770" y="96" fill="#cbd5e1" font-size="9">而且<tspan fill="#fff">没有 Windows 目标</tspan>（注释：the usual lab targets）</text>
+        <text x="770" y="116" fill="#94a3b8" font-size="8">「外部依赖只有 1 个」是结果，不是目标；它等于一笔预付的维护费</text>
+
+        <rect x="16" y="132" width="1128" height="94" rx="6" fill="rgba(120,53,15,.2)" stroke="#fbbf24" stroke-width="1.1"/>
+        <text x="30" y="154" fill="#fbbf24" font-size="11" font-weight="700">② 不造 provider：把 CLI 当后端</text>
+        <text x="30" y="176" fill="#cbd5e1" font-size="9">默认 planner = Codex CLI，executor = Claude Code CLI</text>
+        <text x="30" y="194" fill="#cbd5e1" font-size="9">在 detached tmux 里驱动，不直连 API</text>
+        <text x="30" y="214" fill="#64748b" font-size="8">clitmux.go 731 行，是 providers 里最大的文件</text>
+        <text x="330" y="160" fill="#e2e8f0" font-size="9">两家已经做好的工具集、权限提示、<tspan fill="#fff">订阅计费</tspan>一并白拿</text>
+        <text x="330" y="178" fill="#cbd5e1" font-size="9">而且模型这个主项<tspan fill="#fff">上游每几周免费涨一次</tspan> ——</text>
+        <text x="330" y="196" fill="#cbd5e1" font-size="9">理性做法是主项全额外包，工程量押在你唯一攥得住的次项上</text>
+        <text x="330" y="216" fill="#94a3b8" font-size="8">同时 Claude Code 既是灵感来源，又是一个可选后端 —— config.example.json:29-35</text>
+        <text x="770" y="160" fill="#e2e8f0" font-size="9"><tspan fill="#fff">依赖两个外部 CLI 的版本与登录态</tspan></text>
+        <text x="770" y="178" fill="#cbd5e1" font-size="9">上游一次 breaking change、一次登录过期，编排层集体罢工</text>
+        <text x="770" y="196" fill="#cbd5e1" font-size="9">而这两家的迭代节奏是<tspan fill="#fff">周级</tspan></text>
+        <text x="770" y="216" fill="#94a3b8" font-size="8">再叠一条：两套权限系统摞在一起，重叠处冗余、缝隙处漏，而你只审计了自己那层</text>
+
+        <rect x="16" y="232" width="1128" height="94" rx="6" fill="rgba(136,19,55,.2)" stroke="#fb7185" stroke-width="1.1"/>
+        <text x="30" y="254" fill="#fb7185" font-size="11" font-weight="700">③ 换默认安全姿态：从「锋利」到「先问」</text>
+        <text x="30" y="276" fill="#cbd5e1" font-size="9">第二讲实测过：pi 全仓 grep permission 三处命中</text>
+        <text x="30" y="294" fill="#cbd5e1" font-size="9">全是注释和许可证，<tspan fill="#fff">连路径沙箱都没有</tspan></text>
+        <text x="30" y="314" fill="#64748b" font-size="8">这里换成 tier × mode 的分级审批 + 命令正则 concerns</text>
+        <text x="330" y="260" fill="#e2e8f0" font-size="9">因为<tspan fill="#fff">样本本身就是攻击面</tspan> —— 被分析的二进制可以反过来攻击分析它的 agent</text>
+        <text x="330" y="278" fill="#cbd5e1" font-size="9">模型的安全对齐在这个场景近乎失效（八个前沿模型只有一个偶尔拒绝，拒绝率 0.86%）</text>
+        <text x="330" y="296" fill="#cbd5e1" font-size="9">所以防线只能建在 harness 层，<tspan fill="#fff">用开关，不用劝说</tspan></text>
+        <text x="330" y="316" fill="#94a3b8" font-size="8">读限工作区内 / 写要 --write / 联网要 --allow-network / 敏感路径要 --allow-sensitive</text>
+        <text x="770" y="260" fill="#e2e8f0" font-size="9"><tspan fill="#fff">这道闸目前是漏的，而且不止一处</tspan></text>
+        <text x="770" y="278" fill="#cbd5e1" font-size="9">默认档 safe 对 tier 一律放行；run_command 就是 bash -c，</text>
+        <text x="770" y="296" fill="#cbd5e1" font-size="9">无 chroot / namespace / seccomp；路径检查<tspan fill="#fff">不解 symlink</tspan></text>
+        <text x="770" y="316" fill="#94a3b8" font-size="8">第 28 页把七个洞逐个摊开 —— 这是本讲最不体面、也最该讲的一页</text>
+
+        <rect x="16" y="332" width="1128" height="80" rx="6" fill="rgba(76,29,149,.2)" stroke="#a78bfa" stroke-width="1.1"/>
+        <text x="30" y="354" fill="#a78bfa" font-size="11" font-weight="700">④ 换优化目标：从「改代码」到「读二进制」</text>
+        <text x="30" y="376" fill="#cbd5e1" font-size="9">六条不抄的里，四条是这句话的直接推论：</text>
+        <text x="30" y="394" fill="#cbd5e1" font-size="9">哈希锚定编辑 · LSP/DAP 层 · 跨语言 worker · 自造 shell</text>
+        <text x="330" y="360" fill="#e2e8f0" font-size="9">原文：<tspan fill="#fff" font-style="italic">"oh-my-pi optimizes for changing code. 0xAF-Re optimizes for reading binaries."</tspan></text>
+        <text x="330" y="380" fill="#cbd5e1" font-size="9">改代码要能精准落笔，所以要哈希锚定、要 LSP；</text>
+        <text x="330" y="398" fill="#cbd5e1" font-size="9"><tspan fill="#fff">读二进制只跑一次 strings，然后盯着结果看很久</tspan> —— 所以力气该花在看得清上</text>
+        <text x="770" y="360" fill="#e2e8f0" font-size="9">这句话被实测<tspan fill="#fff">独立验证了</tspan>：internal/ui 5,608 行，</text>
+        <text x="770" y="378" fill="#cbd5e1" font-size="9">是内核 internal/core（2,086 行）的 <tspan fill="#fff">2.7 倍</tspan></text>
+        <text x="770" y="398" fill="#94a3b8" font-size="8">代价是：它<tspan fill="#fff">不适合改代码</tspan>。想用它做日常编码，第一天就会撞墙 —— 这不是缺陷，是选型</text>
+
+        <rect x="16" y="420" width="1128" height="26" rx="5" fill="rgba(2,6,23,.6)" stroke="#334155" stroke-width="1"/>
+        <text x="30" y="438" fill="#cbd5e1" font-size="9.5">作者自己的总结（原文）：<tspan fill="#fff" font-style="italic">"The honest summary: oh-my-pi is a platform and 0xAF-Re is a tool."</tspan><tspan fill="#94a3b8">　平台和工具不比大小，比的是选对没有。</tspan></text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">本地实测 · <b>926e615</b> · README.md · docs/diagrams/07-vs-oh-my-pi.svg · Makefile · 研究笔记 R01 §3–5 · R06 §1 · 0.86% 拒绝率引自第一讲 R09 Part B</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>

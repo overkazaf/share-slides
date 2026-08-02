@@ -1,0 +1,61 @@
+<section class="slide" data-ch="CH5 三方对比" data-title="挤干水分之后，剩下四条配置到达不了的选择">
+  <div class="s-head">
+    <div class="s-kicker"><span class="dot slate"></span>CH 5 · 与 pi / oh-my-pi 的区别</div>
+    <h1 class="s-title">水分挤完，剩下<span class="hl-a">四条</span> —— 配置到不了的地方</h1>
+    <div class="s-sub">每一条都必须满足：<b style="color:#e2e8f0">要么换语言，要么换分发形态，要么重写内核</b>。改配置、写 SKILL.md、装扩展，都到不了。</div>
+  </div>
+
+  <div class="s-body">
+    <div class="cards c2" style="gap:12px">
+
+      <div class="card cyan">
+        <div class="card-head"><span class="card-num">S1</span><h3>分发形态：1 个依赖的静态单二进制</h3></div>
+        <ul>
+          <li><em>CGO_ENABLED=0</em> 交叉编译四平台，<em>go:embed</em> 把 <strong>397 KB 的 skill（加 prompts 共约 403 KB）打进二进制</strong>，<strong>目标机零运行时</strong></li>
+          <li>对照：pi 是 npm + 27 个依赖；omp 是 npm + 原生 addon + <strong>664 个 npm 包 + 912 个 crate</strong></li>
+          <li><strong>为什么配不出来</strong>：这是换语言才能得到的东西。而它只在一个场景里真的重要 —— <strong>scp 到一台离线的、受限的、不归你管的分析机</strong></li>
+        </ul>
+      </div>
+
+      <div class="card amber">
+        <div class="card-head"><span class="card-num">S2</span><h3>把别的 agent 当模型用</h3></div>
+        <ul>
+          <li><em>cli-tmux</em> provider <strong>1,443 行</strong>：tmux 生命周期 + 三种私有 JSONL 事件格式 + 原生 session 续接 + Claude 任务表状态机</li>
+          <li>注释原话：<em>「在 detached tmux 里跑一个本地 coding CLI，tail 它的 JSONL stdout，让操作员实时看到推理、工具活动和 token 计数」</em></li>
+          <li><strong>为什么是结构性的</strong>：pi/omp 的 provider 契约不覆盖这种形态。它把 re-agent 从「一个 agent」变成<strong>「别人 agent 的编排者」</strong>，顺带<strong>改了计费模型 —— 吃订阅，不吃 API token</strong></li>
+        </ul>
+      </div>
+
+      <div class="card rose">
+        <div class="card-head"><span class="card-num">S3</span><h3>为「模型拒答」设计的两阶段隔离</h3></div>
+        <ul>
+          <li>四个开关<strong>同时打在 RunOptions 上</strong>：<em>Isolated</em> + <em>FreshSession</em> + 独立 system prompt + 收窄到 14 个只读工具 —— <strong>内核级支持，不是外挂</strong></li>
+          <li><strong>这是四条里唯一一条能直接从领域推出来的架构</strong>。omp 的 11 种 dialect 是同一架构家族，但它解的是<strong>能力</strong>问题，不是<strong>拒答</strong>问题</li>
+          <li>而且红线写死在代码和单测里：不许翻译、不许暗语、不许 prompt laundering</li>
+        </ul>
+      </div>
+
+      <div class="card violet">
+        <div class="card-head"><span class="card-num">S4</span><h3>扩展性方向：把几十个钩子压成 1 个 interface</h3></div>
+        <ul>
+          <li>全仓<strong>只有一个 interface</strong>（<em>types.Provider</em>，三个方法）+ 8 个回调。对照 pi 的 33 个钩子、omp 的 25+39 钩子 + 5 类扩展点 + 14×17 能力矩阵</li>
+          <li>pi 和 omp 把权限、plan mode、todo、MCP、上下文发现<strong>全推到扩展层</strong>；re-agent <strong>全焊进内核</strong>，扩展只剩数据（JSON / md / MCP）</li>
+          <li><strong>这是两个互相配置不到的极点。</strong>没有谁对谁错 —— 一个赌「别人会来扩展」，一个赌「只有我自己会改」</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="takeaway" style="border-color:rgba(251,191,36,.42); background:rgba(120,53,15,.24); color:#fde68a; line-height:1.7">
+      <b style="color:#fbbf24">整章一句话 →</b>
+      re-agent <b style="color:#fff">不是「更小的 pi」，也不是「配了 RE prompt 的 pi」</b>。它在四件事上做了配置到达不了的选择：<b style="color:#fff">换语言换分发形态、把别的 agent 当 provider、为拒答设计两阶段隔离、把扩展面压成一个 interface</b>。<br>
+      <span style="color:#94a3b8">除此之外 —— skill、prompt、工具清单、审批闸、MCP —— <b style="color:#fff">全是 pi/omp 用现成机制就能复刻的配置层</b>；而重试、会话树、并发调度、quirk 表、中断模型这五项，<b style="color:#fff">它是明确落后的</b>。<b style="color:#fff">这就是「一个人写一个 harness」到今天能到的真实位置。</b></span>
+    </div>
+  </div>
+
+  <div class="s-foot">
+    <span class="src">判据：只改配置 / SKILL.md / 现成扩展能否复刻 · 逐条证据见研究笔记 R04 §2 🔴 S1–S4</span>
+    <span class="spacer"></span>
+    <span class="pg"></span>
+  </div>
+</section>
